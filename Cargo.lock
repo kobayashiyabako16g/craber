@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "craber"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -503,7 +503,7 @@ dependencies = [
 
 [[package]]
 name = "craber-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "globset",
  "insta",
@@ -515,7 +515,7 @@ dependencies = [
 
 [[package]]
 name = "craber-export"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "craber-core",
@@ -527,7 +527,7 @@ dependencies = [
 
 [[package]]
 name = "craber-introspect"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "craber-core",
  "craber-parser",
@@ -541,14 +541,14 @@ dependencies = [
 
 [[package]]
 name = "craber-layout"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "craber-core",
 ]
 
 [[package]]
 name = "craber-parser"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "craber-core",
  "sqlparser",
@@ -556,7 +556,7 @@ dependencies = [
 
 [[package]]
 name = "craber-render"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "craber-core",
  "craber-layout",
@@ -565,7 +565,7 @@ dependencies = [
 
 [[package]]
 name = "craber-site"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "craber-core",
  "serde_json",
