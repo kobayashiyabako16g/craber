@@ -1,0 +1,58 @@
+# `nix build` is the only path that proves the web bundle really ends up inside
+# the binary: crates/craber-site/build.rs only warns when it cannot find one
+# and crates/craber/tests/build.rs passes by skipping. The
+# flake's installCheckPhase renders a site and fails if it comes out empty.
+#
+# It is a full uncached Rust build, so it is not on every pull request. These
+# paths are the ones that actually break the flake: an input or toolchain moving,
+# a new dependency wanting a native library, or a lockfile change invalidating
+# the fixed-output pnpm deps. A change under crates/ that breaks only the Nix
+# build is caught by `just nix-build` before tagging instead.
+name: Nix
+
+on:
+  pull_request:
+    paths:
+      - flake.nix
+      - flake.lock
+      - Cargo.toml
+      - Cargo.lock
+      - web/package.json
+      - web/pnpm-lock.yaml
+      - .github/workflows/nix.yml
+  push:
+    branches: [main]
+    paths:
+      - flake.nix
+      - flake.lock
+      - Cargo.toml
+      - Cargo.lock
+      - web/package.json
+      - web/pnpm-lock.yaml
+      - .github/workflows/nix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          # Unauthenticated github: input fetches from a hosted runner share a
+          # 60-requests-per-hour limit with every other runner on that IP.
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      # Not `nix flake check`: that evaluates every output for every system,
+      # including ones this runner cannot build.
+      - name: Build the binary, frontend included
+        run: nix build --print-build-logs .#craber

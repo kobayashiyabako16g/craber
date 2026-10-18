@@ -1,0 +1,88 @@
+# The container image is outside what dist does, so it is wired in as a custom
+# publish job (`publish-jobs` in dist-workspace.toml). dist calls this with
+# `secrets: inherit` and the release plan as its only input, and skips it for
+# prerelease tags.
+#
+# It builds no code: dist has already produced static musl binaries on native
+# runners, so this downloads those and copies them into a scratch image.
+name: PublishDocker
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PLAN: ${{ inputs.plan }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read the tag out of the plan
+        run: |
+          tag=$(printf '%s' "$PLAN" | jq -r '.announcement_tag')
+          version="${tag#v}"
+          {
+            printf 'TAG=%s\n' "$tag"
+            printf 'VERSION=%s\n' "$version"
+            printf 'MINOR=%s\n' "${version%.*}"
+          } >> "$GITHUB_ENV"
+
+      # The archive root is a directory named after the archive, hence
+      # --strip-components=1. Only the binary is wanted; the README and licences
+      # in there belong to the release, not the image.
+      - name: Fetch the musl binaries from the release
+        run: |
+          set -euo pipefail
+          for pair in amd64:x86_64 arm64:aarch64; do
+            arch="${pair%%:*}"
+            triple="${pair##*:}-unknown-linux-musl"
+            gh release download "$TAG" --pattern "craber-${triple}.tar.xz" --dir /tmp --clobber
+            mkdir -p "docker-stage/$arch"
+            tar -xJf "/tmp/craber-${triple}.tar.xz" --strip-components=1 \
+              -C "docker-stage/$arch" --wildcards '*/craber'
+          done
+
+      # The default `docker` driver cannot emit a multi-platform manifest list;
+      # the container driver can. --bootstrap pulls buildkit up front so a
+      # failure to start it reads as a failure of this step.
+      - name: Build and push
+        run: |
+          set -euo pipefail
+          # The owner plus the product name, not github.repository: this is the
+          # `ghcr.io/<org>/craber` spelling CONTRIBUTING.md fixes, and it
+          # survives the repository being renamed.
+          image="ghcr.io/${{ github.repository_owner }}/craber"
+
+          docker buildx create --name craber --driver docker-container --use --bootstrap
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          # --provenance=false: buildx attaches a provenance attestation by
+          # default, which shows up as spurious unknown/unknown entries in the
+          # manifest list. Worth turning on deliberately later, not by accident.
+          #
+          # org.opencontainers.image.source is not decoration — it is what links
+          # the GHCR package back to this repository, which is how the package
+          # inherits the repo's visibility and how GITHUB_TOKEN keeps being
+          # allowed to push to it.
+          docker buildx build . \
+            --platform linux/amd64,linux/arm64 \
+            --provenance=false \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --tag "$image:$VERSION" \
+            --tag "$image:$MINOR" \
+            --tag "$image:latest" \
+            --push

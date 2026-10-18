@@ -1,0 +1,97 @@
+---
+source: crates/craber-core/tests/wire_format.rs
+expression: sample()
+---
+{
+  "schemaVersion": 2,
+  "name": "shop",
+  "tables": [
+    {
+      "schema": "public",
+      "name": "users",
+      "comment": "Registered accounts",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "dataType": "text",
+          "nullable": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "orders",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "bigint",
+          "nullable": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "orders_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 320.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 320.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 320.0,
+          "y": 180.0
+        }
+      }
+    }
+  ]
+}

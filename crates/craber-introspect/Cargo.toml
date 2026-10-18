@@ -1,0 +1,42 @@
+[package]
+name         = "craber-introspect"
+description  = "Live database schema to CrabER schema IR, via sqlx"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+# Workspace inheritance is opt-in per key, so these have to be claimed here
+# even though the values live in [workspace.package]. crates.io wants them.
+repository.workspace   = true
+keywords.workspace     = true
+categories.workspace   = true
+readme.workspace       = true
+
+# One feature per backend. `--no-default-features --features postgres,mysql`
+# leaves bundled SQLite — and the `cc` invocation that compiles it — out of the
+# build.
+[features]
+default  = ["postgres", "mysql", "sqlite"]
+postgres = ["sqlx/postgres"]
+mysql    = ["sqlx/mysql"]
+sqlite   = ["sqlx/sqlite-bundled"]
+
+[dependencies]
+craber-core = { workspace = true }
+sqlx        = { workspace = true }
+thiserror   = { workspace = true }
+tokio       = { workspace = true }
+
+[dev-dependencies]
+# Only the round-trip test, which asserts that reading a live database and
+# parsing the DDL that built it describe the same diagram.
+craber-parser          = { workspace = true }
+insta                  = { workspace = true }
+# Already a dependency of the crate; the tests need it to *write* the databases
+# they then read back.
+sqlx                   = { workspace = true, features = ["sqlite-bundled"] }
+testcontainers         = { workspace = true }
+testcontainers-modules = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,55 @@
+[package]
+name         = "craber"
+description  = "Visualize ER diagrams from SQL DDL or a live database"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+# Workspace inheritance is opt-in per key, so these have to be claimed here
+# even though the values live in [workspace.package]. crates.io wants them.
+repository.workspace   = true
+keywords.workspace     = true
+categories.workspace   = true
+readme.workspace       = true
+
+[[bin]]
+name = "craber"
+path = "src/main.rs"
+
+# Forwarded from craber-introspect so `--no-default-features --features
+# postgres,mysql` reaches the backend that actually has the dependency.
+[features]
+default  = ["postgres", "mysql", "sqlite"]
+postgres = ["craber-introspect/postgres"]
+mysql    = ["craber-introspect/mysql"]
+sqlite   = ["craber-introspect/sqlite"]
+
+[dependencies]
+craber-core   = { workspace = true }
+craber-parser = { workspace = true }
+craber-layout = { workspace = true }
+# No `craber-render`: the binary asks craber-export for bytes in a format and
+# does not know which crate produced them. `--format svg` reaches the renderer
+# through there.
+#
+# `clap` so `Format` keeps spelling its own values in `--help`; the feature
+# exists because nothing else needs an argument parser to encode a diagram.
+craber-export = { workspace = true, features = ["clap"] }
+craber-site   = { workspace = true }
+# No `sqlx` and no `tokio` here, deliberately: the runtime lives inside
+# craber-introspect and does not cross its boundary.
+craber-introspect = { workspace = true }
+
+anyhow             = { workspace = true }
+clap               = { workspace = true }
+serde              = { workspace = true }
+serde_json         = { workspace = true }
+toml               = { workspace = true }
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[lints]
+workspace = true

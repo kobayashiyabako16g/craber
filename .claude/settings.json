@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(just ui:*)",
+      "Bash(just sample:*)",
+      "Bash(just sample-reset)",
+      "Bash(just bindings)",
+      "Bash(git restore web/public/schema.json)"
+    ]
+  }
+}

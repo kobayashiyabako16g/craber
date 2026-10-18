@@ -1,0 +1,18 @@
+# Committing the scope here means CI and everyone's laptop draw the same
+# diagram, instead of every invocation repeating a pile of --exclude flags:
+#
+#   craber export --config examples/02-filtering/craber.toml --format json
+#
+# `file` is relative to this file, not to the working directory, so the command
+# above draws the same diagram from anywhere in the repository.
+#
+# CLI flags replace these lists rather than adding to them, so passing
+# `--exclude sessions` on the command line drops the three exclusions below.
+
+file = "shop.sql"
+
+exclude = [
+  "schema_migrations",
+  "sessions",
+  "audit_log*",
+]

@@ -1,0 +1,657 @@
+/*
+ * CrabER's styling. The design tokens it uses — colours, node metrics — are NOT
+ * here: they are generated into `generated/tokens.css` from
+ * crates/craber-core/src/theme.rs, because the Rust layout positions a node from
+ * the same numbers the browser sizes it with, and the two drifting apart draws
+ * overlapping tables. Change a token there and run `just bindings`.
+ *
+ * Light mode is deliberately deferred; everything below reads a token, so
+ * adding it later is a second :root block in the generated file, not a rewrite.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--craber-bg);
+  color: var(--craber-text);
+  font-family: var(--craber-font);
+  font-size: 13px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.craber-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.craber-body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+.craber-message {
+  padding: 24px;
+  color: var(--craber-text-muted);
+}
+
+.craber-message code {
+  font-family: var(--craber-font-mono);
+  color: var(--craber-text);
+}
+
+/* Shared controls */
+.craber-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  color: var(--craber-text-muted);
+}
+
+.craber-icon-button:hover {
+  background: var(--craber-surface-hover);
+  color: var(--craber-text);
+}
+
+.craber-icon-button.is-active {
+  color: var(--craber-text);
+}
+
+.craber-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: var(--craber-text-muted);
+  font-size: 11px;
+}
+
+.craber-ghost-button:hover {
+  background: var(--craber-surface-hover);
+  color: var(--craber-text);
+}
+
+.craber-ghost-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.craber-ghost-button:disabled:hover {
+  background: none;
+  color: var(--craber-text-muted);
+}
+
+.craber-primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: var(--craber-accent);
+  color: var(--craber-accent-text);
+  font-weight: 600;
+}
+
+.craber-primary-button:hover {
+  filter: brightness(1.08);
+}
+
+/* Top bar */
+.craber-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: var(--craber-surface);
+  border-bottom: 1px solid var(--craber-border);
+}
+
+.craber-topbar-spacer {
+  flex: 1 1 auto;
+}
+
+.craber-logo {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.craber-logo span {
+  color: var(--craber-accent);
+}
+
+.craber-schema-name {
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+}
+
+/* Sidebar */
+.craber-sidebar {
+  width: var(--craber-sidebar-width);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--craber-surface);
+  border-right: 1px solid var(--craber-border);
+}
+
+.craber-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 6px 12px;
+}
+
+.craber-sidebar-title {
+  font-weight: 600;
+}
+
+.craber-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 6px;
+  padding: 0 8px;
+  height: 28px;
+  border: 1px solid var(--craber-border);
+  border-radius: 6px;
+  color: var(--craber-text-muted);
+}
+
+.craber-search:focus-within {
+  border-color: var(--craber-accent-dim);
+}
+
+.craber-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  color: var(--craber-text);
+  font: inherit;
+}
+
+.craber-search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.craber-sidebar-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+.craber-sidebar-empty {
+  margin: 8px;
+  color: var(--craber-text-muted);
+}
+
+.craber-sidebar-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 2px;
+  border-radius: 6px;
+}
+
+.craber-sidebar-row:hover {
+  background: var(--craber-surface-hover);
+}
+
+.craber-sidebar-row.is-selected {
+  background: var(--craber-surface-raised);
+  box-shadow: inset 2px 0 0 var(--craber-accent);
+}
+
+.craber-sidebar-row.is-hidden .craber-sidebar-row-name {
+  color: var(--craber-text-muted);
+  text-decoration: line-through;
+}
+
+.craber-sidebar-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 100%;
+  padding: 0 6px;
+  color: var(--craber-text);
+  text-align: left;
+}
+
+.craber-sidebar-row-name svg {
+  flex: 0 0 auto;
+  color: var(--craber-text-muted);
+}
+
+.craber-sidebar-row-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-sidebar-foot {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-top: 1px solid var(--craber-border);
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 11px;
+}
+
+/* Canvas */
+.craber-canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.craber-markers {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Floating toolbar */
+.craber-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
+}
+
+.craber-toolbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--craber-border);
+}
+
+.craber-zoom {
+  min-width: 42px;
+  text-align: center;
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 11px;
+}
+
+/* Table node */
+.craber-node {
+  /* Edge handles sit on a column row, so each row — and the node itself, for
+     the fallback anchor — has to be what they are positioned against. */
+  position: relative;
+  width: var(--craber-node-width);
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: var(--craber-radius);
+  overflow: hidden;
+  font-size: 12px;
+  transition: opacity 120ms ease-out;
+}
+
+.craber-node.is-selected {
+  border-color: var(--craber-accent);
+  box-shadow: 0 0 0 1px var(--craber-accent);
+}
+
+/* Focus: a selected table's neighbourhood stays lit, the rest recedes. */
+.react-flow__node.craber-dimmed,
+.react-flow__edge.craber-dimmed {
+  opacity: 0.25;
+}
+
+.react-flow__edge {
+  transition: opacity 160ms ease-out;
+}
+
+.craber-node-header {
+  height: var(--craber-node-header);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: var(--craber-surface-raised);
+  font-weight: 600;
+}
+
+.craber-node-glyph {
+  flex: 0 0 auto;
+  color: var(--craber-accent);
+}
+
+.craber-node-schema {
+  color: var(--craber-text-muted);
+  font-weight: 400;
+}
+
+.craber-node-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-node-columns {
+  border-top: 1px solid var(--craber-border);
+}
+
+.craber-node-column {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--craber-node-row);
+  padding: 0 10px;
+  font-family: var(--craber-font-mono);
+}
+
+.craber-node-column + .craber-node-column {
+  border-top: 1px solid var(--craber-border);
+}
+
+.craber-node-column-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-note {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--craber-text-muted);
+  cursor: help;
+}
+
+.craber-node-column-type {
+  color: var(--craber-text-muted);
+  font-size: 11px;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-glyph {
+  flex: 0 0 auto;
+}
+
+.craber-glyph-pk {
+  color: var(--craber-accent);
+}
+
+.craber-glyph-fk {
+  color: var(--craber-glyph-fk);
+}
+
+.craber-glyph-plain {
+  color: var(--craber-text-muted);
+}
+
+/* React Flow overrides */
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__edge-path {
+  stroke: var(--craber-edge);
+  stroke-width: 1.5;
+  /* Selecting a table recolours its relationships. Without a transition the
+     whole diagram changes colour between one frame and the next, and the eye
+     has nothing to follow from the click to the lines it lit. */
+  transition: stroke 160ms ease-out, stroke-width 160ms ease-out;
+}
+
+/* A line the reader is pointing at, whatever else is selected: the hit area
+   React Flow draws for the edge is wider than the line, so this answers a
+   hover the line itself is too thin to catch. */
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--craber-text-muted);
+}
+
+/* A selected table's own relationships. The crow's feet come along: the
+   markers stroke in `context-stroke`, which is this rule's colour. */
+.react-flow__edge.craber-edge-focus .react-flow__edge-path {
+  stroke: var(--craber-accent);
+  stroke-width: 1.8;
+}
+
+.react-flow__edge.craber-edge-inferred .react-flow__edge-path {
+  stroke-dasharray: 4 3;
+}
+
+.react-flow__minimap {
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: var(--craber-radius);
+}
+
+.react-flow__minimap-node {
+  fill: var(--craber-surface-raised);
+  stroke: var(--craber-border);
+}
+
+/* What the minimap dims outside the current view. Here rather than React
+   Flow's `maskColor` prop, which took the only hard-coded colour in the app —
+   and one that was not quite the background it was imitating. */
+.react-flow__minimap-mask {
+  fill: color-mix(in srgb, var(--craber-bg) 75%, transparent);
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--craber-text-muted);
+}
+
+/* Table details */
+.craber-details {
+  width: 320px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--craber-surface);
+  border-left: 1px solid var(--craber-border);
+}
+
+.craber-details-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--craber-border);
+  color: var(--craber-text-muted);
+}
+
+.craber-details-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--craber-text);
+  font-weight: 600;
+}
+
+.craber-details-schema {
+  color: var(--craber-text-muted);
+  font-weight: 400;
+}
+
+.craber-details-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 12px 16px;
+}
+
+.craber-details-comment {
+  margin: 10px 0 0;
+  color: var(--craber-text-muted);
+}
+
+.craber-details-section {
+  margin: 16px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--craber-text-muted);
+}
+
+.craber-details-card {
+  margin-bottom: 8px;
+  border: 1px solid var(--craber-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.craber-details-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--craber-surface-raised);
+  font-weight: 600;
+}
+
+.craber-details-card dl {
+  margin: 0;
+}
+
+.craber-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 10px;
+}
+
+.craber-fact + .craber-fact {
+  border-top: 1px solid var(--craber-border);
+}
+
+.craber-fact dt {
+  flex: 0 0 auto;
+  color: var(--craber-text-muted);
+}
+
+.craber-fact dd {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* A value too long for the label's line takes the panel's full width. */
+.craber-fact.is-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding-bottom: 7px;
+}
+
+.craber-fact.is-stacked dd {
+  text-align: left;
+}
+
+.craber-prose {
+  overflow-wrap: break-word;
+  line-height: 1.45;
+}
+
+.craber-mono {
+  font-family: var(--craber-font-mono);
+}
+
+.craber-details-relation {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--craber-border);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.craber-details-relation-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.craber-details-relation-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.craber-details-relation:hover {
+  background: var(--craber-surface-hover);
+}
+
+.craber-details-relation-join {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--craber-text-muted);
+  font-size: 11px;
+}
+
+.craber-details-tag {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--craber-surface-raised);
+  color: var(--craber-text-muted);
+  font-size: 11px;
+}
+
+.craber-details-empty {
+  margin: 0;
+  color: var(--craber-text-muted);
+}

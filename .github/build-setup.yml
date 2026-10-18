@@ -1,0 +1,57 @@
+# Steps dist injects at the top of every build job, right after checkout.
+# Configured as `github-build-setup` in dist-workspace.toml. This is a bare list
+# of steps, not a workflow — hence the leading `-` and no `jobs:`.
+#
+# The web bundle is compiled into the binary, so it has to exist before
+# `cargo build`. Getting this wrong does not fail the build: build.rs only
+# emits a cargo:warning and the binary then refuses `craber build` and
+# `craber serve` at run time. That is why the release checklist says to actually
+# run a downloaded binary.
+#
+# These run on all five matrix legs, Windows included, so every `run` names
+# bash explicitly and uses a literal (|) block — dist mangles folded scalars.
+#
+# Every step needs a `name`: dist's workflow template reads step.name and fails
+# to render without it.
+- name: Install pnpm
+  uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+  with:
+    package_json_file: web/package.json
+- name: Install Node
+  uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+  with:
+    node-version: 24
+    cache: pnpm
+    cache-dependency-path: web/pnpm-lock.yaml
+- name: Build the web bundle
+  shell: bash
+  run: |
+    # `cd`, not working-directory: dist's template only forwards name, uses,
+    # with, run, shell and env, and drops anything else without a word.
+    cd web
+    pnpm install --frozen-lockfile
+    pnpm build
+- name: Point craber-site at the bundle
+  shell: bash
+  run: |
+    # Absolute, and this matters: build.rs passes CRABER_WEB_DIST straight to
+    # PathBuf::from without the manifest.join() it applies to its other two
+    # candidates, so a relative path would be resolved against
+    # crates/craber-site/ and lose without saying anything.
+    echo "CRABER_WEB_DIST=$GITHUB_WORKSPACE/web/dist" >> "$GITHUB_ENV"
+- name: Name the musl compiler for aarch64
+  shell: bash
+  run: |
+    # dist installs `musl-tools` for musl targets, which provides `musl-gcc` and
+    # nothing prefixed. The `cc` crate resolves a cross compiler by target
+    # prefix, and for aarch64-unknown-linux-musl it asks for
+    # `aarch64-linux-musl-gcc` with no fallback (cc 1.4.4 src/lib.rs:3888) —
+    # unlike x86_64-unknown-linux-musl, which does fall back to `musl-gcc`
+    # (:4029). On the native arm64 runner `musl-gcc` *is* the aarch64 compiler,
+    # so it only needs saying. Without this, libsqlite3-sys and ring fail to
+    # find a compiler on that one leg.
+    #
+    # The archiver needs no equivalent: cc falls back to plain `ar`, which is
+    # architecture-agnostic. And the variable is target-scoped, so setting it on
+    # every leg is inert everywhere else.
+    echo "CC_aarch64_unknown_linux_musl=musl-gcc" >> "$GITHUB_ENV"

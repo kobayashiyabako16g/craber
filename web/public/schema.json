@@ -1,0 +1,8602 @@
+{
+  "schemaVersion": 2,
+  "name": "wide",
+  "tables": [
+    {
+      "schema": "public",
+      "name": "tenants",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "slug",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "plan_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "slug"
+          ],
+          "unique": true
+        },
+        {
+          "name": "tenants_plan_id_idx",
+          "columns": [
+            "plan_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "tenants_plan_id_fkey",
+          "columns": [
+            "plan_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "plans"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 700.0,
+          "y": 1634.7559
+        },
+        "keyOnly": {
+          "x": 700.0,
+          "y": 2563.9988
+        },
+        "allFields": {
+          "x": 700.0,
+          "y": 3222.7698
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "users",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "full_name",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "email"
+          ],
+          "unique": true
+        },
+        {
+          "name": "users_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "users_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 995.5568
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 1554.427
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 1977.8629
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "teams",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "teams_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "teams_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 1462.5059
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 2299.7488
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 2898.1448
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "team_members",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "team_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "role_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "team_members_team_id_idx",
+          "columns": [
+            "team_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "team_members_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "team_members_role_id_idx",
+          "columns": [
+            "role_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "team_members_team_id_fkey",
+          "columns": [
+            "team_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "teams"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "team_members_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "team_members_role_id_fkey",
+          "columns": [
+            "role_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "roles"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1488.0059
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 2241.5762
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 2843.123
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "roles",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "roles_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "roles_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 1564.5059
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 2447.7488
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 3092.1448
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "permissions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 1872.9966
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 2915.1853
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 3634.4297
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "role_permissions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "role_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "permission_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "role_permissions_role_id_idx",
+          "columns": [
+            "role_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "role_permissions_permission_id_idx",
+          "columns": [
+            "permission_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "role_permissions_role_id_fkey",
+          "columns": [
+            "role_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "roles"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "role_permissions_permission_id_fkey",
+          "columns": [
+            "permission_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "permissions"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1849.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 2851.4353
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 3587.9297
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "invitations",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "invited_by",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "role_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "invitations_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitations_invited_by_idx",
+          "columns": [
+            "invited_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitations_role_id_idx",
+          "columns": [
+            "role_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "invitations_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "invitations_invited_by_fkey",
+          "columns": [
+            "invited_by"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "invitations_role_id_fkey",
+          "columns": [
+            "role_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "roles"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1590.0059
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 2435.5762
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 3060.123
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "user_profiles",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "bio",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "country_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "user_id"
+          ],
+          "unique": true
+        },
+        {
+          "name": "user_profiles_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_profiles_country_id_idx",
+          "columns": [
+            "country_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "user_profiles_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "oneToOne",
+          "optional": false
+        },
+        {
+          "name": "user_profiles_country_id_fkey",
+          "columns": [
+            "country_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "countries"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "user_settings",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "locale_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "timezone_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "user_id"
+          ],
+          "unique": true
+        },
+        {
+          "name": "user_settings_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_settings_locale_id_idx",
+          "columns": [
+            "locale_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_settings_timezone_id_idx",
+          "columns": [
+            "timezone_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "user_settings_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "oneToOne",
+          "optional": false
+        },
+        {
+          "name": "user_settings_locale_id_fkey",
+          "columns": [
+            "locale_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "locales"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "user_settings_timezone_id_fkey",
+          "columns": [
+            "timezone_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "timezones"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 3579.161
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 5635.2026
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 7185.7393
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "sessions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "token",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "expires_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "sessions_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "sessions_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 375.7744
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 590.71704
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 712.80566
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "api_keys",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_by",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "label",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "api_keys_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api_keys_created_by_idx",
+          "columns": [
+            "created_by"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "api_keys_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "api_keys_created_by_fkey",
+          "columns": [
+            "created_by"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1943.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3014.4353
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 3773.9297
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "api_key_scopes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "api_key_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "permission_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "api_key_scopes_api_key_id_idx",
+          "columns": [
+            "api_key_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api_key_scopes_permission_id_idx",
+          "columns": [
+            "permission_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "api_key_scopes_api_key_id_fkey",
+          "columns": [
+            "api_key_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "api_keys"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "api_key_scopes_permission_id_fkey",
+          "columns": [
+            "permission_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "permissions"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2052.018
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3205.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 4031.7993
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "oauth_providers",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "name"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2519.9966
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 3927.3103
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 5020.3047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "oauth_identities",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "provider_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "external_id",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "oauth_identities_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "oauth_identities_provider_id_idx",
+          "columns": [
+            "provider_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "oauth_identities_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "oauth_identities_provider_id_fkey",
+          "columns": [
+            "provider_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "oauth_providers"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2492.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3899.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 4981.3047
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "plans",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "monthly_cents",
+          "dataType": "INTEGER",
+          "nullable": false
+        },
+        {
+          "name": "currency_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "plans_currency_id_idx",
+          "columns": [
+            "currency_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "plans_currency_id_fkey",
+          "columns": [
+            "currency_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "currencies"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 350.0,
+          "y": 1634.7559
+        },
+        "keyOnly": {
+          "x": 350.0,
+          "y": 2563.9988
+        },
+        "allFields": {
+          "x": 350.0,
+          "y": 3222.7698
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "plan_features",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "plan_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "feature_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "limit_value",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "plan_features_plan_id_idx",
+          "columns": [
+            "plan_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "plan_features_feature_id_idx",
+          "columns": [
+            "feature_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "plan_features_plan_id_fkey",
+          "columns": [
+            "plan_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "plans"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "plan_features_feature_id_fkey",
+          "columns": [
+            "feature_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "features"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 700.0,
+          "y": 1472.1663
+        },
+        "keyOnly": {
+          "x": 700.0,
+          "y": 2358.4214
+        },
+        "allFields": {
+          "x": 700.0,
+          "y": 2970.9165
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "features",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 350.0,
+          "y": 1472.1663
+        },
+        "keyOnly": {
+          "x": 350.0,
+          "y": 2381.4214
+        },
+        "allFields": {
+          "x": 350.0,
+          "y": 2982.4165
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "subscriptions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "plan_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "subscriptions_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "subscriptions_plan_id_idx",
+          "columns": [
+            "plan_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "subscriptions_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "subscriptions_plan_id_fkey",
+          "columns": [
+            "plan_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "plans"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2750.891
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 4297.6025
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 5533.9717
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "subscription_items",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "subscription_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "feature_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "quantity",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "subscription_items_subscription_id_idx",
+          "columns": [
+            "subscription_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "subscription_items_feature_id_idx",
+          "columns": [
+            "feature_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "subscription_items_subscription_id_fkey",
+          "columns": [
+            "subscription_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "subscriptions"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "subscription_items_feature_id_fkey",
+          "columns": [
+            "feature_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "features"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2774.391
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 4338.3525
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 5586.2217
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "invoices",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "subscription_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "number",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "total_cents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "number"
+          ],
+          "unique": true
+        },
+        {
+          "name": "invoices_subscription_id_idx",
+          "columns": [
+            "subscription_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "invoices_subscription_id_fkey",
+          "columns": [
+            "subscription_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "subscriptions"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2594.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 4070.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 5198.3047
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "invoice_lines",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "invoice_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "amount_cents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "invoice_lines_invoice_id_idx",
+          "columns": [
+            "invoice_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "invoice_lines_invoice_id_fkey",
+          "columns": [
+            "invoice_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "invoices"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2723.932
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 4272.4204
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 5463.321
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "payments",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "invoice_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "method_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "amount_cents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "payments_invoice_id_idx",
+          "columns": [
+            "invoice_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "payments_method_id_idx",
+          "columns": [
+            "method_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "payments_invoice_id_fkey",
+          "columns": [
+            "invoice_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "invoices"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "payments_method_id_fkey",
+          "columns": [
+            "method_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "payment_methods"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1950.0181
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3034.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 3814.7993
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "payment_methods",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "brand",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "last4",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "payment_methods_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "payment_methods_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1747.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 2703.4353
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 3370.9297
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "refunds",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "payment_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "amount_cents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "reason",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "refunds_payment_id_idx",
+          "columns": [
+            "payment_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "refunds_payment_id_fkey",
+          "columns": [
+            "payment_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "payments"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 1950.0181
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 3045.7734
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 3814.7993
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "coupons",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "percent_off",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 3130.9634
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 4925.433
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 6310.2803
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "coupon_redemptions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "coupon_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "subscription_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "coupon_redemptions_coupon_id_idx",
+          "columns": [
+            "coupon_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "coupon_redemptions_subscription_id_idx",
+          "columns": [
+            "subscription_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "coupon_redemptions_coupon_id_fkey",
+          "columns": [
+            "coupon_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "coupons"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "coupon_redemptions_subscription_id_fkey",
+          "columns": [
+            "subscription_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "subscriptions"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 3130.9634
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 4902.433
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 6310.2803
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "credit_notes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "invoice_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "amount_cents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "credit_notes_invoice_id_idx",
+          "columns": [
+            "invoice_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "credit_notes_invoice_id_fkey",
+          "columns": [
+            "invoice_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "invoices"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2825.932
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 4420.4204
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 5680.321
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "tax_rates",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "country_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "percent",
+          "dataType": "NUMERIC(5,2)",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tax_rates_country_id_idx",
+          "columns": [
+            "country_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "tax_rates_country_id_fkey",
+          "columns": [
+            "country_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "countries"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1095.739
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 1657.691
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 2143.9355
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "invoice_taxes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "invoice_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tax_rate_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "invoice_taxes_invoice_id_idx",
+          "columns": [
+            "invoice_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invoice_taxes_tax_rate_id_idx",
+          "columns": [
+            "tax_rate_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "invoice_taxes_invoice_id_fkey",
+          "columns": [
+            "invoice_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "invoices"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "invoice_taxes_tax_rate_id_fkey",
+          "columns": [
+            "tax_rate_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "tax_rates"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1220.5029
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 1792.7852
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 2371.8108
+        }
+      }
+    },
+    {
+      "schema": "billing",
+      "name": "usage_records",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "subscription_item_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "recorded_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "usage_records_subscription_item_id_idx",
+          "columns": [
+            "subscription_item_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "usage_records_subscription_item_id_fkey",
+          "columns": [
+            "subscription_item_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "subscription_items"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2927.932
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 4574.1704
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 5880.071
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "workspaces",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "workspaces_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "workspaces_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 1234.8965
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 1978.033
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 2514.4067
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "projects",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "workspace_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "projects_workspace_id_idx",
+          "columns": [
+            "workspace_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "projects_owner_id_idx",
+          "columns": [
+            "owner_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "projects_workspace_id_fkey",
+          "columns": [
+            "workspace_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "workspaces"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "projects_owner_id_fkey",
+          "columns": [
+            "owner_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 888.20557
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 1349.3478
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 1760.6082
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "project_members",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "role_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "project_members_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "project_members_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "project_members_role_id_idx",
+          "columns": [
+            "role_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "project_members_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "project_members_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "project_members_role_id_fkey",
+          "columns": [
+            "role_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "roles"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1408.5029
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 2118.7852
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 2743.8108
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "documents",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "folder_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "documents_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "documents_author_id_idx",
+          "columns": [
+            "author_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "documents_folder_id_idx",
+          "columns": [
+            "folder_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "documents_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "documents_author_id_fkey",
+          "columns": [
+            "author_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "documents_folder_id_fkey",
+          "columns": [
+            "folder_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "folders"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 573.6128
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 772.79663
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 996.51
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "folders",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "folders_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "folders_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 573.6128
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 795.79663
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 1019.51
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "document_revisions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "author_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "document_revisions_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_revisions_author_id_idx",
+          "columns": [
+            "author_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "document_revisions_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "document_revisions_author_id_fkey",
+          "columns": [
+            "author_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 358.70654
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 479.41382
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 658.1819
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "comments",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "comments_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "comments_author_id_idx",
+          "columns": [
+            "author_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "comments_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "comments_author_id_fkey",
+          "columns": [
+            "author_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 245.8706
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 266.5935
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 395.21704
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "comment_reactions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "comment_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "emoji",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "comment_reactions_comment_id_idx",
+          "columns": [
+            "comment_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "comment_reactions_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "comment_reactions_comment_id_fkey",
+          "columns": [
+            "comment_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "comments"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "comment_reactions_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 233.70654
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 251.9685
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 386.5569
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "attachments",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "comment_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "blob_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "attachments_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "attachments_comment_id_idx",
+          "columns": [
+            "comment_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "attachments_blob_id_idx",
+          "columns": [
+            "blob_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "attachments_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "attachments_comment_id_fkey",
+          "columns": [
+            "comment_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "comments"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "attachments_blob_id_fkey",
+          "columns": [
+            "blob_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "blobs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 343.9253
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 422.9685
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 607.10376
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "blobs",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "checksum",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "bytes",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "storage_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "checksum"
+          ],
+          "unique": true
+        },
+        {
+          "name": "blobs_storage_id_idx",
+          "columns": [
+            "storage_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "blobs_storage_id_fkey",
+          "columns": [
+            "storage_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "storage_backends"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 175.12854
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 252.3833
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 268.4309
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "storage_backends",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "region",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 700.0,
+          "y": 175.12854
+        },
+        "keyOnly": {
+          "x": 700.0,
+          "y": 263.8833
+        },
+        "allFields": {
+          "x": 700.0,
+          "y": 279.9309
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "tags",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tags_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "tags_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 1583.3052
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 2427.2524
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 3100.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "taggings",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tag_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "taggings_tag_id_idx",
+          "columns": [
+            "tag_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "taggings_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "taggings_tag_id_fkey",
+          "columns": [
+            "tag_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tags"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "taggings_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1583.3052
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 2415.7524
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 3100.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "document_shares",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "shared_with",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "token",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "document_shares_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_shares_shared_with_idx",
+          "columns": [
+            "shared_with"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "document_shares_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "document_shares_shared_with_fkey",
+          "columns": [
+            "shared_with"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 803.11285
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1153.7966
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 1486.76
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "templates",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "templates_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "templates_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 543.0204
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 881.7134
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 1072.8174
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "favorites",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "favorites_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "favorites_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "favorites_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "favorites_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1170.7378
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1722.6716
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 2278.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "boards",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "boards_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "boards_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 892.96576
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 1302.058
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 1690.1151
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "board_columns",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "board_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "position",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "board_columns_board_id_idx",
+          "columns": [
+            "board_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "board_columns_board_id_fkey",
+          "columns": [
+            "board_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "boards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 675.6128
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 966.79663
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 1236.51
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "cards",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "column_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "assignee_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cards_column_id_idx",
+          "columns": [
+            "column_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "cards_assignee_id_idx",
+          "columns": [
+            "assignee_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "cards_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "cards_column_id_fkey",
+          "columns": [
+            "column_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "board_columns"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "cards_assignee_id_fkey",
+          "columns": [
+            "assignee_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "cards_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 599.1128
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 811.79663
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 1052.76
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "card_labels",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "card_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "label_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "card_labels_card_id_idx",
+          "columns": [
+            "card_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "card_labels_label_id_idx",
+          "columns": [
+            "label_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "card_labels_card_id_fkey",
+          "columns": [
+            "card_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "cards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "card_labels_label_id_fkey",
+          "columns": [
+            "label_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "labels"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 803.11285
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 1148.0466
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 1514.0725
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "labels",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "color",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "labels_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "labels_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 905.11285
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1324.7966
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 1703.76
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "checklists",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "card_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "checklists_card_id_idx",
+          "columns": [
+            "card_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "checklists_card_id_fkey",
+          "columns": [
+            "card_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "cards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 701.11285
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 1000.04663
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 1299.9475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "checklist_items",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "checklist_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "done",
+          "dataType": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "checklist_items_checklist_id_idx",
+          "columns": [
+            "checklist_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "checklist_items_checklist_id_fkey",
+          "columns": [
+            "checklist_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "checklists"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 3150.0,
+          "y": 701.11285
+        },
+        "keyOnly": {
+          "x": 3150.0,
+          "y": 1000.04663
+        },
+        "allFields": {
+          "x": 3150.0,
+          "y": 1288.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "card_watchers",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "card_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "card_watchers_card_id_idx",
+          "columns": [
+            "card_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "card_watchers_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "card_watchers_card_id_fkey",
+          "columns": [
+            "card_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "cards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "card_watchers_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 497.1128
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 658.04663
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 888.9475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "time_entries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "card_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "minutes",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "time_entries_card_id_idx",
+          "columns": [
+            "card_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "time_entries_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "time_entries_card_id_fkey",
+          "columns": [
+            "card_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "cards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "time_entries_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 599.11285
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 829.04663
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 1082.9475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "milestones",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "due_on",
+          "dataType": "DATE",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "milestones_project_id_idx",
+          "columns": [
+            "project_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "milestones_project_id_fkey",
+          "columns": [
+            "project_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "projects"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1007.11285
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1484.2966
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 1920.76
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "card_milestones",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "card_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "milestone_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "card_milestones_card_id_idx",
+          "columns": [
+            "card_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "card_milestones_milestone_id_idx",
+          "columns": [
+            "milestone_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "card_milestones_card_id_fkey",
+          "columns": [
+            "card_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "cards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "card_milestones_milestone_id_fkey",
+          "columns": [
+            "milestone_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "milestones"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2800.0,
+          "y": 905.11285
+        },
+        "keyOnly": {
+          "x": 2800.0,
+          "y": 1319.0466
+        },
+        "allFields": {
+          "x": 2800.0,
+          "y": 1708.0725
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "automations",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "board_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "trigger",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "action",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "automations_board_id_idx",
+          "columns": [
+            "board_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "automations_board_id_fkey",
+          "columns": [
+            "board_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "boards"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 992.02454
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 1451.8422
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 1884.4304
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "channels",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "workspace_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "channels_workspace_id_idx",
+          "columns": [
+            "workspace_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "channels_workspace_id_fkey",
+          "columns": [
+            "workspace_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "workspaces"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 1375.489
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 2075.441
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 2630.6855
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "channel_members",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "channel_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "channel_members_channel_id_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "channel_members_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "channel_members_channel_id_fkey",
+          "columns": [
+            "channel_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "channels"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "channel_members_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1314.5029
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 1955.7852
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 2557.8108
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "messages",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "channel_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "thread_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "messages_channel_id_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "messages_author_id_idx",
+          "columns": [
+            "author_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "messages_thread_id_idx",
+          "columns": [
+            "thread_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "messages_channel_id_fkey",
+          "columns": [
+            "channel_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "channels"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "messages_author_id_fkey",
+          "columns": [
+            "author_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "messages_thread_id_fkey",
+          "columns": [
+            "thread_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "threads"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2100.0,
+          "y": 1398.2379
+        },
+        "keyOnly": {
+          "x": 2100.0,
+          "y": 2099.6716
+        },
+        "allFields": {
+          "x": 2100.0,
+          "y": 2724.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "threads",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "channel_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "threads_channel_id_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "threads_channel_id_fkey",
+          "columns": [
+            "channel_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "channels"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1510.5029
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 2312.7852
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 2960.8108
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "message_reactions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "message_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "emoji",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "message_reactions_message_id_idx",
+          "columns": [
+            "message_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "message_reactions_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "message_reactions_message_id_fkey",
+          "columns": [
+            "message_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "messages"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "message_reactions_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1272.7378
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1893.6716
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 2472.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "mentions",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "message_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "mentions_message_id_idx",
+          "columns": [
+            "message_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "mentions_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "mentions_message_id_fkey",
+          "columns": [
+            "message_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "messages"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "mentions_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1374.7379
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 2064.6716
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 2689.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "read_receipts",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "message_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "read_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "read_receipts_message_id_idx",
+          "columns": [
+            "message_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "read_receipts_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "read_receipts_message_id_fkey",
+          "columns": [
+            "message_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "messages"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "read_receipts_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 1481.3052
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 2244.7524
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 2883.4475
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "notifications",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "payload",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "channel_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "notifications_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "notifications_channel_id_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "notifications_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "notifications_channel_id_fkey",
+          "columns": [
+            "channel_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "channels"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 1848.0181
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 2832.1484
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 3574.7993
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "notification_preferences",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "kind",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "enabled",
+          "dataType": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "notification_preferences_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "notification_preferences_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 469.7744
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 730.71704
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 921.80566
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "email_deliveries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "template_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "email_deliveries_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "email_deliveries_template_id_idx",
+          "columns": [
+            "template_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "email_deliveries_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "email_deliveries_template_id_fkey",
+          "columns": [
+            "template_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "email_templates"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2876.391
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 4509.3525
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 5803.2217
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "email_templates",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "subject",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2876.391
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 4532.3525
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 5814.7217
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "integrations",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "provider",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "integrations_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "integrations_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2151.4966
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 3346.0603
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 4226.3047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "integration_configs",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "integration_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "key",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "value",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "integration_configs_integration_id_idx",
+          "columns": [
+            "integration_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "integration_configs_integration_id_fkey",
+          "columns": [
+            "integration_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "integrations"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2202.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3425.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 4323.3047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "webhooks",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "url",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "integration_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "webhooks_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "webhooks_integration_id_idx",
+          "columns": [
+            "integration_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "webhooks_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "webhooks_integration_id_fkey",
+          "columns": [
+            "integration_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "integrations"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2100.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3254.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 4106.3047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "webhook_deliveries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "webhook_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "status_code",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "webhook_deliveries_webhook_id_idx",
+          "columns": [
+            "webhook_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "webhook_deliveries_webhook_id_fkey",
+          "columns": [
+            "webhook_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "webhooks"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2256.018
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3524.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 4442.7993
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "webhook_events",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "webhook_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "event_type_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "webhook_events_webhook_id_idx",
+          "columns": [
+            "webhook_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "webhook_events_event_type_id_idx",
+          "columns": [
+            "event_type_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "webhook_events_webhook_id_fkey",
+          "columns": [
+            "webhook_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "webhooks"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "webhook_events_event_type_id_fkey",
+          "columns": [
+            "event_type_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "event_types"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2460.018
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3820.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 4899.7993
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "event_types",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2323.9966
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 3650.8103
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 4628.8047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "imports",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "source",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "imports_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "imports_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 2425.9966
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 3775.8103
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 4799.8047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "import_rows",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "import_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "line",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "error",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "import_rows_import_id_idx",
+          "columns": [
+            "import_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "import_rows_import_id_fkey",
+          "columns": [
+            "import_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "imports"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2398.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3759.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 4772.3047
+        }
+      }
+    },
+    {
+      "schema": "public",
+      "name": "exports",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "requested_by",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "blob_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "exports_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "exports_requested_by_idx",
+          "columns": [
+            "requested_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "exports_blob_id_idx",
+          "columns": [
+            "blob_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "exports_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        },
+        {
+          "name": "exports_requested_by_fkey",
+          "columns": [
+            "requested_by"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "exports_blob_id_fkey",
+          "columns": [
+            "blob_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "blobs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 273.7744
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 396.71704
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 495.80566
+        }
+      }
+    },
+    {
+      "schema": "audit",
+      "name": "audit_logs",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "actor_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "action",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "event_type_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "audit_logs_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "audit_logs_actor_id_idx",
+          "columns": [
+            "actor_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "audit_logs_event_type_id_idx",
+          "columns": [
+            "event_type_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "audit_logs_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "audit_logs_actor_id_fkey",
+          "columns": [
+            "actor_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "audit_logs_event_type_id_fkey",
+          "columns": [
+            "event_type_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "event_types"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 2304.4966
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 3573.8103
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 4540.3047
+        }
+      }
+    },
+    {
+      "schema": "audit",
+      "name": "audit_changes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "audit_log_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "field",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "before",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "after",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "audit_changes_audit_log_id_idx",
+          "columns": [
+            "audit_log_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "audit_changes_audit_log_id_fkey",
+          "columns": [
+            "audit_log_id"
+          ],
+          "refTable": {
+            "schema": "audit",
+            "name": "audit_logs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2358.018
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3672.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 4659.7993
+        }
+      }
+    },
+    {
+      "schema": "audit",
+      "name": "login_attempts",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "ip",
+          "dataType": "inet",
+          "nullable": true
+        },
+        {
+          "name": "succeeded",
+          "dataType": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "login_attempts_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "login_attempts_user_id_fkey",
+          "columns": [
+            "user_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "users"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1400.0,
+          "y": 601.7745
+        },
+        "keyOnly": {
+          "x": 1400.0,
+          "y": 908.71704
+        },
+        "allFields": {
+          "x": 1400.0,
+          "y": 1168.8055
+        }
+      }
+    },
+    {
+      "schema": "audit",
+      "name": "security_alerts",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "severity",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "audit_log_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "security_alerts_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "security_alerts_audit_log_id_idx",
+          "columns": [
+            "audit_log_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "security_alerts_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "security_alerts_audit_log_id_fkey",
+          "columns": [
+            "audit_log_id"
+          ],
+          "refTable": {
+            "schema": "audit",
+            "name": "audit_logs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2585.518
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 4023.3984
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 5154.6743
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "jobs",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "queue",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "payload",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 3530.0,
+          "y": 51.0
+        },
+        "keyOnly": {
+          "x": 3530.0,
+          "y": 85.5
+        },
+        "allFields": {
+          "x": 3530.0,
+          "y": 108.5
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "job_attempts",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "job_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "attempt",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "error",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "job_attempts_job_id_idx",
+          "columns": [
+            "job_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "job_attempts_job_id_fkey",
+          "columns": [
+            "job_id"
+          ],
+          "refTable": {
+            "schema": "ops",
+            "name": "jobs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 3880.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 3880.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 3880.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "schedules",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "job_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "cron",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "enabled",
+          "dataType": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "schedules_job_id_idx",
+          "columns": [
+            "job_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "schedules_job_id_fkey",
+          "columns": [
+            "job_id"
+          ],
+          "refTable": {
+            "schema": "ops",
+            "name": "jobs"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 3880.0,
+          "y": 102.0
+        },
+        "keyOnly": {
+          "x": 3880.0,
+          "y": 148.0
+        },
+        "allFields": {
+          "x": 3880.0,
+          "y": 217.0
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "feature_flags",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "feature_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "enabled",
+          "dataType": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "feature_flags_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "feature_flags_feature_id_idx",
+          "columns": [
+            "feature_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "feature_flags_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        },
+        {
+          "name": "feature_flags_feature_id_fkey",
+          "columns": [
+            "feature_id"
+          ],
+          "refTable": {
+            "schema": "billing",
+            "name": "features"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 1132.8965
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 1807.033
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 2297.4067
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "rate_limits",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "api_key_id",
+          "dataType": "BIGINT",
+          "nullable": true
+        },
+        {
+          "name": "window_seconds",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "max_requests",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "rate_limits_api_key_id_idx",
+          "columns": [
+            "api_key_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "rate_limits_api_key_id_fkey",
+          "columns": [
+            "api_key_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "api_keys"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": true
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1750.0,
+          "y": 2154.018
+        },
+        "keyOnly": {
+          "x": 1750.0,
+          "y": 3376.2734
+        },
+        "allFields": {
+          "x": 1750.0,
+          "y": 4225.7993
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "service_incidents",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "started_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 4640.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 4640.0,
+          "y": 11.5
+        },
+        "allFields": {
+          "x": 4640.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "incident_updates",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "incident_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "incident_updates_incident_id_idx",
+          "columns": [
+            "incident_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "incident_updates_incident_id_fkey",
+          "columns": [
+            "incident_id"
+          ],
+          "refTable": {
+            "schema": "ops",
+            "name": "service_incidents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 4990.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 4990.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 4990.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "metrics_daily",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "day",
+          "dataType": "DATE",
+          "nullable": true
+        },
+        {
+          "name": "documents",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "metrics_daily_tenant_id_idx",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "metrics_daily_tenant_id_fkey",
+          "columns": [
+            "tenant_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "tenants"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 893.5568
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 1406.427
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 1760.8629
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "search_indexes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "document_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "vector",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "search_indexes_document_id_idx",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "search_indexes_document_id_fkey",
+          "columns": [
+            "document_id"
+          ],
+          "refTable": {
+            "schema": "public",
+            "name": "documents"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 2450.0,
+          "y": 701.11285
+        },
+        "keyOnly": {
+          "x": 2450.0,
+          "y": 1005.79663
+        },
+        "allFields": {
+          "x": 2450.0,
+          "y": 1292.76
+        }
+      }
+    },
+    {
+      "schema": "ops",
+      "name": "cache_entries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "key",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "value",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "expires_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "key"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 4260.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 4260.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 4260.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "countries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "iso2",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "iso2"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 0.0,
+          "y": 158.16858
+        },
+        "keyOnly": {
+          "x": 0.0,
+          "y": 306.49902
+        },
+        "allFields": {
+          "x": 0.0,
+          "y": 381.12085
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "currencies",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "symbol",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 0.0,
+          "y": 1634.7559
+        },
+        "keyOnly": {
+          "x": 0.0,
+          "y": 2575.4988
+        },
+        "allFields": {
+          "x": 0.0,
+          "y": 3234.2698
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "locales",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 3528.161
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 5607.2026
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 7100.2393
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "timezones",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "utc_offset",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "name"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 1050.0,
+          "y": 3630.161
+        },
+        "keyOnly": {
+          "x": 1050.0,
+          "y": 5732.2026
+        },
+        "allFields": {
+          "x": 1050.0,
+          "y": 7294.2393
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "holidays",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "country_id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "day",
+          "dataType": "DATE",
+          "nullable": true
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "holidays_country_id_idx",
+          "columns": [
+            "country_id"
+          ],
+          "unique": false
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "fks": [
+        {
+          "name": "holidays_country_id_fkey",
+          "columns": [
+            "country_id"
+          ],
+          "refTable": {
+            "schema": "ref",
+            "name": "countries"
+          },
+          "refColumns": [
+            "id"
+          ],
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "inferred": false,
+          "cardinality": "manyToOne",
+          "optional": false
+        }
+      ],
+      "positions": {
+        "tableName": {
+          "x": 350.0,
+          "y": 111.16858
+        },
+        "keyOnly": {
+          "x": 350.0,
+          "y": 224.99902
+        },
+        "allFields": {
+          "x": 350.0,
+          "y": 265.12085
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "industries",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "name"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 5750.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 5750.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 5750.0,
+          "y": 0.0
+        }
+      }
+    },
+    {
+      "schema": "ref",
+      "name": "company_sizes",
+      "columns": [
+        {
+          "name": "id",
+          "dataType": "BIGINT",
+          "nullable": false
+        },
+        {
+          "name": "label",
+          "dataType": "TEXT",
+          "nullable": false
+        },
+        {
+          "name": "min_seats",
+          "dataType": "INTEGER",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMPTZ",
+          "nullable": false,
+          "default": "now()"
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "label"
+          ],
+          "unique": true
+        }
+      ],
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "tableName": {
+          "x": 5370.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 5370.0,
+          "y": 0.0
+        },
+        "allFields": {
+          "x": 5370.0,
+          "y": 0.0
+        }
+      }
+    }
+  ]
+}

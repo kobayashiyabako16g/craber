@@ -1,0 +1,98 @@
+[workspace]
+resolver = "3"
+members  = ["crates/*"]
+
+[workspace.package]
+version      = "0.0.0"
+edition      = "2024"
+rust-version = "1.94"
+license      = "MIT"
+description  = "CrabER: visualize ER diagrams from SQL DDL or a live database"
+# crates.io freezes this per published version, so it has to be the real home
+# before the first publish, not after it.
+repository   = "https://github.com/kobayashiyabako16g/craber"
+# crates.io allows five, twenty characters each.
+keywords     = ["er-diagram", "database", "schema", "sql", "visualization"]
+categories   = ["command-line-utilities", "visualization", "database"]
+# Inherited `readme` resolves against the workspace root, not the package, so
+# this is the top-level README — and cargo copies it into each `.crate` even
+# though it sits above the package directory. Verified with `cargo package --list`.
+readme       = "README.md"
+
+[workspace.dependencies]
+# The `version` on each of these is what `cargo publish` demands: it rewrites a
+# path dependency into a registry dependency, and refuses outright when there is
+# no version to rewrite it to. `version.workspace = true` is not a thing inside a
+# dependency entry, and there would be nothing to inherit from here anyway, so
+# the literal is repeated and `just bump` is what keeps all of them in step.
+craber-core       = { path = "crates/craber-core", version = "0.0.0" }
+craber-parser     = { path = "crates/craber-parser", version = "0.0.0" }
+# default-features = false so each consumer picks its own backends; `craber`
+# turns all three on through its own feature table.
+craber-introspect = { path = "crates/craber-introspect", version = "0.0.0", default-features = false }
+craber-layout     = { path = "crates/craber-layout", version = "0.0.0" }
+craber-render     = { path = "crates/craber-render", version = "0.0.0" }
+craber-export     = { path = "crates/craber-export", version = "0.0.0" }
+craber-site       = { path = "crates/craber-site", version = "0.0.0" }
+
+serde              = { version = "1.0.229", features = ["derive"] }
+serde_json         = "1.0.151"
+thiserror          = "2.0.20"
+anyhow             = "1.0.104"
+sqlparser          = "0.62"
+# `default-features = false` drops `any`, `macros`, `migrate` and `json`.
+# `macros` is the one that matters — it is the compile-time-checked `query!`,
+# which wants a live DATABASE_URL at build time, and CrabER has to build with no
+# database anywhere. The per-dialect features live on craber-introspect so a
+# packager can turn them off.
+#
+# 0.9 is what sets the workspace's rust-version: it declares 1.94.
+sqlx               = { version = "0.9", default-features = false, features = [
+    "runtime-tokio",
+    # = `tls-rustls` today. Spelled out so it cannot drift to aws-lc-rs, which
+    # would add cmake to the build requirements.
+    "tls-rustls-ring-webpki",
+] }
+# `rt` for Builder::new_current_thread; `net` and `time` are what enable_all()
+# needs. Not `macros` (there is no #[tokio::main] anywhere) and not
+# `rt-multi-thread` (one connection, a handful of sequential queries).
+tokio              = { version = "1", default-features = false, features = ["rt", "net", "time"] }
+clap               = { version = "4.6", features = ["derive", "env"] }
+toml               = "1.1"
+globset            = "0.4"
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ts-rs              = "12.0"
+insta              = { version = "1.48", features = ["json"] }
+# `blocking` is the synchronous runner. The codebase is synchronous, so the
+# introspection tests need no async runtime of their own.
+testcontainers         = { version = "0.27", features = ["blocking"] }
+testcontainers-modules = { version = "0.15", features = ["postgres", "mysql", "blocking"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all      = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# The product name is written `CrabER` in prose (see CONTRIBUTING.md), and it
+# appears in almost every doc comment; backticking it would contradict that.
+doc_markdown = "allow"
+# These fire on nearly every public function in an IR crate that is mostly
+# plain accessors, and drown out the pedantic lints that do catch things.
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+lto       = "thin"
+strip     = true
+codegen-units = 1
+
+# The profile that 'dist' will build with
+# dist always builds with --profile=dist. [profile.release] above is already
+# tuned (thin LTO, strip, one codegen unit), so this inherits it and adds
+# nothing — `dist init` writes a duplicate `lto = "thin"` here that would
+# silently diverge from the release profile the moment one of them changed.
+[profile.dist]
+inherits = "release"

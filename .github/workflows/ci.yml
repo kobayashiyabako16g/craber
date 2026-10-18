@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      # Also regenerates web/src/types via ts-rs, which the next step checks.
+      - name: Test
+        run: cargo test --workspace
+
+      # Both are written by `cargo test -p craber-core`: the types by ts-rs, the
+      # design tokens by tests/generated_tokens.rs. Stale output means the Rust
+      # definition and the browser disagree, which is how a diagram ends up with
+      # overlapping tables.
+      - name: Generated frontend sources are up to date
+        run: |
+          if ! git diff --exit-code -- web/src/types web/src/generated; then
+            echo "::error::web/src/types or web/src/generated is stale. Run \`just bindings\` and commit the result."
+            exit 1
+          fi
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit-test the pure modules
+        run: pnpm test
+
+      - name: Typecheck and build
+        run: pnpm build
+
+  # The Rust job has no Node, so it tests the "no bundle embedded" path only.
+  # This job is the one that proves `craber build` actually writes a site.
+  site:
+    name: Static site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Build the web bundle
+        run: pnpm install --frozen-lockfile && pnpm build
+        working-directory: web
+
+      - name: craber build writes a servable site
+        run: cargo test -p craber --test build
+
+  # The Rust job compiles these and skips them: they are `#[ignore]`d so that
+  # `cargo test --workspace` passes on a machine with no Docker. This job is the
+  # only thing that runs them, which is why it must stay required — a fail-soft
+  # database job means introspection rots silently.
+  #
+  # Its own job rather than a step in `rust`, because starting two servers is
+  # the slowest thing in CI and should not gate the fast feedback.
+  database:
+    name: Live database
+    # Docker is preinstalled on the GitHub-hosted Linux runners, and on no other.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+
+      # One at a time: MySQL takes the better part of a minute to pass its
+      # readiness probe, and racing two servers on a 2-core runner is how these
+      # start failing for reasons that have nothing to do with the code.
+      - name: Introspect real PostgreSQL and MySQL servers
+        run: cargo test -p craber-introspect -- --ignored --test-threads=1

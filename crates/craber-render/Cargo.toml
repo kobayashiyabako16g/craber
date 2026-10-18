@@ -1,0 +1,26 @@
+[package]
+name         = "craber-render"
+description  = "Server-side SVG rendering for CrabER diagrams"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+# Workspace inheritance is opt-in per key, so these have to be claimed here
+# even though the values live in [workspace.package]. crates.io wants them.
+repository.workspace   = true
+keywords.workspace     = true
+categories.workspace   = true
+readme.workspace       = true
+
+[dependencies]
+craber-core   = { workspace = true }
+
+# Only the tests need a layout: rendering takes coordinates, it does not compute
+# them. Keeping this out of `[dependencies]` is what stops the renderer and the
+# layout algorithm from being coupled.
+[dev-dependencies]
+craber-layout = { workspace = true }
+insta         = { workspace = true }
+
+[lints]
+workspace = true

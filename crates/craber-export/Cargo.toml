@@ -1,0 +1,35 @@
+[package]
+name         = "craber-export"
+description  = "Diagram output formats for CrabER: JSON, SVG, Mermaid, DBML, PNG"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+# Workspace inheritance is opt-in per key, so these have to be claimed here
+# even though the values live in [workspace.package]. crates.io wants them.
+repository.workspace   = true
+keywords.workspace     = true
+categories.workspace   = true
+readme.workspace       = true
+
+# `clap` is off by default so that a consumer which only wants to encode a
+# schema — the M7 WASM demo, or anything embedding CrabER as a library — does
+# not link an argument parser. Only the binary turns it on, which is what keeps
+# `Format` usable as a plain domain type while still spelling its own
+# `--format` values in `--help`.
+[features]
+default = []
+clap    = ["dep:clap"]
+
+[dependencies]
+craber-core   = { workspace = true }
+craber-render = { workspace = true }
+
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }
+
+clap = { workspace = true, optional = true }
+
+[lints]
+workspace = true

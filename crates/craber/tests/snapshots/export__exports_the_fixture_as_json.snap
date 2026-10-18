@@ -1,0 +1,384 @@
+---
+source: crates/craber/tests/export.rs
+expression: schema
+---
+{
+  "enums": [
+    {
+      "name": "order_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "paid",
+        "shipped"
+      ]
+    }
+  ],
+  "name": "tiny",
+  "schemaVersion": 2,
+  "tables": [
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "id",
+          "nullable": false
+        },
+        {
+          "dataType": "TEXT",
+          "name": "email",
+          "nullable": false
+        },
+        {
+          "dataType": "TIMESTAMPTZ",
+          "default": "now()",
+          "name": "created_at",
+          "nullable": false
+        }
+      ],
+      "comment": "People who can sign in.",
+      "indexes": [
+        {
+          "columns": [
+            "email"
+          ],
+          "unique": true
+        }
+      ],
+      "name": "users",
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 0.0,
+          "y": 45.625
+        },
+        "keyOnly": {
+          "x": 0.0,
+          "y": 48.5
+        },
+        "tableName": {
+          "x": 0.0,
+          "y": 25.5
+        }
+      },
+      "schema": "public"
+    },
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "user_id",
+          "nullable": false
+        },
+        {
+          "dataType": "TEXT",
+          "name": "display_name",
+          "nullable": false
+        }
+      ],
+      "fks": [
+        {
+          "cardinality": "oneToOne",
+          "columns": [
+            "user_id"
+          ],
+          "inferred": false,
+          "onDelete": "cascade",
+          "onUpdate": "noAction",
+          "optional": false,
+          "refColumns": [
+            "id"
+          ],
+          "refTable": {
+            "name": "users",
+            "schema": "public"
+          }
+        }
+      ],
+      "name": "user_profiles",
+      "pk": [
+        "user_id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 350.0,
+          "y": 0.0
+        },
+        "keyOnly": {
+          "x": 350.0,
+          "y": 0.0
+        },
+        "tableName": {
+          "x": 350.0,
+          "y": 0.0
+        }
+      },
+      "schema": "public"
+    },
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "id",
+          "nullable": false
+        },
+        {
+          "dataType": "TEXT",
+          "name": "code",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "name": "coupons",
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 0.0,
+          "y": 216.625
+        },
+        "keyOnly": {
+          "x": 0.0,
+          "y": 173.5
+        },
+        "tableName": {
+          "x": 0.0,
+          "y": 127.5
+        }
+      },
+      "schema": "public"
+    },
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "id",
+          "nullable": false
+        },
+        {
+          "dataType": "BIGINT",
+          "name": "user_id",
+          "nullable": false
+        },
+        {
+          "dataType": "BIGINT",
+          "name": "coupon_id",
+          "nullable": true
+        },
+        {
+          "dataType": "public.order_status",
+          "default": "'pending'",
+          "name": "status",
+          "nullable": false
+        },
+        {
+          "comment": "Gross total, in the order currency.",
+          "dataType": "NUMERIC(12,2)",
+          "default": "0",
+          "name": "total",
+          "nullable": false
+        }
+      ],
+      "fks": [
+        {
+          "cardinality": "manyToOne",
+          "columns": [
+            "user_id"
+          ],
+          "inferred": false,
+          "onDelete": "cascade",
+          "onUpdate": "noAction",
+          "optional": false,
+          "refColumns": [
+            "id"
+          ],
+          "refTable": {
+            "name": "users",
+            "schema": "public"
+          }
+        },
+        {
+          "cardinality": "manyToOne",
+          "columns": [
+            "coupon_id"
+          ],
+          "inferred": false,
+          "onDelete": "setNull",
+          "onUpdate": "noAction",
+          "optional": true,
+          "refColumns": [
+            "id"
+          ],
+          "refTable": {
+            "name": "coupons",
+            "schema": "public"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "user_id"
+          ],
+          "name": "orders_user_id_idx",
+          "unique": false
+        }
+      ],
+      "name": "orders",
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 350.0,
+          "y": 148.0
+        },
+        "keyOnly": {
+          "x": 350.0,
+          "y": 125.0
+        },
+        "tableName": {
+          "x": 350.0,
+          "y": 102.0
+        }
+      },
+      "schema": "public"
+    },
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "id",
+          "nullable": false
+        },
+        {
+          "dataType": "BIGINT",
+          "name": "order_id",
+          "nullable": true
+        },
+        {
+          "dataType": "TIMESTAMPTZ",
+          "default": "now()",
+          "name": "issued_at",
+          "nullable": false
+        }
+      ],
+      "fks": [
+        {
+          "cardinality": "oneToOne",
+          "columns": [
+            "order_id"
+          ],
+          "inferred": false,
+          "onDelete": "noAction",
+          "onUpdate": "noAction",
+          "optional": true,
+          "refColumns": [
+            "id"
+          ],
+          "refTable": {
+            "name": "orders",
+            "schema": "public"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "order_id"
+          ],
+          "unique": true
+        }
+      ],
+      "name": "order_receipts",
+      "pk": [
+        "id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 700.0,
+          "y": 85.5
+        },
+        "keyOnly": {
+          "x": 700.0,
+          "y": 62.5
+        },
+        "tableName": {
+          "x": 700.0,
+          "y": 51.0
+        }
+      },
+      "schema": "public"
+    },
+    {
+      "columns": [
+        {
+          "dataType": "BIGINT",
+          "name": "order_id",
+          "nullable": false
+        },
+        {
+          "dataType": "BIGINT",
+          "name": "product_id",
+          "nullable": false
+        },
+        {
+          "dataType": "INTEGER",
+          "default": "1",
+          "name": "quantity",
+          "nullable": false
+        }
+      ],
+      "fks": [
+        {
+          "cardinality": "manyToOne",
+          "columns": [
+            "order_id"
+          ],
+          "inferred": false,
+          "name": "order_items_order_id_fkey",
+          "onDelete": "cascade",
+          "onUpdate": "noAction",
+          "optional": false,
+          "refColumns": [
+            "id"
+          ],
+          "refTable": {
+            "name": "orders",
+            "schema": "public"
+          }
+        }
+      ],
+      "name": "order_items",
+      "pk": [
+        "order_id",
+        "product_id"
+      ],
+      "positions": {
+        "allFields": {
+          "x": 700.0,
+          "y": 256.5
+        },
+        "keyOnly": {
+          "x": 700.0,
+          "y": 210.5
+        },
+        "tableName": {
+          "x": 700.0,
+          "y": 153.0
+        }
+      },
+      "schema": "public"
+    }
+  ]
+}

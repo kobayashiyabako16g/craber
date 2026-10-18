@@ -1,0 +1,19 @@
+[package]
+name         = "craber-layout"
+description  = "Diagram layout for CrabER: assigns table positions to a schema"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+# Workspace inheritance is opt-in per key, so these have to be claimed here
+# even though the values live in [workspace.package]. crates.io wants them.
+repository.workspace   = true
+keywords.workspace     = true
+categories.workspace   = true
+readme.workspace       = true
+
+[dependencies]
+craber-core = { workspace = true }
+
+[lints]
+workspace = true

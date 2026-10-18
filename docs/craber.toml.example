@@ -1,0 +1,30 @@
+# CrabER project configuration.
+#
+# Copy to `craber.toml` in your repository root. Every value here can be
+# overridden on the command line; CLI flags win over environment variables,
+# which win over this file.
+
+# Where the schema comes from. Exactly one of these — and a `--file` or `--dsn`
+# on the command line replaces whichever is set here, rather than merging with
+# it, so `craber export --dsn ...` connects even in a repository that commits a
+# `file` below.
+#
+# Prefer the CRABER_DSN environment variable to writing a `dsn` here: a
+# connection string carries a password and this file is in the repository.
+file = "db/schema.sql"
+# dsn = "postgres://user@host/db"
+
+# postgres | mysql | sqlite. Inferred from the filename, or from a DSN's
+# scheme, when omitted — so a `dsn` almost never needs this.
+dialect = "postgres"
+
+# Table selection, matched against both `users` and `public.users`.
+include = ["*"]
+exclude = ["schema_migrations", "ar_internal_metadata", "*_audit"]
+
+# Also pull in tables within N foreign-key hops of the included ones.
+# depth = 2
+
+# URL prefix the generated site is served under, e.g. GitHub Pages project
+# sites live at /<repo>/. Used by `craber build`.
+# base-path = "/myrepo/"
