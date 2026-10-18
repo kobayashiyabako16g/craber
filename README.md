@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="docs/assets/craber-icon.svg" width="128" height="128" alt="CrabER">
+  <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/craber-icon.svg" width="128" height="128" alt="CrabER">
   <h3>Visualize ER diagrams from a SQL schema file — or straight from a live database.</h3>
   <p>CrabER turns DDL or a running database into an interactive ER diagram. It is one
   binary with the web frontend compiled in, so <code>craber serve</code> should feel like
   reaching for <code>psql</code>: nothing to install, a diagram in front of you. The same
   binary generates a static site for CI to publish.</p>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <a href="https://github.com/kobayashiyabako16g/craber/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </div>
 
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
@@ -39,7 +39,7 @@ $ docker run --rm -v "$PWD:/work" --user "$(id -u):$(id -g)" \
 
 Once there are releases, each will also carry prebuilt archives for Linux, macOS
 and Windows plus `curl | sh` and PowerShell installers.
-[docs/README.md](docs/README.md) has the details for every route.
+[docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md) has the details for every route.
 
 ## Usage
 
@@ -91,7 +91,7 @@ $ craber export --file pg_dump.sql --exclude 'audit_*' --include orders --depth 
 Anything CrabER cannot parse yet is reported on stderr and skipped, so one
 unsupported statement never costs you the whole diagram.
 
-[`examples/`](examples) walks through all of it on schemas you can read — start
+[`examples/`](https://github.com/kobayashiyabako16g/craber/tree/main/examples) walks through all of it on schemas you can read — start
 with `just example`.
 
 ## Configuration
@@ -110,7 +110,7 @@ output = "dist/"
 With that committed, `craber build` and `craber export` take no arguments at
 all. Precedence is **CLI flag > environment variable > config file > default**,
 and the file is looked up in the working directory and every directory above it.
-The full key reference is in [docs/README.md](docs/README.md#configuration-reference).
+The full key reference is in [docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md#configuration-reference).
 
 ## Not implemented yet
 
@@ -120,8 +120,8 @@ failing obscurely.
 
 ## Documentation
 
-- [docs/README.md](docs/README.md) — configuration reference, command details, repository layout
-- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, the gates CI runs, how a release is cut
+- [docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md) — configuration reference, command details, repository layout
+- [CONTRIBUTING.md](https://github.com/kobayashiyabako16g/craber/blob/main/CONTRIBUTING.md) — setup, the gates CI runs, how a release is cut
 
 ## Acknowledgements
 
@@ -132,4 +132,4 @@ Our sincere gratitude and respect go to the Liam maintainers and contributors.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](https://github.com/kobayashiyabako16g/craber/blob/main/LICENSE).

@@ -17,6 +17,8 @@ categories   = ["command-line-utilities", "visualization", "database"]
 # Inherited `readme` resolves against the workspace root, not the package, so
 # this is the top-level README — and cargo copies it into each `.crate` even
 # though it sits above the package directory. Verified with `cargo package --list`.
+# crates.io resolves its relative links against each crate's own directory, so
+# every link in README.md must be an absolute URL.
 readme       = "README.md"
 
 [workspace.dependencies]
