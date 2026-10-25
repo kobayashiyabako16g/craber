@@ -4,8 +4,8 @@ members = ["cargo:."]
 [dist]
 # A concrete version, not a range: the generated release.yml bakes this release's
 # installer URL in, so bumping it means re-running `dist generate`. nixpkgs
-# carries 0.33.0 too, which is what the dev shell puts on PATH.
-cargo-dist-version = "0.33.0"
+# carries 0.33.1 too, which is what the dev shell puts on PATH.
+cargo-dist-version = "0.33.1"
 ci = "github"
 # Inferred from `ci` anyway, but stated so it is obvious no third-party hosting
 # is involved (dist dropped Axo Releases in 0.29.0).

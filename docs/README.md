@@ -233,4 +233,4 @@ $ just bindings    # regenerate web/src/types from the Rust IR
 $ just nix-build   # the only check that the bundle really is in the binary
 ```
 
-Without Nix you need a Rust toolchain (1.94+), Node 24 and pnpm.
+Without Nix you need a Rust toolchain (1.94+), Node 26 and pnpm.

@@ -16,7 +16,7 @@ site all work. Nothing is released yet, so build from a checkout for now.
 
 ### From a checkout
 
-Needs Rust 1.94+, Node 24 and pnpm (or just Nix — `direnv allow` brings all
+Needs Rust 1.94+, Node 26 and pnpm (or just Nix — `direnv allow` brings all
 three):
 
 ```console

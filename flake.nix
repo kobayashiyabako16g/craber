@@ -71,10 +71,10 @@
           version = "0.0.0";
           src = webSrc;
 
-          # pnpm_11 rather than pkgs.pnpm: it is exactly the 11.22.0 that
+          # pnpm_11 rather than pkgs.pnpm: it is exactly the 11.27.0 that
           # web/package.json pins, and the store layout changes across majors.
           nativeBuildInputs = [
-            pkgs.nodejs_24
+            pkgs.nodejs_26
             pkgs.pnpm_11
             pkgs.pnpmConfigHook
           ];
@@ -188,7 +188,7 @@
         # The web app is Vite + React + TypeScript, driven by pnpm. The pnpm
         # here must stay in step with web/package.json's `packageManager` pin.
         webTooling = with pkgs; [
-          nodejs_24
+          nodejs_26
           pnpm_11
           typescript
           typescript-language-server

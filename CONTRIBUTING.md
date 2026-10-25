@@ -19,7 +19,7 @@ docs, and in commit messages. Never "CraberER", "craber ER", "Craber", or
 
 The repository ships a Nix flake. With `direnv` installed, `direnv allow` puts
 Rust, Node, pnpm, `just` and `cargo-insta` on your PATH. Without Nix you need a
-Rust toolchain (1.94 or newer — sqlx sets that floor), Node 24 and pnpm.
+Rust toolchain (1.94 or newer — sqlx sets that floor), Node 26 and pnpm.
 
 ```console
 $ just check       # fmt + clippy + tests. Run this before pushing.

@@ -8,7 +8,7 @@ The product is written **CrabER** in prose, UI, docs and commit messages; everyt
 
 ## Commands
 
-All tasks go through `just` (run `just` to list them). Toolchain: Rust 1.94+, Node 24, pnpm; `direnv allow` provides everything via the Nix flake.
+All tasks go through `just` (run `just` to list them). Toolchain: Rust 1.94+, Node 26, pnpm; `direnv allow` provides everything via the Nix flake.
 
 ```console
 just check          # fmt-check + clippy (-D warnings) + cargo test --workspace — run before pushing
