@@ -31,6 +31,10 @@
 
         inherit (pkgs) lib;
 
+        # [workspace.package] version is the one place a release number is
+        # written; `just bump` changes it and the packages follow.
+        version = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
+
         # The dev shell's toolchain carries rust-analyzer and rust-src, which a
         # package build has no use for. Same channel, so `nix build` cannot pass
         # on a compiler the dev shell would reject.
@@ -68,7 +72,7 @@
 
         craber-web = pkgs.stdenv.mkDerivation (finalAttrs: {
           pname = "craber-web";
-          version = "0.0.0";
+          inherit version;
           src = webSrc;
 
           # pnpm_11 rather than pkgs.pnpm: it is exactly the 11.27.0 that
@@ -109,7 +113,7 @@
 
         craber = rustPlatform.buildRustPackage {
           pname = "craber";
-          version = "0.0.0";
+          inherit version;
 
           src = lib.fileset.toSource {
             root = ./.;

@@ -27,6 +27,7 @@ readme       = "README.md"
 # no version to rewrite it to. `version.workspace = true` is not a thing inside a
 # dependency entry, and there would be nothing to inherit from here anyway, so
 # the literal is repeated and `just bump` is what keeps all of them in step.
+# crates/craber/tests/version.rs fails when one of them is left behind.
 craber-core       = { path = "crates/craber-core", version = "0.1.1" }
 craber-parser     = { path = "crates/craber-parser", version = "0.1.1" }
 # default-features = false so each consumer picks its own backends; `craber`
