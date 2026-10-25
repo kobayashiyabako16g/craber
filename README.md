@@ -9,6 +9,10 @@
   <a href="https://github.com/kobayashiyabako16g/craber/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </div>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/screenshot.png" alt="craber serve showing the shop example: a table list on the left, the orders table selected with its relationships highlighted, and its columns and related tables in the details panel on the right">
+</p>
+
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
 connection — the layout algorithm, SVG output, the interactive UI and the static
 site all work. Expect breaking changes between releases.
