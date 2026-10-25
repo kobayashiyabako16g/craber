@@ -186,6 +186,17 @@ connection.
 
 ## Install routes in detail
 
+### From crates.io
+
+```console
+$ cargo install craber
+```
+
+`web/dist` lives outside the package directory, so the published `craber-site`
+carries its own copy in `bundle/` (written by `just vendor-bundle` before each
+publish). `cargo install` therefore compiles the frontend in without needing
+Node or pnpm — only Rust 1.94+.
+
 ### From a checkout
 
 ```console
@@ -205,6 +216,8 @@ is not in the repository for a clone to pick up.
 Each release carries archives for Linux (x86\_64 and aarch64, statically linked
 against musl), macOS (Apple Silicon) and Windows, plus a `.sha256` for each and
 a `sha256.sum` over all of them, alongside the generated installer scripts.
+`releases/latest/download/craber-installer.sh` (or `.ps1` on Windows) always
+points at the newest one.
 
 ### With Docker
 

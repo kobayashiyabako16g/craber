@@ -5,22 +5,37 @@
   binary with the web frontend compiled in, so <code>craber serve</code> should feel like
   reaching for <code>psql</code>: nothing to install, a diagram in front of you. The same
   binary generates a static site for CI to publish.</p>
+  <a href="https://crates.io/crates/craber"><img src="https://img.shields.io/crates/v/craber.svg" alt="crates.io"></a>
   <a href="https://github.com/kobayashiyabako16g/craber/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </div>
 
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
 connection — the layout algorithm, SVG output, the interactive UI and the static
-site all work. Nothing is released yet, so build from a checkout for now.
+site all work. Expect breaking changes between releases.
 
 ## Install
 
-### From a checkout
+### From crates.io
 
-Needs Rust 1.94+, Node 26 and pnpm (or just Nix — `direnv allow` brings all
-three):
+Needs Rust 1.94+. The web frontend ships inside the crate, so no Node is
+involved:
 
 ```console
-$ just install     # builds the frontend, then cargo install --path crates/craber
+$ cargo install craber
+```
+
+### Prebuilt binaries
+
+Each [GitHub release](https://github.com/kobayashiyabako16g/craber/releases)
+carries archives for Linux (x86\_64 and aarch64, static musl), macOS (Apple
+Silicon) and Windows, plus installer scripts that fetch the right one:
+
+```console
+$ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/kobayashiyabako16g/craber/releases/latest/download/craber-installer.sh | sh
+```
+
+```powershell
+PS> powershell -ExecutionPolicy Bypass -c "irm https://github.com/kobayashiyabako16g/craber/releases/latest/download/craber-installer.ps1 | iex"
 ```
 
 ### With Nix
@@ -37,9 +52,16 @@ $ docker run --rm -v "$PWD:/work" --user "$(id -u):$(id -g)" \
     ghcr.io/kobayashiyabako16g/craber build --file /work/schema.sql -o /work/dist
 ```
 
-Once there are releases, each will also carry prebuilt archives for Linux, macOS
-and Windows plus `curl | sh` and PowerShell installers.
-[docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md) has the details for every route.
+### From a checkout
+
+Needs Rust 1.94+, Node 26 and pnpm (or just Nix — `direnv allow` brings all
+three):
+
+```console
+$ just install     # builds the frontend, then cargo install --path crates/craber
+```
+
+[docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md#install-routes-in-detail) has the details for every route.
 
 ## Usage
 
