@@ -31,6 +31,12 @@
 
         inherit (pkgs) lib;
 
+        # nixpkgs builds pnpm against its default Node, which lags behind: the
+        # stock pnpm_11 runs on Node 24 whatever nodejs_26 is on PATH, and so
+        # fails the `engines.node` check in web/package.json. Every pnpm in this
+        # flake is this one, so the dev shell and `nix build` cannot disagree.
+        pnpm = pkgs.pnpm_11.override { nodejs-slim = pkgs.nodejs-slim_26; };
+
         # [workspace.package] version is the one place a release number is
         # written; `just bump` changes it and the packages follow.
         version = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
@@ -79,13 +85,13 @@
           # web/package.json pins, and the store layout changes across majors.
           nativeBuildInputs = [
             pkgs.nodejs_26
-            pkgs.pnpm_11
+            pnpm
             pkgs.pnpmConfigHook
           ];
 
           pnpmDeps = pkgs.fetchPnpmDeps {
             inherit (finalAttrs) pname version src;
-            pnpm = pkgs.pnpm_11;
+            inherit pnpm;
             # Mandatory, and 4 specifically: 1 and 2 were removed in nixpkgs
             # 26.11 and 3 is rejected outright for pnpm_11 and newer.
             fetcherVersion = 4;
@@ -191,14 +197,16 @@
 
         # The web app is Vite + React + TypeScript, driven by pnpm. The pnpm
         # here must stay in step with web/package.json's `packageManager` pin.
-        webTooling = with pkgs; [
+        webTooling = [
+          pnpm
+        ]
+        ++ (with pkgs; [
           nodejs_26
-          pnpm_11
           typescript
           typescript-language-server
           # JSON/CSS/HTML/ESLint servers, for editors opening web/.
           vscode-langservers-extracted
-        ];
+        ]);
       in
       {
         devShells.default = pkgs.mkShell {
