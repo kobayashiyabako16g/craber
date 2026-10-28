@@ -3,7 +3,7 @@ resolver = "3"
 members  = ["crates/*"]
 
 [workspace.package]
-version      = "0.1.2"
+version      = "0.1.3"
 edition      = "2024"
 rust-version = "1.94"
 license      = "MIT"
@@ -28,15 +28,15 @@ readme       = "README.md"
 # dependency entry, and there would be nothing to inherit from here anyway, so
 # the literal is repeated and `just bump` is what keeps all of them in step.
 # crates/craber/tests/version.rs fails when one of them is left behind.
-craber-core       = { path = "crates/craber-core", version = "0.1.2" }
-craber-parser     = { path = "crates/craber-parser", version = "0.1.2" }
+craber-core       = { path = "crates/craber-core", version = "0.1.3" }
+craber-parser     = { path = "crates/craber-parser", version = "0.1.3" }
 # default-features = false so each consumer picks its own backends; `craber`
 # turns all three on through its own feature table.
-craber-introspect = { path = "crates/craber-introspect", version = "0.1.2", default-features = false }
-craber-layout     = { path = "crates/craber-layout", version = "0.1.2" }
-craber-render     = { path = "crates/craber-render", version = "0.1.2" }
-craber-export     = { path = "crates/craber-export", version = "0.1.2" }
-craber-site       = { path = "crates/craber-site", version = "0.1.2" }
+craber-introspect = { path = "crates/craber-introspect", version = "0.1.3", default-features = false }
+craber-layout     = { path = "crates/craber-layout", version = "0.1.3" }
+craber-render     = { path = "crates/craber-render", version = "0.1.3" }
+craber-export     = { path = "crates/craber-export", version = "0.1.3" }
+craber-site       = { path = "crates/craber-site", version = "0.1.3" }
 
 serde              = { version = "1.0.229", features = ["derive"] }
 serde_json         = "1.0.154"
