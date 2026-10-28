@@ -39,10 +39,10 @@ craber-export     = { path = "crates/craber-export", version = "0.1.2" }
 craber-site       = { path = "crates/craber-site", version = "0.1.2" }
 
 serde              = { version = "1.0.229", features = ["derive"] }
-serde_json         = "1.0.151"
-thiserror          = "2.0.20"
+serde_json         = "1.0.154"
+thiserror          = "2.0.21"
 anyhow             = "1.0.104"
-sqlparser          = "0.62"
+sqlparser          = "0.63"
 # `default-features = false` drops `any`, `macros`, `migrate` and `json`.
 # `macros` is the one that matters — it is the compile-time-checked `query!`,
 # which wants a live DATABASE_URL at build time, and CrabER has to build with no
@@ -66,7 +66,7 @@ globset            = "0.4"
 tracing            = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 ts-rs              = "12.0"
-insta              = { version = "1.48", features = ["json"] }
+insta              = { version = "1.49", features = ["json"] }
 # `blocking` is the synchronous runner. The codebase is synchronous, so the
 # introspection tests need no async runtime of their own.
 testcontainers         = { version = "0.27", features = ["blocking"] }
