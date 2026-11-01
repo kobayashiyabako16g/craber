@@ -1,0 +1,84 @@
+# Renovate runs as the Mend-hosted app, which edits files but cannot run
+# commands afterwards. Two files here are derived from ones it edits:
+#
+# - flake.nix's pnpmDeps hash is a fixed-output hash over web/pnpm-lock.yaml
+#   (and over the pnpm that flake.lock pins), so a stale one breaks `nix build`.
+# - release.yml is `dist generate`'s rendering of build-setup.yml, and dist's
+#   plan job refuses a release.yml that has drifted from it.
+#
+# This recomputes both on Renovate's branches and pushes the result back. The
+# bot is in gitIgnoredAuthors (.github/renovate.json5), so Renovate does not take
+# the branch as edited by a person: it keeps rebasing and automerging it, and
+# when a rebase drops this commit the next run here adds it again.
+#
+# A push made with GITHUB_TOKEN starts no workflows, which would leave the new
+# head with no checks at all — and an automerged patch would then merge
+# unchecked. CI and Nix are dispatched on it explicitly instead; a
+# workflow_dispatch run reports on the commit it ran on, so it shows on the PR.
+name: Renovate fixup
+
+on:
+  push:
+    branches: ['renovate/**']
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fixup:
+    name: Update derived files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history, to diff the branch against main.
+          fetch-depth: 0
+
+      # Not a `paths:` filter on the trigger: for the push that creates a branch
+      # there is no previous commit to diff against, and that is exactly the
+      # push that matters.
+      - name: See what the branch touches
+        id: changed
+        run: |
+          files=$(git diff --name-only origin/main...HEAD)
+          grep -qxE 'web/(package\.json|pnpm-lock\.yaml)|flake\.lock' <<<"$files" && echo pnpm=true >>"$GITHUB_OUTPUT" || true
+          grep -qx '.github/build-setup.yml' <<<"$files" && echo dist=true >>"$GITHUB_OUTPUT" || true
+
+      - if: steps.changed.outputs.pnpm || steps.changed.outputs.dist
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          # Unauthenticated github: input fetches from a hosted runner share a
+          # 60-requests-per-hour limit with every other runner on that IP.
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      # --inputs-from . takes nixpkgs from flake.lock, so these are the same
+      # just and dist the dev shell has.
+      - name: Recompute the pnpm deps hash
+        if: steps.changed.outputs.pnpm
+        run: nix shell --inputs-from . nixpkgs#just -c just nix-pnpm-hash
+
+      - name: Regenerate release.yml
+        if: steps.changed.outputs.dist
+        run: nix shell --inputs-from . nixpkgs#cargo-dist -c dist generate
+
+      - name: Push and run the checks on the new head
+        if: steps.changed.outputs.pnpm || steps.changed.outputs.dist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then
+            echo "nothing to update"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am 'chore(deps): update files derived from the lockfiles'
+          git push origin "HEAD:$GITHUB_REF_NAME"
+          gh workflow run ci.yml --ref "$GITHUB_REF_NAME"
+          gh workflow run nix.yml --ref "$GITHUB_REF_NAME"

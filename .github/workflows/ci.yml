@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # renovate-fixup.yml dispatches this on the commit it pushes, which a
+  # GITHUB_TOKEN push would not otherwise trigger.
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always

@@ -20,5 +20,6 @@ files:
   - pattern: .github/workflows/nix.yml
   - pattern: .github/workflows/publish-crates.yml
   - pattern: .github/workflows/publish-docker.yml
+  - pattern: .github/workflows/renovate-fixup.yml
   # Not a workflow, but a list of steps dist injects into the generated one.
   - pattern: .github/build-setup.yml
