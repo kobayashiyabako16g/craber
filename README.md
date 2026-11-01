@@ -76,14 +76,56 @@ $ docker run --rm -v "$PWD:/work" --user "$(id -u):$(id -g)" \
     ghcr.io/kobayashiyabako16g/craber build --file /work/schema.sql -o /work/dist
 ```
 
-### From a checkout
+`craber serve` does not work in a container (it binds loopback only), so with
+Compose, build the site and let a web server serve it. This reads a live
+PostgreSQL:
 
-Needs Rust 1.94+, Node 26 and pnpm (or just Nix — `direnv allow` brings all
-three):
+```yaml
+# compose.yaml
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: craber
+      POSTGRES_PASSWORD: craber
+      POSTGRES_DB: shop
+    volumes:
+      - ./shop.sql:/docker-entrypoint-initdb.d/shop.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U craber -d shop"]
+      interval: 2s
+      retries: 30
+
+  craber:
+    image: ghcr.io/kobayashiyabako16g/craber
+    user: "${UID:-1000}:${GID:-1000}"   # so it can write to ./dist
+    environment:
+      CRABER_DSN: postgres://craber:craber@db:5432/shop
+    command: ["build", "-o", "/work/dist"]
+    volumes:
+      - ./dist:/work/dist
+    depends_on:
+      db:
+        condition: service_healthy      # the image has no shell to wait with
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    depends_on:
+      craber:
+        condition: service_completed_successfully
+```
 
 ```console
-$ just install     # builds the frontend, then cargo install --path crates/craber
+$ mkdir -p dist
+$ UID=$(id -u) GID=$(id -g) docker compose up    # then open http://localhost:8080/
 ```
+
+Outside a throwaway setup like this, keep the DSN in `.env` and write
+`CRABER_DSN: ${CRABER_DSN}` instead.
 
 [docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md#install-routes-in-detail) has the details for every route.
 
