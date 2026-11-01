@@ -17,6 +17,18 @@
 connection — the layout algorithm, SVG output, the interactive UI and the static
 site all work. Expect breaking changes between releases.
 
+## Supported databases
+
+| Database   | DDL file (`--file`) | Live connection (`--dsn`)       | `--dialect`            |
+| ---------- | :-----------------: | :-----------------------------: | ---------------------- |
+| PostgreSQL | ✓                   | ✓ `postgres://`, `postgresql://` | `postgres` (`pg`)      |
+| MySQL      | ✓                   | ✓ `mysql://`                    | `mysql`                |
+| MariaDB    | ✓ (as MySQL)        | ✓ `mariadb://` (as MySQL)       | `mariadb`              |
+| SQLite     | ✓                   | ✓ `sqlite://`, `sqlite:`, `file:` | `sqlite` (`sqlite3`) |
+
+`--dialect` can be left out: it is inferred from the DSN scheme, or from a
+filename containing `postgres`/`pg`, `mysql` or `sqlite`.
+
 ## Install
 
 ### From crates.io
