@@ -8,6 +8,9 @@ license.workspace      = true
 # Workspace inheritance is opt-in per key, so these have to be claimed here
 # even though the values live in [workspace.package]. crates.io wants them.
 repository.workspace   = true
+# Only on this crate: dist reads it for the Homebrew formula, which is the one
+# place the libraries are never shown.
+homepage               = "https://github.com/kobayashiyabako16g/craber"
 keywords.workspace     = true
 categories.workspace   = true
 readme.workspace       = true

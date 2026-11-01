@@ -42,6 +42,14 @@ $ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/kobayashiyabako16g/cr
 PS> powershell -ExecutionPolicy Bypass -c "irm https://github.com/kobayashiyabako16g/craber/releases/latest/download/craber-installer.ps1 | iex"
 ```
 
+### With Homebrew
+
+macOS (Apple Silicon) and Linux:
+
+```console
+$ brew install kobayashiyabako16g/tap/craber
+```
+
 ### With Nix
 
 ```console

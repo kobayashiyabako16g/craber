@@ -26,7 +26,14 @@ targets = [
     "x86_64-pc-windows-msvc",
 ]
 
-installers = ["shell", "powershell"]
+installers = ["shell", "powershell", "homebrew"]
+
+# The formula is written by dist and pushed to the tap by its own
+# publish-homebrew job, which needs a HOMEBREW_TAP_TOKEN secret that can push to
+# kobayashiyabako16g/homebrew-tap; it lands in Formula/ next to the tap's other
+# formulae. There is no Intel macOS target, so `brew install` on one fails.
+tap = "kobayashiyabako16g/homebrew-tap"
+formula = "craber"
 
 # The web bundle is compiled into the binary, so the frontend has to exist
 # before `cargo build` runs. dist has no "run once, before the matrix"
@@ -35,10 +42,11 @@ installers = ["shell", "powershell"]
 # outside that directory so GitHub does not read it as a workflow of its own.
 github-build-setup = "../build-setup.yml"
 
-# Neither is something dist does itself. Both are reusable workflows that take
-# the plan JSON; see .github/workflows/publish-*.yml. dist runs them in parallel
+# `homebrew` is built into dist; the other two are not something dist does
+# itself. They are reusable workflows that take the plan JSON; see
+# .github/workflows/publish-*.yml. dist runs all three in parallel
 # after the release exists — there is no way to order one after the other.
-publish-jobs = ["./publish-crates", "./publish-docker"]
+publish-jobs = ["homebrew", "./publish-crates", "./publish-docker"]
 
 # Builds the full matrix on pull requests and attaches the artifacts to the run,
 # which is the only way to exercise this pipeline without cutting a release.

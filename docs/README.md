@@ -219,6 +219,18 @@ a `sha256.sum` over all of them, alongside the generated installer scripts.
 `releases/latest/download/craber-installer.sh` (or `.ps1` on Windows) always
 points at the newest one.
 
+### With Homebrew
+
+```console
+$ brew install kobayashiyabako16g/tap/craber
+```
+
+The formula lives in
+[kobayashiyabako16g/homebrew-tap](https://github.com/kobayashiyabako16g/homebrew-tap)
+and is written by dist on each release, so it installs the same archives as the
+installer scripts. There is no Intel macOS build, so it covers Apple Silicon
+and Linux (x86\_64 and aarch64) only.
+
 ### With Docker
 
 `ghcr.io/kobayashiyabako16g/craber` is a `distroless/static` image holding the
