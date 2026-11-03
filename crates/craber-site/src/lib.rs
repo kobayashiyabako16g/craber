@@ -11,7 +11,7 @@
 //!   index.html
 //!   assets/index-<hash>.js
 //!   assets/index-<hash>.css
-//!   schema.json              # IR + table coordinates + edge routes
+//!   schema.json              # IR + table coordinates
 //!   serve.json               # cache headers for static hosts that read it
 //! ```
 
