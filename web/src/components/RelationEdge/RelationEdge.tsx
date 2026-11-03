@@ -1,8 +1,8 @@
 import { BaseEdge, Position, type EdgeProps } from "@xyflow/react";
 
-import type { Relation } from "../lib/graph";
-import { MARKER_LENGTH } from "../lib/handles";
-import { relationPath } from "../lib/path";
+import type { Relation } from "../../lib/graph";
+import { MARKER_LENGTH } from "../../lib/handles";
+import { relationPath } from "../../lib/path";
 
 /**
  * A relationship between two tables, drawn so that its notation sits on a

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL } from "../lib/flow";
-import { CloseIcon, FlowIcon } from "./icons";
-import type { StepKind, Workflow } from "../types";
+import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL } from "../../lib/flow";
+import { CloseIcon, FlowIcon } from "../icons/icons";
+import type { StepKind, Workflow } from "../../types";
 
 import "./WorkflowPicker.css";
 

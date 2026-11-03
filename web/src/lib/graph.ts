@@ -1,7 +1,7 @@
 import type { Edge } from "@xyflow/react";
 
 import { qualifiedName, resolveRef, tableIndex } from "./schema";
-import type { TableNodeType } from "../components/TableNode";
+import type { TableNodeType } from "../components/TableNode/TableNode";
 import type { ForeignKey, Table } from "../types";
 
 /**

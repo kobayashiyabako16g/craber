@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useReactFlow, type FitViewOptions } from "@xyflow/react";
 
 import { qualifiedName } from "../lib/schema";
-import type { TableNodeType } from "../components/TableNode";
+import type { TableNodeType } from "../components/TableNode/TableNode";
 import type { Table } from "../types";
 import { viewStateUrl, type ViewState, type Viewport } from "../lib/viewState";
 

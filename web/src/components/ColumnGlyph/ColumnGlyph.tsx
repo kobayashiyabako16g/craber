@@ -1,5 +1,5 @@
-import { DiamondIcon, KeyIcon, LinkIcon } from "./icons";
-import type { Column } from "../types";
+import { DiamondIcon, KeyIcon, LinkIcon } from "../icons/icons";
+import type { Column } from "../../types";
 
 import "./ColumnGlyph.css";
 

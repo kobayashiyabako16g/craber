@@ -129,7 +129,7 @@ fn rows(
         )]
         let row_y = y + HEADER_HEIGHT + ROW_INSET + i as f32 * ROW_HEIGHT + ROW_HEIGHT / 2.0;
 
-        // The same two colours `web/src/components/TableNode.tsx` gives its key glyphs: the
+        // The same two colours `web/src/components/TableNode/TableNode.tsx` gives its key glyphs: the
         // accent for a primary key, the FK tint for a foreign one. They used to
         // differ — the browser drew FK in a tan and an exported SVG drew it in
         // the muted grey — which made the same schema two different pictures.

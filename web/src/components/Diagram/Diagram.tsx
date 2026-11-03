@@ -9,31 +9,31 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Sidebar } from "./Sidebar";
-import { StepBar } from "./StepBar";
-import { TableDetails } from "./TableDetails";
-import { TableNode, type TableNodeType } from "./TableNode";
-import { Toolbar } from "./Toolbar";
-import { TopBar } from "./TopBar";
-import { WorkflowPicker } from "./WorkflowPicker";
-import { STUB_LENGTH } from "../lib/handles";
-import { CardinalityMarkers } from "./Markers";
-import { RelationEdge } from "./RelationEdge";
-import { anchorEdges, type Box } from "../lib/anchors";
-import { stepLit } from "../lib/flow";
+import { Sidebar } from "../Sidebar/Sidebar";
+import { StepBar } from "../StepBar/StepBar";
+import { TableDetails } from "../TableDetails/TableDetails";
+import { TableNode, type TableNodeType } from "../TableNode/TableNode";
+import { Toolbar } from "../Toolbar/Toolbar";
+import { TopBar } from "../TopBar/TopBar";
+import { WorkflowPicker } from "../WorkflowPicker/WorkflowPicker";
+import { STUB_LENGTH } from "../../lib/handles";
+import { CardinalityMarkers } from "../Markers/Markers";
+import { RelationEdge } from "../RelationEdge/RelationEdge";
+import { anchorEdges, type Box } from "../../lib/anchors";
+import { stepLit } from "../../lib/flow";
 import {
   anchorColumns,
   bakedNodes,
   litRelations,
   neighbourhood,
   toEdges,
-} from "../lib/graph";
-import { download } from "../lib/download";
-import { initialFit, useViewSync } from "../hooks/useViewSync";
-import { qualifiedName, tableIndex } from "../lib/schema";
-import { schemaSql, sqlFileName } from "../lib/sql";
-import type { Schema, Workflow } from "../types";
-import type { ViewState } from "../lib/viewState";
+} from "../../lib/graph";
+import { download } from "../../lib/download";
+import { initialFit, useViewSync } from "../../hooks/useViewSync";
+import { qualifiedName, tableIndex } from "../../lib/schema";
+import { schemaSql, sqlFileName } from "../../lib/sql";
+import type { Schema, Workflow } from "../../types";
+import type { ViewState } from "../../lib/viewState";
 
 import "./Diagram.css";
 
