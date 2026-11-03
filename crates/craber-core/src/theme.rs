@@ -117,8 +117,9 @@ impl Default for Theme {
 }
 
 palette! {
-    /// Interface colours the diagram itself never uses: hover feedback, and the
-    /// text on an accent-filled button.
+    /// Interface colours the diagram itself never uses: hover feedback, the
+    /// text on an accent-filled button, and what a table's relationships light
+    /// up in when it is pointed at or selected.
     ///
     /// Only the web app reads these. They are defined here anyway so that the
     /// stylesheet has exactly one source rather than one and a half.
@@ -126,6 +127,7 @@ palette! {
         accent_dim => "--craber-accent-dim",
         accent_text => "--craber-accent-text",
         surface_hover => "--craber-surface-hover",
+        highlight => "--craber-highlight",
     }
 }
 
@@ -136,6 +138,10 @@ impl Chrome {
             accent_dim: "#8a3520",
             accent_text: "#1a0d09",
             surface_hover: "#2d323d",
+            // Redder than the accent: the accent already marks every primary
+            // key and the brand, so a lit relationship has to be told apart
+            // from those at a glance.
+            highlight: "#f0434f",
         }
     }
 }
