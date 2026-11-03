@@ -1,0 +1,116 @@
+.craber-sidebar {
+  width: var(--craber-sidebar-width);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--craber-surface);
+  border-right: 1px solid var(--craber-border);
+}
+
+.craber-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 6px 12px;
+}
+
+.craber-sidebar-title {
+  font-weight: 600;
+}
+
+.craber-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 6px;
+  padding: 0 8px;
+  height: 28px;
+  border: 1px solid var(--craber-border);
+  border-radius: 6px;
+  color: var(--craber-text-muted);
+}
+
+.craber-search:focus-within {
+  border-color: var(--craber-accent-dim);
+}
+
+.craber-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  color: var(--craber-text);
+  font: inherit;
+}
+
+.craber-search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.craber-sidebar-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 4px;
+}
+
+.craber-sidebar-empty {
+  margin: 8px;
+  color: var(--craber-text-muted);
+}
+
+.craber-sidebar-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 2px;
+  border-radius: 6px;
+}
+
+.craber-sidebar-row:hover {
+  background: var(--craber-surface-hover);
+}
+
+.craber-sidebar-row.is-selected {
+  background: var(--craber-surface-raised);
+  box-shadow: inset 2px 0 0 var(--craber-accent);
+}
+
+.craber-sidebar-row.is-hidden .craber-sidebar-row-name {
+  color: var(--craber-text-muted);
+  text-decoration: line-through;
+}
+
+.craber-sidebar-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 100%;
+  padding: 0 6px;
+  color: var(--craber-text);
+  text-align: left;
+}
+
+.craber-sidebar-row-name svg {
+  flex: 0 0 auto;
+  color: var(--craber-text-muted);
+}
+
+.craber-sidebar-row-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-sidebar-foot {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-top: 1px solid var(--craber-border);
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 11px;
+}

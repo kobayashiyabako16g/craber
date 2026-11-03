@@ -1,5 +1,7 @@
 import { FitViewIcon, MinusIcon, PlusIcon, TidyIcon } from "./icons";
 
+import "./Toolbar.css";
+
 type ToolbarProps = {
   zoom: number;
   onZoomIn: () => void;

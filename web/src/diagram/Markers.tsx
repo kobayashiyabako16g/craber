@@ -3,6 +3,8 @@ import { Fragment } from "react";
 import type { EndKind } from "./graph";
 import { MARKER_LENGTH } from "./handles";
 
+import "./Markers.css";
+
 /**
  * Crow's-foot notation, as SVG markers the edges reference by id.
  *

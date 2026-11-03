@@ -6,6 +6,8 @@ import { CloseIcon, LinkIcon, TableIcon } from "./icons";
 import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex } from "./schema";
 import type { Column, Table, TableRef } from "./types";
 
+import "./TableDetails.css";
+
 /** One relationship, seen from the table the panel is describing. */
 type Relationship = {
   /** The table at the other end. */

@@ -1,0 +1,15 @@
+.craber-glyph {
+  flex: 0 0 auto;
+}
+
+.craber-glyph-pk {
+  color: var(--craber-accent);
+}
+
+.craber-glyph-fk {
+  color: var(--craber-glyph-fk);
+}
+
+.craber-glyph-plain {
+  color: var(--craber-text-muted);
+}

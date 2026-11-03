@@ -1,0 +1,84 @@
+.craber-node {
+  /* Edge handles sit on a column row, so each row — and the node itself, for
+     the fallback anchor — has to be what they are positioned against. */
+  position: relative;
+  width: var(--craber-node-width);
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: var(--craber-radius);
+  overflow: hidden;
+  font-size: 12px;
+  transition: opacity 120ms ease-out;
+}
+
+.craber-node.is-selected {
+  border-color: var(--craber-accent);
+  box-shadow: 0 0 0 1px var(--craber-accent);
+}
+
+.craber-node-header {
+  height: var(--craber-node-header);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: var(--craber-surface-raised);
+  font-weight: 600;
+}
+
+.craber-node-glyph {
+  flex: 0 0 auto;
+  color: var(--craber-accent);
+}
+
+.craber-node-schema {
+  color: var(--craber-text-muted);
+  font-weight: 400;
+}
+
+.craber-node-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-node-columns {
+  border-top: 1px solid var(--craber-border);
+}
+
+.craber-node-column {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--craber-node-row);
+  padding: 0 10px;
+  font-family: var(--craber-font-mono);
+}
+
+.craber-node-column + .craber-node-column {
+  border-top: 1px solid var(--craber-border);
+}
+
+.craber-node-column-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.craber-note {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--craber-text-muted);
+  cursor: help;
+}
+
+.craber-node-column-type {
+  color: var(--craber-text-muted);
+  font-size: 11px;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

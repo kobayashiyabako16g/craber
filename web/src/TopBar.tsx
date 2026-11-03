@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { CheckIcon, DownloadIcon, SidebarIcon } from "./icons";
 
+import "./TopBar.css";
+
 type TopBarProps = {
   schemaName: string;
   sidebarOpen: boolean;

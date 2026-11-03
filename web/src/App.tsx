@@ -5,12 +5,6 @@ import { Diagram } from "./Diagram";
 import { useSchema } from "./hooks/useSchema";
 import { readViewState, type ViewState } from "./viewState";
 
-import "@xyflow/react/dist/style.css";
-// Tokens first: theme.css reads them, and they are generated from the Rust
-// definition so the layout and the browser size a node identically.
-import "./generated/tokens.css";
-import "./theme.css";
-
 /**
  * The shell: load `schema.json`, then hand it to the canvas.
  *

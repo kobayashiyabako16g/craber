@@ -1,0 +1,74 @@
+/* Loaded after React Flow's own stylesheet (main.tsx imports it first): the
+   `.react-flow__*` rules below override it at the same specificity. */
+
+.craber-canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Focus: a selected table's neighbourhood stays lit, the rest recedes. */
+.react-flow__node.craber-dimmed,
+.react-flow__edge.craber-dimmed {
+  opacity: 0.25;
+}
+
+.react-flow__edge {
+  transition: opacity 160ms ease-out;
+}
+
+/* React Flow overrides */
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__edge-path {
+  stroke: var(--craber-edge);
+  stroke-width: 1.5;
+  /* Selecting a table recolours its relationships. Without a transition the
+     whole diagram changes colour between one frame and the next, and the eye
+     has nothing to follow from the click to the lines it lit. */
+  transition: stroke 160ms ease-out, stroke-width 160ms ease-out;
+}
+
+/* A line the reader is pointing at, whatever else is selected: the hit area
+   React Flow draws for the edge is wider than the line, so this answers a
+   hover the line itself is too thin to catch. */
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--craber-text-muted);
+}
+
+/* A selected table's own relationships. The crow's feet come along: the
+   markers stroke in `context-stroke`, which is this rule's colour. */
+.react-flow__edge.craber-edge-focus .react-flow__edge-path {
+  stroke: var(--craber-accent);
+  stroke-width: 1.8;
+}
+
+.react-flow__edge.craber-edge-inferred .react-flow__edge-path {
+  stroke-dasharray: 4 3;
+}
+
+.react-flow__minimap {
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: var(--craber-radius);
+}
+
+.react-flow__minimap-node {
+  fill: var(--craber-surface-raised);
+  stroke: var(--craber-border);
+}
+
+/* What the minimap dims outside the current view. Here rather than React
+   Flow's `maskColor` prop, which took the only hard-coded colour in the app —
+   and one that was not quite the background it was imitating. */
+.react-flow__minimap-mask {
+  fill: color-mix(in srgb, var(--craber-bg) 75%, transparent);
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--craber-text-muted);
+}

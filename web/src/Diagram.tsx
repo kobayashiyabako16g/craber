@@ -26,6 +26,8 @@ import { schemaSql, sqlFileName } from "./sql";
 import type { Schema } from "./types";
 import type { ViewState } from "./viewState";
 
+import "./Diagram.css";
+
 const nodeTypes = { table: TableNode };
 // `relation` is the default edge held straight out of each node for the length
 // of its notation; a self-reference keeps React Flow's own `smoothstep`.

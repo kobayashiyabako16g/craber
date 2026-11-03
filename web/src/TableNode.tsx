@@ -7,6 +7,8 @@ import { CommentIcon, TableIcon } from "./icons";
 import { foreignKeyColumns, primaryKeyColumns } from "./schema";
 import type { Table } from "./types";
 
+import "./TableNode.css";
+
 export type TableNodeData = {
   table: Table;
   /** Column names an edge attaches to — see `anchorColumns` in `diagram/graph.ts`. */

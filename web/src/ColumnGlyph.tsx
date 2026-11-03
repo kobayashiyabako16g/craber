@@ -1,6 +1,8 @@
 import { DiamondIcon, KeyIcon, LinkIcon } from "./icons";
 import type { Column } from "./types";
 
+import "./ColumnGlyph.css";
+
 /**
  * What a column is, in one glyph: key, foreign key, or ordinary.
  *

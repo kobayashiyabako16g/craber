@@ -5,6 +5,8 @@ import { EyeIcon, EyeOffIcon, SearchIcon, TableIcon } from "./icons";
 import { qualifiedName } from "./schema";
 import type { Table } from "./types";
 
+import "./Sidebar.css";
+
 const ROW_HEIGHT = 26;
 
 type SidebarProps = {
