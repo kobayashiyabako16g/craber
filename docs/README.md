@@ -45,59 +45,8 @@ then run `just bindings`.
 
 ## Configuration reference
 
-Anything you would otherwise retype in every CI job can live in a `craber.toml`
-next to the schema. With one committed, `craber build` and `craber export` take
-no arguments at all.
-
-```toml
-# Where the schema comes from and what to draw — every command reads these.
-file    = "db/schema.sql"      # or dsn = "postgres://..."
-dialect = "postgres"           # inferred from the filename or DSN when omitted
-exclude = ["schema_migrations", "audit_log*"]
-depth   = 1
-
-# Anything one command alone understands lives in that command's section.
-[build]
-output    = "dist/"
-base-path = "/myrepo/"
-
-[serve]
-port = 4300
-
-[export]
-format = "svg"
-output = "er.svg"
-```
-
-| Key | Where | What |
-|---|---|---|
-| `file` / `dsn` | top level | the schema source — one or the other |
-| `dialect` | top level | `postgres` / `mysql` / `sqlite`, same spellings `--dialect` takes |
-| `include` / `exclude` | top level | table globs |
-| `depth` | top level | foreign-key hops to grow the selection by |
-| `output` | `[build]`, `[export]` | directory for `build`, file for `export` |
-| `base-path` | `[build]` | URL prefix for the published assets |
-| `port` | `[serve]` | port to listen on |
-| `format` | `[export]` | `json` / `svg` / … |
-
-Command-specific keys are sectioned rather than shared so that a key one
-command needs cannot change another's behaviour: a top-level `output` would
-mean `craber export --format json` wrote a file instead of stdout the moment a
-config file appeared beside it, which would break anything reading CrabER's
-output through a pipe.
-
-Precedence is **CLI flag > environment variable > config file > default**. A
-flag replaces the file's value rather than merging with it — `--exclude
-sessions` means the file's exclusions no longer apply, and `--dsn` in a
-repository whose config names a `file` connects rather than reading the file.
-
-CrabER looks for `craber.toml` in the working directory and then in each
-directory above it, so a command run deep inside a repository still draws what
-the repository committed. `--config PATH` names one explicitly and is an error
-if it is not there; having no `craber.toml` anywhere is not. Paths inside the
-file are resolved against **the file**, not the working directory, so `file =
-"db/schema.sql"` means the same thing from anywhere. Unknown keys are rejected
-rather than ignored, so a typo says so.
+Every `craber.toml` key is documented in the
+[README](../README.md#configuration).
 
 ## What each command does today
 

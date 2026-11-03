@@ -188,6 +188,7 @@ Anything you would otherwise retype in every CI job can live in a `craber.toml`
 next to the schema:
 
 ```toml
+# craber.toml
 file    = "db/schema.sql"      # or dsn = "postgres://..."
 exclude = ["schema_migrations", "audit_log*"]
 
@@ -196,9 +197,123 @@ output = "dist/"
 ```
 
 With that committed, `craber build` and `craber export` take no arguments at
-all. Precedence is **CLI flag > environment variable > config file > default**,
-and the file is looked up in the working directory and every directory above it.
-The full key reference is in [docs/README.md](https://github.com/kobayashiyabako16g/craber/blob/main/docs/README.md#configuration-reference).
+all. [`docs/craber.toml.example`](https://github.com/kobayashiyabako16g/craber/blob/main/docs/craber.toml.example)
+is an annotated file to start from.
+
+### Schema source
+
+`file` or `dsn` says where the schema comes from. Set exactly one.
+
+```toml
+# craber.toml
+file = "db/schema.sql"
+# dsn = "postgres://user@host/shop"
+```
+
+Paths are resolved against **the config file**, not the working directory, so
+`file = "db/schema.sql"` means the same thing from anywhere in the repository.
+
+> [!TIP]
+> Prefer the `CRABER_DSN` environment variable to writing a `dsn` here: a
+> connection string carries a password, and this file is in the repository.
+
+### Dialect
+
+`dialect` is `postgres`, `mysql` or `sqlite` — the same spellings `--dialect`
+takes. It is inferred from the filename, or from a DSN's scheme, when omitted,
+so a `dsn` almost never needs it.
+
+```toml
+# craber.toml
+dialect = "mysql"
+```
+
+### Filter tables
+
+`include` and `exclude` choose which tables are drawn. Both are lists of glob
+patterns, each matched against the bare name and the schema-qualified name
+(`users` and `public.users`).
+
+```toml
+# craber.toml
+include = ["orders*", "users"]
+exclude = ["schema_migrations", "ar_internal_metadata", "*_audit"]
+```
+
+#### Filter logic
+
+1. Start from the tables `include` matches, or every table when `include` is
+   not set.
+2. Drop every table `exclude` matches. **`exclude` always wins**, however
+   specific the `include` pattern is.
+3. With [`depth`](#depth), grow the selection over foreign keys. An excluded
+   table is a wall: it is not added, and nothing behind it is reached through
+   it.
+4. Drop foreign keys that point at a table no longer in the diagram, so no
+   edge is left dangling.
+
+### Depth
+
+`depth` also pulls in tables within N foreign-key hops of the ones
+[`include`](#filter-tables) selected — handy for "this table and its
+neighbours".
+
+```toml
+# craber.toml
+include = ["orders"]
+depth   = 1
+```
+
+### Command sections
+
+Keys only one command understands live in that command's section.
+
+```toml
+# craber.toml
+[build]
+output    = "dist/"     # directory the site is written to
+base-path = "/myrepo/"  # URL prefix, e.g. for a GitHub Pages project site
+
+[serve]
+port = 4300
+
+[export]
+format = "svg"          # json / svg / …
+output = "er.svg"       # stdout when omitted
+```
+
+They are sectioned rather than shared so that a key one command needs cannot
+change another's behaviour: a top-level `output` would mean
+`craber export --format json` wrote a file instead of stdout the moment a
+config file appeared beside it, breaking anything reading CrabER's output
+through a pipe.
+
+### Precedence and lookup
+
+Precedence is **CLI flag > environment variable > config file > default**. A
+flag replaces the file's value rather than merging with it —
+`--exclude sessions` means the file's exclusions no longer apply, and `--dsn`
+in a repository whose config names a `file` connects rather than reading the
+file.
+
+CrabER looks for `craber.toml` in the working directory and then in each
+directory above it, so a command run deep inside a repository still draws what
+the repository committed. `--config PATH` names one explicitly and is an error
+if it is not there; having no `craber.toml` anywhere is not. Unknown keys are
+rejected rather than ignored, so a typo says so.
+
+### Key reference
+
+| Key | Where | What |
+|---|---|---|
+| `file` / `dsn` | top level | the schema source — one or the other |
+| `dialect` | top level | `postgres` / `mysql` / `sqlite` |
+| `include` / `exclude` | top level | table globs |
+| `depth` | top level | foreign-key hops to grow the selection by |
+| `output` | `[build]`, `[export]` | directory for `build`, file for `export` |
+| `base-path` | `[build]` | URL prefix for the published assets |
+| `port` | `[serve]` | port to listen on |
+| `format` | `[export]` | `json` / `svg` / … |
 
 ## Not implemented yet
 

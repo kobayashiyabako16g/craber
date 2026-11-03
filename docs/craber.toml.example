@@ -19,6 +19,7 @@ file = "db/schema.sql"
 dialect = "postgres"
 
 # Table selection, matched against both `users` and `public.users`.
+# `exclude` always wins over `include`, and `depth` never grows past it.
 include = ["*"]
 exclude = ["schema_migrations", "ar_internal_metadata", "*_audit"]
 
