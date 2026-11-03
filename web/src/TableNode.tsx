@@ -13,6 +13,10 @@ export type TableNodeData = {
   table: Table;
   /** Column names an edge attaches to — see `anchorColumns` in `diagram/graph.ts`. */
   anchors: ReadonlySet<string>;
+  /** Rows joined by a relationship of the selected or hovered table. */
+  litColumns?: ReadonlySet<string>;
+  /** This table is the selected or hovered one, or one relationship away. */
+  related?: boolean;
 };
 export type TableNodeType = Node<TableNodeData, "table">;
 
@@ -26,13 +30,15 @@ export type TableNodeType = Node<TableNodeData, "table">;
  * table at the other end. Nothing here decides geometry.
  */
 export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
-  const { table, anchors } = data;
+  const { table, anchors, litColumns, related } = data;
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const columns = table.columns ?? [];
 
   return (
-    <div className={`craber-node${selected ? " is-selected" : ""}`}>
+    <div
+      className={`craber-node${selected ? " is-selected" : ""}${related ? " is-related" : ""}`}
+    >
       {/* The node's own middle, for a relationship whose column CrabER could
           not place — a foreign key on a column the parser did not read. */}
       <ColumnHandles column="" />
@@ -47,7 +53,10 @@ export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
       {columns.length > 0 && (
         <div className="craber-node-columns">
           {columns.map((column) => (
-            <div className="craber-node-column" key={column.name}>
+            <div
+              className={`craber-node-column${litColumns?.has(column.name) ? " is-lit" : ""}`}
+              key={column.name}
+            >
               {anchors.has(column.name) && <ColumnHandles column={column.name} />}
               <ColumnGlyph column={column} isPk={pk.has(column.name)} isFk={fk.has(column.name)} />
               <span className="craber-node-column-name">{column.name}</span>

@@ -32,18 +32,23 @@
   transition: stroke 160ms ease-out, stroke-width 160ms ease-out;
 }
 
-/* A line the reader is pointing at, whatever else is selected: the hit area
-   React Flow draws for the edge is wider than the line, so this answers a
-   hover the line itself is too thin to catch. */
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke: var(--craber-text-muted);
+/* The relationships of the selected or hovered table. The crow's feet come
+   along: the markers stroke in `context-stroke`, which is this rule's colour. */
+.react-flow__edge.craber-edge-focus {
+  opacity: 1;
 }
 
-/* A selected table's own relationships. The crow's feet come along: the
-   markers stroke in `context-stroke`, which is this rule's colour. */
 .react-flow__edge.craber-edge-focus .react-flow__edge-path {
-  stroke: var(--craber-accent);
+  stroke: var(--craber-highlight);
   stroke-width: 1.8;
+}
+
+/* How many rows meet at each end of a lit line, above its crow's foot. */
+.craber-edge-end {
+  fill: var(--craber-highlight);
+  font-family: var(--craber-font-mono);
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .react-flow__edge.craber-edge-inferred .react-flow__edge-path {

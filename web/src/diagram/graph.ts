@@ -26,6 +26,11 @@ export type Relation = Edge<{
   targetEnd: EndKind;
   sourceColumn: string;
   targetColumn: string;
+  /** Read from the referencing end, as the details panel reads it; a lit
+   *  line shows its two halves at its two ends. */
+  cardinality: string;
+  /** Set per render while one of its tables is selected or pointed at. */
+  lit?: boolean;
 }> & {
   /** Curvature for a bezier, straight-run offset for a self-reference's
    *  orthogonal route — see where `toEdges` sets them. */
@@ -160,6 +165,7 @@ export function toEdges(tables: Table[], stubLength: number): Relation[] {
             byId.get(targetId),
             referencedColumn(fk.refColumns, byId.get(targetId)),
           ),
+          cardinality: cardinalityLabel(fk, "from"),
         },
         // A bezier, held straight out of each node for the length of the
         // notation first: see `relationPath`, which is what `relation` draws.
@@ -201,6 +207,43 @@ export function neighbourhood(
   for (const edge of edges) {
     if (edge.source === selected) lit.add(edge.target);
     if (edge.target === selected) lit.add(edge.source);
+  }
+  return lit;
+}
+
+/** What lighting up some tables lights with them — see `litRelations`. */
+export type Lit = {
+  /** Every relationship that touches one of the tables. */
+  edges: ReadonlySet<string>;
+  /** The tables themselves and everything one relationship away. */
+  tables: ReadonlySet<string>;
+  /** Per table, the rows those relationships join. */
+  columns: ReadonlyMap<string, ReadonlySet<string>>;
+};
+
+/**
+ * The relationships of the given tables, and what they reach.
+ *
+ * Takes the selected and the hovered table together, since both light the
+ * diagram the same way and either may be absent. A column the node does not
+ * draw (an empty `sourceColumn`) lights nothing, as there is no row to light.
+ */
+export function litRelations(edges: Relation[], tables: (string | null)[]): Lit {
+  const active = new Set(tables.filter((table): table is string => table !== null));
+  const lit = { edges: new Set<string>(), tables: new Set(active), columns: new Map() };
+  if (active.size === 0) return lit;
+
+  const light = (table: string, column: string | undefined) => {
+    if (!column) return;
+    const columns = lit.columns.get(table) ?? new Set<string>();
+    lit.columns.set(table, columns.add(column));
+  };
+  for (const edge of edges) {
+    if (!active.has(edge.source) && !active.has(edge.target)) continue;
+    lit.edges.add(edge.id);
+    lit.tables.add(edge.source).add(edge.target);
+    light(edge.source, edge.data?.sourceColumn);
+    light(edge.target, edge.data?.targetColumn);
   }
   return lit;
 }

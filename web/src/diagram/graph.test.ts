@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { ForeignKey } from "../types";
-import { cardinalityLabel, endKinds } from "./graph";
+import type { ForeignKey, Table } from "../types";
+import { cardinalityLabel, endKinds, litRelations, toEdges } from "./graph";
 
 /**
  * A declared key, with the two facts that decide how it is drawn left at the
@@ -68,5 +68,54 @@ describe("cardinalityLabel", () => {
     const one = fk({ cardinality: "oneToOne" });
     expect(cardinalityLabel(one, "from")).toBe("1:1");
     expect(cardinalityLabel(one, "to")).toBe("1:1");
+  });
+});
+
+describe("toEdges", () => {
+  /** `orders.user_id` → `users.id`, with the key's own facts overridable. */
+  function edge(over: Partial<ForeignKey> = {}) {
+    const tables = [
+      { name: "users", columns: [{ name: "id" }], pk: ["id"] },
+      { name: "orders", columns: [{ name: "id" }, { name: "user_id" }], fks: [fk(over)] },
+    ] as unknown as Table[];
+    const [relation] = toEdges(tables, 0);
+    if (!relation) throw new Error("orders.user_id did not resolve to users");
+    return relation;
+  }
+
+  it("labels a line with its cardinality read from the referencing end", () => {
+    expect(edge().data?.cardinality).toBe("n:1");
+    expect(edge({ cardinality: "oneToOne" }).data?.cardinality).toBe("1:1");
+  });
+});
+
+describe("litRelations", () => {
+  /** users ← orders, users ← sessions, and products unrelated to either. */
+  const tables = [
+    { name: "users", columns: [{ name: "id" }], pk: ["id"] },
+    { name: "orders", columns: [{ name: "user_id" }], fks: [fk()] },
+    { name: "sessions", columns: [{ name: "user_id" }], fks: [fk()] },
+    { name: "products", columns: [{ name: "id" }], pk: ["id"] },
+  ] as unknown as Table[];
+  const edges = toEdges(tables, 0);
+
+  it("lights nothing when no table is selected or hovered", () => {
+    const lit = litRelations(edges, [null, null]);
+    expect(lit.edges.size).toBe(0);
+    expect(lit.tables.size).toBe(0);
+  });
+
+  it("lights a table's relationships, their far ends, and the rows they join", () => {
+    const lit = litRelations(edges, [null, "orders"]);
+    expect([...lit.edges]).toEqual(["orders:0"]);
+    expect([...lit.tables].sort()).toEqual(["orders", "users"]);
+    expect([...(lit.columns.get("orders") ?? [])]).toEqual(["user_id"]);
+    expect([...(lit.columns.get("users") ?? [])]).toEqual(["id"]);
+  });
+
+  it("lights the selected and the hovered table together", () => {
+    const lit = litRelations(edges, ["orders", "sessions"]);
+    expect([...lit.edges].sort()).toEqual(["orders:0", "sessions:0"]);
+    expect(lit.tables.has("products")).toBe(false);
   });
 });

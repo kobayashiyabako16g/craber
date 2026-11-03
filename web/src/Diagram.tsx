@@ -18,7 +18,13 @@ import { STUB_LENGTH } from "./diagram/handles";
 import { CardinalityMarkers } from "./diagram/Markers";
 import { RelationEdge } from "./diagram/RelationEdge";
 import { anchorEdges, type Box } from "./diagram/anchors";
-import { anchorColumns, bakedNodes, neighbourhood, toEdges } from "./diagram/graph";
+import {
+  anchorColumns,
+  bakedNodes,
+  litRelations,
+  neighbourhood,
+  toEdges,
+} from "./diagram/graph";
 import { download } from "./download";
 import { initialFit, useViewSync } from "./hooks/useViewSync";
 import { qualifiedName } from "./schema";
@@ -78,15 +84,35 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
   // table's relationships are readable without hiding the rest of the diagram.
   const focus = useMemo(() => neighbourhood(relations, selected), [relations, selected]);
 
+  // The table under the pointer lights up the same way, without a click: its
+  // relationships, the tables at their other ends, and the rows they join.
+  // Lines are not hovered themselves — in a bundle of twenty there is no
+  // telling which one the pointer is on, while the table it starts from is
+  // a target nobody misses.
+  const [hoveredTable, setHoveredTable] = useState<string | null>(null);
+  const lit = useMemo(
+    () => litRelations(relations, [selected, hoveredTable]),
+    [relations, selected, hoveredTable],
+  );
+
   const renderedNodes = useMemo(
     () =>
-      nodes.map((node) => ({
-        ...node,
-        hidden: hidden.has(node.id),
-        selected: node.id === selected,
-        className: focus && !focus.has(node.id) ? "craber-canvas-dimmed" : undefined,
-      })),
-    [nodes, hidden, selected, focus],
+      nodes.map((node) => {
+        const columns = lit.columns.get(node.id);
+        const related = lit.tables.has(node.id);
+        return {
+          ...node,
+          // Only the tables that are lit get new data, so a hover does not
+          // re-render every node on the canvas.
+          data:
+            columns || related ? { ...node.data, litColumns: columns, related } : node.data,
+          hidden: hidden.has(node.id),
+          selected: node.id === selected,
+          // What the pointer lights stays readable inside a selection too.
+          className: focus && !focus.has(node.id) && !related ? "craber-canvas-dimmed" : undefined,
+        };
+      }),
+    [nodes, hidden, selected, focus, lit],
   );
 
   // Where every node sits at this moment. Dragging changes `nodes`, so the
@@ -111,8 +137,13 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
     () =>
       relations.map((edge) => {
         const anchor = anchors.get(edge.id);
+        const isLit = lit.edges.has(edge.id);
         return {
           ...edge,
+          data: isLit && edge.data ? { ...edge.data, lit: true } : edge.data,
+          // Above the rest of the bundle it runs in, or the lines drawn after
+          // it cover the ones being asked about.
+          zIndex: isLit ? 1 : undefined,
           sourceHandle: anchor?.source,
           targetHandle: anchor?.target,
           // React Flow wraps these in `url(#...)` itself, so they are bare ids.
@@ -126,17 +157,13 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
             // Lit, not merely left alone: dimming the rest says which lines do
             // not matter, and colouring these says which ones do. The markers
             // follow without being told — they stroke in `context-stroke`.
-            focus
-              ? focus.has(edge.source) && focus.has(edge.target)
-                ? "craber-edge-focus"
-                : "craber-canvas-dimmed"
-              : undefined,
+            isLit ? "craber-edge-focus" : focus ? "craber-canvas-dimmed" : undefined,
           ]
             .filter(Boolean)
             .join(" "),
         };
       }),
-    [relations, anchors, hidden, focus],
+    [relations, anchors, hidden, focus, lit],
   );
 
   // The toolbar moves the canvas programmatically, so `onMoveEnd` reports it
@@ -196,6 +223,8 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
             proOptions={{ hideAttribution: false }}
             onNodeClick={(_, node) => setSelected(node.id)}
             onPaneClick={() => setSelected(null)}
+            onNodeMouseEnter={(_, node) => setHoveredTable(node.id)}
+            onNodeMouseLeave={() => setHoveredTable(null)}
             // The only writer of `?at=`. React Flow reports the viewport when a
             // pan or zoom settles rather than per frame, which is the rate the
             // address bar wants to be rewritten at.

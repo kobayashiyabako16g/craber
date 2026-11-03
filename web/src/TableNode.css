@@ -11,9 +11,16 @@
   transition: opacity 120ms ease-out;
 }
 
+.craber-node.is-related {
+  border-color: var(--craber-highlight);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--craber-highlight) 45%, transparent);
+}
+
 .craber-node.is-selected {
-  border-color: var(--craber-accent);
-  box-shadow: 0 0 0 1px var(--craber-accent);
+  border-color: var(--craber-highlight);
+  box-shadow:
+    0 0 0 1px var(--craber-highlight),
+    0 0 16px color-mix(in srgb, var(--craber-highlight) 55%, transparent);
 }
 
 .craber-node-header {
@@ -54,6 +61,10 @@
   height: var(--craber-node-row);
   padding: 0 10px;
   font-family: var(--craber-font-mono);
+}
+
+.craber-node-column.is-lit {
+  background: color-mix(in srgb, var(--craber-highlight) 18%, transparent);
 }
 
 .craber-node-column + .craber-node-column {
