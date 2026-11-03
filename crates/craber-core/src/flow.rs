@@ -99,6 +99,35 @@ pub struct Touch {
     /// Empty when the statement names no columns (`SELECT *`, `DELETE`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub columns: Vec<String>,
+    /// The values the SQL itself writes into or filters these columns by.
+    /// Added after `flowsVersion` 1 shipped; a reader that predates it
+    /// ignores it, so it did not need a version of its own.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub values: Vec<ColumnValue>,
+}
+
+/// A value a statement names for one column, as written — nothing is
+/// evaluated, so `total + 1` stays `total + 1`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ColumnValue {
+    pub column: String,
+    pub kind: ValueKind,
+    /// For [`ValueKind::Set`], the value: `59.80`, `'paid'`, `o.id`. For
+    /// [`ValueKind::Filter`], the condition with the column left out:
+    /// `= 100`, `IN (1, 2)`, `IS NULL`.
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum ValueKind {
+    /// Written by `INSERT … VALUES`, `INSERT … SELECT` or `UPDATE … SET`.
+    Set,
+    /// A condition from `WHERE` or `ON`, against something that is not a column.
+    Filter,
 }
 
 /// What a step does to a table. A table both read and written in one statement

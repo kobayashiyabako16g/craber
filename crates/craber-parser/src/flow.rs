@@ -119,6 +119,7 @@ impl StepBuilder {
                 table: table.clone(),
                 access,
                 columns: Vec::new(),
+                values: Vec::new(),
             }),
         }
     }

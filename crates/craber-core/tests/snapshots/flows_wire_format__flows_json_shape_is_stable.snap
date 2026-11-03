@@ -61,6 +61,34 @@ expression: sample()
               "access": "delete"
             }
           ]
+        },
+        {
+          "kind": "update",
+          "sql": "UPDATE orders SET total = 59.80 WHERE id = 100",
+          "touches": [
+            {
+              "table": {
+                "name": "orders"
+              },
+              "access": "write",
+              "columns": [
+                "total",
+                "id"
+              ],
+              "values": [
+                {
+                  "column": "total",
+                  "kind": "set",
+                  "text": "59.80"
+                },
+                {
+                  "column": "id",
+                  "kind": "filter",
+                  "text": "= 100"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

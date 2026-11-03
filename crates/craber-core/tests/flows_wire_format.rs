@@ -2,7 +2,10 @@
 //! pins `schema.json`: a site and the binary that wrote its data are deployed
 //! independently, so a change here is a breaking change.
 
-use craber_core::{Access, ColumnRef, Flows, Join, Step, StepKind, TableRef, Touch, Workflow};
+use craber_core::{
+    Access, ColumnRef, ColumnValue, Flows, Join, Step, StepKind, TableRef, Touch, ValueKind,
+    Workflow,
+};
 
 fn sample() -> Flows {
     let mut workflow = Workflow::new("checkout");
@@ -15,11 +18,13 @@ fn sample() -> Flows {
                     table: TableRef::new("orders"),
                     access: Access::Read,
                     columns: vec!["id".into(), "user_id".into()],
+                    values: Vec::new(),
                 },
                 Touch {
                     table: TableRef::new("users"),
                     access: Access::Read,
                     columns: vec!["id".into()],
+                    values: Vec::new(),
                 },
             ],
             joins: vec![Join {
@@ -40,6 +45,29 @@ fn sample() -> Flows {
                 table: TableRef::qualified("public", "orders"),
                 access: Access::Delete,
                 columns: Vec::new(),
+                values: Vec::new(),
+            }],
+            joins: Vec::new(),
+        },
+        Step {
+            kind: StepKind::Update,
+            sql: "UPDATE orders SET total = 59.80 WHERE id = 100".into(),
+            touches: vec![Touch {
+                table: TableRef::new("orders"),
+                access: Access::Write,
+                columns: vec!["total".into(), "id".into()],
+                values: vec![
+                    ColumnValue {
+                        column: "total".into(),
+                        kind: ValueKind::Set,
+                        text: "59.80".into(),
+                    },
+                    ColumnValue {
+                        column: "id".into(),
+                        kind: ValueKind::Filter,
+                        text: "= 100".into(),
+                    },
+                ],
             }],
             joins: Vec::new(),
         },
