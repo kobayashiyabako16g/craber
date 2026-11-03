@@ -34,10 +34,10 @@ export function TopBar({ schemaName, sidebarOpen, onToggleSidebar, onExportSql }
         <SidebarIcon />
       </button>
 
-      <span className="craber-logo">
+      <span className="craber-topbar-logo">
         Crab<span>ER</span>
       </span>
-      <span className="craber-schema-name">{schemaName}</span>
+      <span className="craber-topbar-schema">{schemaName}</span>
 
       <div className="craber-topbar-spacer" />
 

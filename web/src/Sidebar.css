@@ -20,7 +20,7 @@
   font-weight: 600;
 }
 
-.craber-search {
+.craber-sidebar-search {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -32,11 +32,11 @@
   color: var(--craber-text-muted);
 }
 
-.craber-search:focus-within {
+.craber-sidebar-search:focus-within {
   border-color: var(--craber-accent-dim);
 }
 
-.craber-search input {
+.craber-sidebar-search input {
   flex: 1 1 auto;
   min-width: 0;
   background: none;
@@ -46,7 +46,7 @@
   font: inherit;
 }
 
-.craber-search input::-webkit-search-cancel-button {
+.craber-sidebar-search input::-webkit-search-cancel-button {
   appearance: none;
 }
 

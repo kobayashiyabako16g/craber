@@ -24,7 +24,7 @@ export function Toolbar({ zoom, onZoomIn, onZoomOut, onFitView, onTidyUp }: Tool
       <button type="button" className="craber-icon-button" title="Zoom out" onClick={onZoomOut}>
         <MinusIcon />
       </button>
-      <span className="craber-zoom">{Math.round(zoom * 100)}%</span>
+      <span className="craber-toolbar-zoom">{Math.round(zoom * 100)}%</span>
       <button type="button" className="craber-icon-button" title="Zoom in" onClick={onZoomIn}>
         <PlusIcon />
       </button>

@@ -103,7 +103,7 @@ export function TableDetails({ table, tables, onSelect, onClose }: TableDetailsP
                   <span className="craber-details-tag">{relationship.cardinality}</span>
                   {relationship.inferred && <span className="craber-details-tag">inferred</span>}
                 </span>
-                <span className="craber-mono craber-details-relation-join">
+                <span className="craber-details-mono craber-details-relation-join">
                   {relationship.from} → {relationship.to}
                 </span>
               </button>
@@ -126,7 +126,7 @@ function ColumnCard({
 }) {
   return (
     <div className="craber-details-card">
-      <div className="craber-details-card-title craber-mono">
+      <div className="craber-details-card-title craber-details-mono">
         <ColumnGlyph column={column} isPk={isPk} isFk={isFk} plain={false} />
         {column.name}
       </div>
@@ -165,9 +165,9 @@ function Fact({
 }) {
   const stacked = prose || (value !== undefined && value.length > 24);
   return (
-    <div className={`craber-fact${stacked ? " is-stacked" : ""}`}>
+    <div className={`craber-details-fact${stacked ? " is-stacked" : ""}`}>
       <dt>{label}</dt>
-      <dd className={[mono ? "craber-mono" : "", prose ? "craber-prose" : ""].join(" ").trim()}>
+      <dd className={[mono ? "craber-details-mono" : "", prose ? "craber-details-prose" : ""].join(" ").trim()}>
         {value}
       </dd>
     </div>

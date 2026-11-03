@@ -8,8 +8,8 @@
 }
 
 /* Focus: a selected table's neighbourhood stays lit, the rest recedes. */
-.react-flow__node.craber-dimmed,
-.react-flow__edge.craber-dimmed {
+.react-flow__node.craber-canvas-dimmed,
+.react-flow__edge.craber-canvas-dimmed {
   opacity: 0.25;
 }
 

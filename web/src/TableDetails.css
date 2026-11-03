@@ -74,23 +74,23 @@
   margin: 0;
 }
 
-.craber-fact {
+.craber-details-fact {
   display: flex;
   align-items: baseline;
   gap: 10px;
   padding: 5px 10px;
 }
 
-.craber-fact + .craber-fact {
+.craber-details-fact + .craber-details-fact {
   border-top: 1px solid var(--craber-border);
 }
 
-.craber-fact dt {
+.craber-details-fact dt {
   flex: 0 0 auto;
   color: var(--craber-text-muted);
 }
 
-.craber-fact dd {
+.craber-details-fact dd {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
@@ -99,23 +99,23 @@
 }
 
 /* A value too long for the label's line takes the panel's full width. */
-.craber-fact.is-stacked {
+.craber-details-fact.is-stacked {
   flex-direction: column;
   align-items: stretch;
   gap: 2px;
   padding-bottom: 7px;
 }
 
-.craber-fact.is-stacked dd {
+.craber-details-fact.is-stacked dd {
   text-align: left;
 }
 
-.craber-prose {
+.craber-details-prose {
   overflow-wrap: break-word;
   line-height: 1.45;
 }
 
-.craber-mono {
+.craber-details-mono {
   font-family: var(--craber-font-mono);
 }
 

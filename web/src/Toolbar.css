@@ -21,7 +21,7 @@
   background: var(--craber-border);
 }
 
-.craber-zoom {
+.craber-toolbar-zoom {
   min-width: 42px;
   text-align: center;
   color: var(--craber-text-muted);

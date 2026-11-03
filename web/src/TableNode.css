@@ -67,7 +67,7 @@
   white-space: nowrap;
 }
 
-.craber-note {
+.craber-node-note {
   display: inline-flex;
   flex: 0 0 auto;
   color: var(--craber-text-muted);

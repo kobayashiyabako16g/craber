@@ -46,11 +46,12 @@ Pipeline: **input → IR (`Schema`) → filter → layout → output**. `crates/
 - **Parsing fails partially.** Unsupported syntax yields a warning `Diagnostic` and the statement is skipped — warn and continue, never bail. Only error-severity diagnostics abort (`refuse_on_errors`).
 - **Never put a DSN in an error or log message** — it carries a password and stderr ends up in CI logs.
 - **The bundle is fail-soft.** Without `web/dist`, the Rust build only emits a `cargo:warning` and the binary refuses at run time; `crates/craber/tests/build.rs` passes by skipping. So `cargo build` must run *after* `just web-build` (`just dist`/`just install` do this). `just nix-build` is the only check that the bundle really landed in the binary.
+- **CSS class names follow the block they belong to.** `craber-<block>[-<element>]`, states as a separate `is-<state>`; a component's styles sit beside it (`Sidebar.css`) and `theme.css` holds only what several components share. A new stylesheet or block goes in `OWNERS` in `web/src/classNames.test.ts`.
 - Workspace lints: `unsafe_code = "forbid"`, clippy `pedantic` as warnings (errors in CI).
 
 ## Frontend verification
 
-Components are not unit-tested; vitest covers only the React-free modules (`diagram/graph.ts`, `diagram/anchors.ts`, `diagram/path.ts`, `schema.ts`, `sql.ts`, `viewState.ts`). A UI change is checked by looking at it in Chrome — use the `ui-check` skill (`.claude/skills/ui-check`): `just ui` → screenshot + console via claude-in-chrome → `just sample-reset`.
+Components are not unit-tested; vitest covers only the React-free modules (`diagram/graph.ts`, `diagram/anchors.ts`, `diagram/path.ts`, `schema.ts`, `sql.ts`, `viewState.ts`). `classNames.test.ts` also reads the stylesheets and components as text to hold the CSS naming rules. A UI change is checked by looking at it in Chrome — use the `ui-check` skill (`.claude/skills/ui-check`): `just ui` → screenshot + console via claude-in-chrome → `just sample-reset`.
 
 ## Commits and releases
 

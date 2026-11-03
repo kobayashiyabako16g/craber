@@ -76,7 +76,7 @@ export function Sidebar({
         </button>
       </div>
 
-      <label className="craber-search">
+      <label className="craber-sidebar-search">
         <SearchIcon size={13} />
         <input
           type="search"

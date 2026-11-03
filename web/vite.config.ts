@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -13,5 +14,10 @@ export default defineConfig({
     // The static site has no backend, so the whole app has to be cacheable by
     // content hash; keep the default hashed asset names.
     assetsDir: "assets",
+  },
+  test: {
+    // Vitest blanks stylesheets by default; classNames.test.ts reads them as
+    // text (`?raw`) to check the class naming rules.
+    css: true,
   },
 });

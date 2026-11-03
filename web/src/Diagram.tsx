@@ -84,7 +84,7 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
         ...node,
         hidden: hidden.has(node.id),
         selected: node.id === selected,
-        className: focus && !focus.has(node.id) ? "craber-dimmed" : undefined,
+        className: focus && !focus.has(node.id) ? "craber-canvas-dimmed" : undefined,
       })),
     [nodes, hidden, selected, focus],
   );
@@ -129,7 +129,7 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
             focus
               ? focus.has(edge.source) && focus.has(edge.target)
                 ? "craber-edge-focus"
-                : "craber-dimmed"
+                : "craber-canvas-dimmed"
               : undefined,
           ]
             .filter(Boolean)

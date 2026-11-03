@@ -98,7 +98,7 @@ function ColumnHandles({ column }: { column: string }) {
 function Note({ text }: { text?: string | null }) {
   if (!text) return null;
   return (
-    <span className="craber-note" title={text}>
+    <span className="craber-node-note" title={text}>
       <CommentIcon size={11} />
     </span>
   );

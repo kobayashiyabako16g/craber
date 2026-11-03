@@ -3,6 +3,10 @@
  * component uses. A component's own rules live beside it (`Sidebar.css` next to
  * `Sidebar.tsx`) and are imported by that component.
  *
+ * A class is `craber-<block>[-<element>]` — `craber-sidebar-row-name` — and a
+ * state is a separate `is-<state>` beside it. Each stylesheet owns its blocks;
+ * classNames.test.ts holds the list and fails on a class in the wrong file.
+ *
  * The design tokens — colours, node metrics — are NOT here either: they are
  * generated into `generated/tokens.css` from crates/craber-core/src/theme.rs,
  * because the Rust layout positions a node from the same numbers the browser
