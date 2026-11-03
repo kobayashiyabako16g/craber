@@ -43,3 +43,15 @@ fn filenames_keep_their_own_rules() {
     );
     assert_eq!(Dialect::from_dsn("pg://host/db"), None);
 }
+
+/// The message is built from `Dialect::ALL`, so this is the check that every
+/// dialect is both listed and spelled the way `--dialect` accepts it.
+#[test]
+fn an_unknown_dialect_lists_every_known_one() {
+    let error = "oracle".parse::<Dialect>().unwrap_err().to_string();
+    assert!(error.contains("`oracle`"), "{error}");
+    for dialect in Dialect::ALL {
+        assert!(error.contains(&dialect.to_string()), "{error}");
+        assert_eq!(dialect.to_string().parse::<Dialect>().unwrap(), dialect);
+    }
+}

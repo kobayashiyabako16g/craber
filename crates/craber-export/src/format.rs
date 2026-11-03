@@ -61,9 +61,16 @@ impl fmt::Display for Format {
 /// Carries the list rather than a bare "unknown format" so the message is
 /// actionable without running `--help` — the same shape as
 /// [`UnknownDialect`](craber_core::UnknownDialect).
+///
+/// The list is built from [`Format::ALL`] rather than written out, so a new
+/// format is listed the moment it exists.
 #[derive(Debug, Error)]
-#[error("unknown format `{0}`, expected one of: json, svg, png, mermaid, dbml")]
+#[error("unknown format `{0}`, expected one of: {expected}", expected = expected())]
 pub struct UnknownFormat(String);
+
+fn expected() -> String {
+    Format::ALL.map(Format::as_str).join(", ")
+}
 
 impl FromStr for Format {
     type Err = UnknownFormat;

@@ -21,6 +21,9 @@ pub enum Dialect {
 }
 
 impl Dialect {
+    /// Every dialect, in the order error messages list them.
+    pub const ALL: [Self; 3] = [Self::Postgres, Self::MySql, Self::Sqlite];
+
     /// Guess from a file extension or filename, for when `--dialect` is omitted.
     pub fn from_path(path: &Path) -> Option<Self> {
         let name = path.file_name()?.to_str()?.to_ascii_lowercase();
@@ -65,9 +68,15 @@ impl fmt::Display for Dialect {
     }
 }
 
+/// Built from [`Dialect::ALL`] rather than written out, so a new dialect is
+/// listed the moment it exists.
 #[derive(Debug, Error)]
-#[error("unknown dialect `{0}`, expected one of: postgres, mysql, sqlite")]
+#[error("unknown dialect `{0}`, expected one of: {expected}", expected = expected())]
 pub struct UnknownDialect(String);
+
+fn expected() -> String {
+    Dialect::ALL.map(|dialect| dialect.to_string()).join(", ")
+}
 
 impl FromStr for Dialect {
     type Err = UnknownDialect;
