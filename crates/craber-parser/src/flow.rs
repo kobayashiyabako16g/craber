@@ -6,13 +6,19 @@
 //! says which one — through a qualifier or because one table is in scope — so
 //! that an ambiguous `id` is dropped rather than drawn on the wrong node.
 //!
+//! Values are recorded the same way, as the SQL writes them: what `INSERT` and
+//! `UPDATE` put in a column, and what `WHERE` and `ON` hold one to. Only the
+//! conditions joined by `AND` are kept — one inside an `OR` is not something
+//! the row is known to satisfy, so showing it beside the column would mislead.
+//!
 //! The same forgiving rule as DDL applies: a statement this cannot read is a
 //! warning and is skipped, never the end of the workflow.
 
 use std::collections::HashMap;
 
 use craber_core::{
-    Access, ColumnRef, Diagnostic, Join, Outcome, Step, StepKind, TableRef, Touch, Workflow,
+    Access, ColumnRef, ColumnValue, Diagnostic, Join, Outcome, Step, StepKind, TableRef, Touch,
+    ValueKind, Workflow,
 };
 use sqlparser::ast::{
     AssignmentTarget, BinaryOperator, Delete, Expr, FromTable, Insert, JoinConstraint,
@@ -136,6 +142,98 @@ impl StepBuilder {
         }
     }
 
+    /// Record a value the statement names for `column`, touching it with
+    /// `access` if nothing has yet.
+    fn value(&mut self, column: &ColumnRef, access: Access, kind: ValueKind, text: String) {
+        self.touch_column(column, access);
+        let touch = self
+            .touches
+            .iter_mut()
+            .find(|t| t.table == column.table)
+            .expect("touched above");
+        let value = ColumnValue {
+            column: column.column.clone(),
+            kind,
+            text,
+        };
+        if !touch.values.contains(&value) {
+            touch.values.push(value);
+        }
+    }
+
+    /// The conditions in `expr` that hold a column to something that is not
+    /// another column, following `AND` and nothing else.
+    fn filters(&mut self, expr: &Expr, scope: &Scope) {
+        let mut found = |column: &Expr, text: String| {
+            if let Some(column) = column_of(column, scope) {
+                self.value(&column, Access::Read, ValueKind::Filter, text);
+            }
+        };
+        match expr {
+            Expr::BinaryOp {
+                left,
+                op: BinaryOperator::And,
+                right,
+            } => {
+                self.filters(left, scope);
+                self.filters(right, scope);
+            }
+            Expr::Nested(inner) => self.filters(inner, scope),
+            Expr::BinaryOp { left, op, right } => {
+                match (is_column(left), is_column(right)) {
+                    (true, false) => found(left, format!("{op} {right}")),
+                    // `100 = id` reads as `id = 100`, with the comparison
+                    // turned round to match.
+                    (false, true) => {
+                        if let Some(op) = mirrored(op) {
+                            found(right, format!("{op} {left}"));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Expr::InList {
+                expr,
+                list,
+                negated,
+            } => {
+                let list: Vec<String> = list.iter().map(ToString::to_string).collect();
+                let not = if *negated { "NOT " } else { "" };
+                found(expr, format!("{not}IN ({})", list.join(", ")));
+            }
+            Expr::IsNull(expr) => found(expr, "IS NULL".to_owned()),
+            Expr::IsNotNull(expr) => found(expr, "IS NOT NULL".to_owned()),
+            Expr::Between {
+                expr,
+                negated,
+                low,
+                high,
+            } => {
+                let not = if *negated { "NOT " } else { "" };
+                found(expr, format!("{not}BETWEEN {low} AND {high}"));
+            }
+            Expr::Like {
+                expr,
+                negated,
+                pattern,
+                ..
+            } => {
+                let not = if *negated { "NOT " } else { "" };
+                found(expr, format!("{not}LIKE {pattern}"));
+            }
+            Expr::ILike {
+                expr,
+                negated,
+                pattern,
+                ..
+            } => {
+                let not = if *negated { "NOT " } else { "" };
+                found(expr, format!("{not}ILIKE {pattern}"));
+            }
+            _ => {}
+        }
+    }
+
     fn query(&mut self, query: &Query, outer: &Scope) {
         let mut scope = outer.clone();
         if let Some(with) = &query.with {
@@ -187,9 +285,11 @@ impl StepBuilder {
         }
         if let Some(selection) = &select.selection {
             self.expr(selection, &scope, Access::Read);
+            self.filters(selection, &scope);
         }
         if let Some(having) = &select.having {
             self.expr(having, &scope, Access::Read);
+            self.filters(having, &scope);
         }
     }
 
@@ -203,6 +303,7 @@ impl StepBuilder {
                 if let Some(JoinConstraint::On(on)) = join_constraint(&join.join_operator) {
                     self.expr(on, scope, Access::Read);
                     self.equalities(on, scope);
+                    self.filters(on, scope);
                 }
             }
         }
@@ -319,21 +420,52 @@ impl StepBuilder {
             name: table,
         };
         self.touch(&table, Access::Write);
-        for column in &insert.columns {
-            if let Some(column) = name_parts(column).pop() {
-                self.touch_column(
-                    &ColumnRef {
-                        table: table.clone(),
-                        column,
-                    },
-                    Access::Write,
-                );
+        let columns: Vec<ColumnRef> = insert
+            .columns
+            .iter()
+            .filter_map(|column| name_parts(column).pop())
+            .map(|column| ColumnRef {
+                table: table.clone(),
+                column,
+            })
+            .collect();
+        for column in &columns {
+            self.touch_column(column, Access::Write);
+        }
+        let Some(source) = &insert.source else {
+            return;
+        };
+        // What goes into each column, by position: one row of `VALUES` per
+        // value, or the expression a `SELECT` projects into it.
+        let inserted: Vec<Vec<String>> = match source.body.as_ref() {
+            SetExpr::Values(values) => values
+                .rows
+                .iter()
+                .map(|row| row.iter().map(ToString::to_string).collect())
+                .collect(),
+            SetExpr::Select(select) => {
+                let projected = select.projection.iter().map(|item| match item {
+                    SelectItem::UnnamedExpr(expr)
+                    | SelectItem::ExprWithAlias { expr, .. }
+                    | SelectItem::ExprWithAliases { expr, .. } => Some(expr.to_string()),
+                    _ => None,
+                });
+                // A `*` leaves the positions unknown, so nothing is paired.
+                projected.collect::<Option<Vec<_>>>().into_iter().collect()
+            }
+            _ => Vec::new(),
+        };
+        for (i, column) in columns.iter().enumerate() {
+            let row_values: Vec<&str> = inserted
+                .iter()
+                .filter_map(|row| row.get(i).map(String::as_str))
+                .collect();
+            if let Some(text) = rows(&row_values) {
+                self.value(column, Access::Write, ValueKind::Set, text);
             }
         }
         // `INSERT … SELECT` reads its source; `VALUES` reads nothing.
-        if let Some(source) = &insert.source {
-            self.query(source, &Scope::default());
-        }
+        self.query(source, &Scope::default());
     }
 
     fn update(&mut self, update: &Update) {
@@ -368,12 +500,23 @@ impl StepBuilder {
                 };
                 if let Some(column) = column {
                     self.touch_column(&column, Access::Write);
+                    // A tuple target pairs with a tuple or a subquery, which
+                    // has no one value per column to show.
+                    if matches!(assignment.target, AssignmentTarget::ColumnName(_)) {
+                        self.value(
+                            &column,
+                            Access::Write,
+                            ValueKind::Set,
+                            assignment.value.to_string(),
+                        );
+                    }
                 }
             }
             self.expr(&assignment.value, &scope, Access::Read);
         }
         if let Some(selection) = &update.selection {
             self.expr(selection, &scope, Access::Read);
+            self.filters(selection, &scope);
         }
     }
 
@@ -398,6 +541,7 @@ impl StepBuilder {
         }
         if let Some(selection) = &delete.selection {
             self.expr(selection, &scope, Access::Read);
+            self.filters(selection, &scope);
         }
     }
 }
@@ -411,6 +555,41 @@ fn column_of(expr: &Expr, scope: &Scope) -> Option<ColumnRef> {
         }
         Expr::Nested(inner) => column_of(inner, scope),
         _ => None,
+    }
+}
+
+/// True for a column reference, whether or not the scope can say whose. A
+/// condition between two columns is a join, not a value.
+fn is_column(expr: &Expr) -> bool {
+    match expr {
+        Expr::Identifier(_) | Expr::CompoundIdentifier(_) => true,
+        Expr::Nested(inner) => is_column(inner),
+        _ => false,
+    }
+}
+
+/// The comparison that means the same with its two sides swapped, for the
+/// operators where there is one.
+fn mirrored(op: &BinaryOperator) -> Option<BinaryOperator> {
+    Some(match op {
+        BinaryOperator::Eq => BinaryOperator::Eq,
+        BinaryOperator::NotEq => BinaryOperator::NotEq,
+        BinaryOperator::Lt => BinaryOperator::Gt,
+        BinaryOperator::Gt => BinaryOperator::Lt,
+        BinaryOperator::LtEq => BinaryOperator::GtEq,
+        BinaryOperator::GtEq => BinaryOperator::LtEq,
+        _ => return None,
+    })
+}
+
+/// The values a multi-row insert puts in one column, as one string: each row
+/// separated by ` | `, and past three rows only the first three and `…`.
+fn rows(values: &[&str]) -> Option<String> {
+    const SHOWN: usize = 3;
+    match values {
+        [] => None,
+        values if values.len() > SHOWN => Some(format!("{} | …", values[..SHOWN].join(" | "))),
+        values => Some(values.join(" | ")),
     }
 }
 

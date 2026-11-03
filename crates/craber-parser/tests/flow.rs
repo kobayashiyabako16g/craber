@@ -137,3 +137,91 @@ fn unparseable_sql_is_an_error() {
     let outcome = postgres("SELEC nonsense");
     assert!(outcome.has_errors());
 }
+
+/// `table.column kind text` per value, in the order the statement names them.
+fn values(outcome: &Outcome<Workflow>, step: usize) -> Vec<String> {
+    outcome.value.steps[step]
+        .touches
+        .iter()
+        .flat_map(|t| {
+            t.values
+                .iter()
+                .map(move |v| format!("{}.{} {:?} {}", t.table.name, v.column, v.kind, v.text))
+        })
+        .collect()
+}
+
+#[test]
+fn insert_values_are_set_on_their_columns() {
+    let outcome = postgres("INSERT INTO orders (id, status) VALUES (100, 'pending')");
+    assert_eq!(
+        values(&outcome, 0),
+        ["orders.id Set 100", "orders.status Set 'pending'"]
+    );
+}
+
+#[test]
+fn a_multi_row_insert_lists_each_row_and_cuts_after_three() {
+    let outcome = postgres("INSERT INTO t (id) VALUES (1), (2), (3), (4)");
+    assert_eq!(values(&outcome, 0), ["t.id Set 1 | 2 | 3 | …"]);
+}
+
+#[test]
+fn insert_select_pairs_columns_with_what_is_projected() {
+    let outcome = postgres(
+        "INSERT INTO receipts (id, order_id) SELECT 900, o.id FROM orders o WHERE o.id = 1",
+    );
+    assert_eq!(
+        values(&outcome, 0),
+        [
+            "receipts.id Set 900",
+            "receipts.order_id Set o.id",
+            "orders.id Filter = 1"
+        ]
+    );
+}
+
+#[test]
+fn update_sets_and_filters() {
+    let outcome = postgres("UPDATE orders SET total = total + 1, status = 'paid' WHERE id = 100");
+    assert_eq!(
+        values(&outcome, 0),
+        [
+            "orders.total Set total + 1",
+            "orders.status Set 'paid'",
+            "orders.id Filter = 100"
+        ]
+    );
+}
+
+#[test]
+fn conditions_read_column_first_whichever_way_they_were_written() {
+    let outcome = postgres(
+        "SELECT * FROM orders WHERE 10 < total AND status IN ('a', 'b') AND coupon_id IS NULL \
+         AND id BETWEEN 1 AND 5 AND note NOT LIKE 'x%'",
+    );
+    assert_eq!(
+        values(&outcome, 0),
+        [
+            "orders.total Filter > 10",
+            "orders.status Filter IN ('a', 'b')",
+            "orders.coupon_id Filter IS NULL",
+            "orders.id Filter BETWEEN 1 AND 5",
+            "orders.note Filter NOT LIKE 'x%'"
+        ]
+    );
+}
+
+#[test]
+fn a_condition_inside_or_is_not_a_value() {
+    let outcome = postgres("DELETE FROM orders WHERE id = 1 OR status = 'void'");
+    assert_eq!(values(&outcome, 0), Vec::<String>::new());
+}
+
+#[test]
+fn a_constant_in_an_on_clause_is_a_filter_and_a_column_pair_is_not() {
+    let outcome = postgres(
+        "SELECT * FROM users u JOIN coupons c ON c.code = 'WELCOME' JOIN orders o ON o.user_id = u.id",
+    );
+    assert_eq!(values(&outcome, 0), ["coupons.code Filter = 'WELCOME'"]);
+}
