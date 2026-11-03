@@ -11,10 +11,14 @@
 # the branch as edited by a person: it keeps rebasing and automerging it, and
 # when a rebase drops this commit the next run here adds it again.
 #
-# A push made with GITHUB_TOKEN starts no workflows, which would leave the new
-# head with no checks at all — and an automerged patch would then merge
-# unchecked. CI and Nix are dispatched on it explicitly instead; a
-# workflow_dispatch run reports on the commit it ran on, so it shows on the PR.
+# The push uses RENOVATE_FIXUP_TOKEN, a fine-grained PAT on this repository
+# with Contents and Workflows read/write, not GITHUB_TOKEN, for two reasons:
+#
+# - GITHUB_TOKEN cannot be given the `workflows` permission, and GitHub refuses
+#   any push from it that touches .github/workflows/ — which release.yml is in.
+# - A push made with GITHUB_TOKEN starts no workflows, which would leave the new
+#   head with no checks at all, and an automerged patch would then merge
+#   unchecked. A PAT push is an ordinary `pull_request` synchronize.
 name: Renovate fixup
 
 on:
@@ -22,8 +26,7 @@ on:
     branches: ['renovate/**']
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,6 +41,8 @@ jobs:
         with:
           # The whole history, to diff the branch against main.
           fetch-depth: 0
+          # Persisted into the git config, so the push below goes out with it.
+          token: ${{ secrets.RENOVATE_FIXUP_TOKEN }}
 
       # Not a `paths:` filter on the trigger: for the push that creates a branch
       # there is no previous commit to diff against, and that is exactly the
@@ -67,10 +72,8 @@ jobs:
         if: steps.changed.outputs.dist
         run: nix shell --inputs-from . nixpkgs#cargo-dist -c dist generate
 
-      - name: Push and run the checks on the new head
+      - name: Push the derived files
         if: steps.changed.outputs.pnpm || steps.changed.outputs.dist
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet; then
             echo "nothing to update"
@@ -80,5 +83,3 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -am 'chore(deps): update files derived from the lockfiles'
           git push origin "HEAD:$GITHUB_REF_NAME"
-          gh workflow run ci.yml --ref "$GITHUB_REF_NAME"
-          gh workflow run nix.yml --ref "$GITHUB_REF_NAME"

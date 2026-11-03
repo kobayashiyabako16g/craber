@@ -60,6 +60,12 @@
       groupName: 'React',
       matchPackageNames: ['react', 'react-dom', '@types/react', '@types/react-dom'],
     },
+    // testcontainers-modules pins one testcontainers minor, so a testcontainers
+    // bump on its own does not resolve. Both move once modules has caught up.
+    {
+      groupName: 'testcontainers',
+      matchPackageNames: ['testcontainers', 'testcontainers-modules'],
+    },
     {
       groupName: 'Vite',
       matchPackageNames: ['vite', 'vitest', '@vitejs/plugin-react'],

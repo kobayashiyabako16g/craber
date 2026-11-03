@@ -208,10 +208,12 @@ nix-pnpm-hash:
     old=$(grep -oE 'sha256-[A-Za-z0-9+/=]+' flake.nix | head -1)
     # Ask for a hash that cannot be right, so the fetch fails and reports the one
     # that is. lib.fakeHash is the conventional spelling of "I do not know yet".
-    perl -pi -e "s/\Qhash = \"$old\";\E/hash = lib.fakeHash;/" flake.nix
+    # The hashes travel through the environment, not into the perl source: they
+    # are base64, so a `/` in one would end the s/// early.
+    OLD="$old" perl -pi -e 's/\Qhash = "$ENV{OLD}";\E/hash = lib.fakeHash;/' flake.nix
     new=$(nix build .#craber-web 2>&1 | grep -oE 'got: +sha256-[A-Za-z0-9+/=]+' | grep -oE 'sha256-[A-Za-z0-9+/=]+' || true)
     # Either way flake.nix must not be left holding fakeHash.
-    perl -pi -e "s/\Qhash = lib.fakeHash;\E/hash = \"${new:-$old}\";/" flake.nix
+    NEW="${new:-$old}" perl -pi -e 's/\Qhash = lib.fakeHash;\E/hash = "$ENV{NEW}";/' flake.nix
     if [ -z "$new" ]; then
         echo "nix reported no mismatch: $old was already correct" >&2
     elif [ "$new" = "$old" ]; then
