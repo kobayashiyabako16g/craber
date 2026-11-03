@@ -7,10 +7,15 @@ use crate::options::BuildOptions;
 use crate::pipeline;
 
 pub fn run(options: &BuildOptions) -> Result<()> {
-    let (schema, diagnostics) = pipeline::load(&options.input)?;
-    report(&diagnostics);
+    let loaded = pipeline::load(&options.input)?;
+    report(&loaded.diagnostics);
 
-    let files = craber_site::write(&schema, &options.output, options.base_path.as_deref())?;
+    let files = craber_site::write(
+        &loaded.schema,
+        &loaded.flows,
+        &options.output,
+        options.base_path.as_deref(),
+    )?;
     tracing::info!(
         path = %options.output.display(),
         files = files.len(),

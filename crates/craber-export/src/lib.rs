@@ -13,11 +13,11 @@ mod format;
 
 pub use crate::format::{Format, UnknownFormat};
 
-use craber_core::Schema;
+use craber_core::{Flows, Schema};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("serializing schema.json")]
+    #[error("serializing JSON")]
     Json(#[from] serde_json::Error),
 
     /// A format `--format` accepts but this build cannot produce.
@@ -36,13 +36,17 @@ pub enum Error {
 
 /// Encode a laid-out schema in `format`.
 ///
+/// `flows` is read only by [`Format::Flows`]; every other format is a drawing
+/// of the schema alone.
+///
 /// Returns text because every format CrabER writes today is text. PNG is the
 /// one that will not be, and it is unimplemented — when it lands, this gains a
 /// bytes-returning sibling rather than having PNG smuggled through a `String`.
-pub fn encode(schema: &Schema, format: Format) -> Result<String, Error> {
+pub fn encode(schema: &Schema, flows: &Flows, format: Format) -> Result<String, Error> {
     match format {
         Format::Json => Ok(serde_json::to_string_pretty(schema)?),
         Format::Svg => Ok(craber_render::to_svg(schema)),
+        Format::Flows => Ok(serde_json::to_string_pretty(flows)?),
         Format::Png => Err(Error::Unsupported {
             format,
             how: "resvg, M3; export SVG and convert it",
@@ -54,18 +58,25 @@ pub fn encode(schema: &Schema, format: Format) -> Result<String, Error> {
 #[cfg(test)]
 mod tests {
     use super::{Error, Format, encode};
-    use craber_core::Schema;
+    use craber_core::{Flows, Schema};
 
     #[test]
     fn json_is_the_schema_itself() {
-        let encoded = encode(&Schema::new("shop"), Format::Json).expect("json");
+        let encoded = encode(&Schema::new("shop"), &Flows::default(), Format::Json).expect("json");
         assert!(encoded.contains(r#""name": "shop""#), "{encoded}");
     }
 
     #[test]
     fn svg_is_a_document() {
-        let encoded = encode(&Schema::new("shop"), Format::Svg).expect("svg");
+        let encoded = encode(&Schema::new("shop"), &Flows::default(), Format::Svg).expect("svg");
         assert!(encoded.starts_with("<svg"), "{encoded}");
+    }
+
+    #[test]
+    fn flows_is_the_workflows() {
+        let encoded =
+            encode(&Schema::new("shop"), &Flows::default(), Format::Flows).expect("flows");
+        assert!(encoded.contains(r#""flowsVersion": 1"#), "{encoded}");
     }
 
     /// The message has to name the format the way the user spelled it. It used
@@ -74,7 +85,7 @@ mod tests {
     #[test]
     fn an_unsupported_format_is_named_as_the_cli_spells_it() {
         for format in [Format::Png, Format::Mermaid, Format::Dbml] {
-            let error = encode(&Schema::new("shop"), format).unwrap_err();
+            let error = encode(&Schema::new("shop"), &Flows::default(), format).unwrap_err();
             assert!(matches!(error, Error::Unsupported { .. }));
             let message = error.to_string();
             assert!(message.contains("not implemented"), "{message}");

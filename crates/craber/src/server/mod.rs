@@ -24,8 +24,8 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use craber_core::Schema;
 
+use crate::pipeline::Loaded;
 pub use crate::server::routes::Routes;
 
 /// The site, by URL path. Swapped wholesale when `--watch` reloads.
@@ -35,15 +35,13 @@ pub type Site = Arc<RwLock<Arc<Routes>>>;
 /// what stops each of those from pinning a thread for the life of the tab.
 const IDLE_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Serve `schema` on `port` until the process is stopped.
+/// Serve what was loaded on `port` until the process is stopped.
 ///
 /// Binds to loopback only. This is a tool for looking at your own schema; there
 /// is no reason for it to be reachable from the rest of the network, and a
 /// diagram of a production database is not something to expose by accident.
-pub fn run(schema: &Schema, port: u16) -> Result<Site> {
-    let site: Site = Arc::new(RwLock::new(Arc::new(Routes::build(craber_site::files(
-        schema, None,
-    )?))));
+pub fn run(loaded: &Loaded, port: u16) -> Result<Site> {
+    let site: Site = Arc::new(RwLock::new(Arc::new(routes(loaded)?)));
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
 
     let listener = TcpListener::bind(address).map_err(|error| {
@@ -57,7 +55,10 @@ pub fn run(schema: &Schema, port: u16) -> Result<Site> {
     // Ask the listener rather than echoing `port`, so `--port 0` reports the
     // port the OS actually chose. The tests rely on this.
     let bound = listener.local_addr().context("reading the bound address")?;
-    println!("CrabER is serving {} at http://{bound}/", schema.name);
+    println!(
+        "CrabER is serving {} at http://{bound}/",
+        loaded.schema.name
+    );
 
     let accepting = Arc::clone(&site);
     std::thread::spawn(move || accept_loop(&listener, &accepting));
@@ -66,10 +67,18 @@ pub fn run(schema: &Schema, port: u16) -> Result<Site> {
 }
 
 /// Replace what is being served, for `--watch`.
-pub fn swap(site: &Site, schema: &Schema) -> Result<()> {
-    let routes = Arc::new(Routes::build(craber_site::files(schema, None)?));
+pub fn swap(site: &Site, loaded: &Loaded) -> Result<()> {
+    let routes = Arc::new(routes(loaded)?);
     *site.write().expect("the site lock is never poisoned") = routes;
     Ok(())
+}
+
+fn routes(loaded: &Loaded) -> Result<Routes> {
+    Ok(Routes::build(craber_site::files(
+        &loaded.schema,
+        &loaded.flows,
+        None,
+    )?))
 }
 
 /// Hand each connection the site as it stands, on a thread of its own.

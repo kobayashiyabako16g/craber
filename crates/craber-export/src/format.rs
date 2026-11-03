@@ -29,11 +29,21 @@ pub enum Format {
     Png,
     Mermaid,
     Dbml,
+    /// The workflows given with `--flow`, as `flows.json`. Not a drawing of the
+    /// schema, but the file the viewer plays back over one.
+    Flows,
 }
 
 impl Format {
     /// Every format, in the order `--help` lists them.
-    pub const ALL: [Self; 5] = [Self::Json, Self::Svg, Self::Png, Self::Mermaid, Self::Dbml];
+    pub const ALL: [Self; 6] = [
+        Self::Json,
+        Self::Svg,
+        Self::Png,
+        Self::Mermaid,
+        Self::Dbml,
+        Self::Flows,
+    ];
 
     /// The spelling the CLI and `craber.toml` both accept.
     ///
@@ -46,6 +56,7 @@ impl Format {
             Self::Png => "png",
             Self::Mermaid => "mermaid",
             Self::Dbml => "dbml",
+            Self::Flows => "flows",
         }
     }
 }

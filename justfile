@@ -56,8 +56,9 @@ example file="examples/01-quickstart/blog.sql":
     cargo run -p craber -- export --file {{file}} --format json
 
 # Refresh the sample schema.json the web dev server reads
-sample file="fixtures/tiny.sql":
+sample file="fixtures/tiny.sql" *flows="fixtures/flows/checkout.sql fixtures/flows/account-closure.sql":
     cargo run -p craber -- export --file {{file}} -o web/public/schema.json
+    cargo run -p craber -- export --file {{file}} {{ prepend("--flow ", flows) }} --format flows -o web/public/flows.json
 
 # Serve a schema interactively, the way `craber serve` does for a user
 serve file="fixtures/tiny.sql":
@@ -172,12 +173,13 @@ web-build: bindings
 # screen does not wait on the Rust side when nothing there moved.
 #
 # Export a schema into the web app and start the dev server, to look at it
-ui file="fixtures/tiny.sql": (sample file)
+ui file="fixtures/tiny.sql" *flows="fixtures/flows/checkout.sql fixtures/flows/account-closure.sql": (sample file flows)
     cd web && pnpm dev
 
-# Put web/public/schema.json back after looking at another schema
+# Put web/public/schema.json and flows.json back after looking at another schema
 sample-reset:
     git restore web/public/schema.json
+    rm -f web/public/flows.json
 
 # Extends `package-check`: the same vendored bundle, but it also compiles each
 # packaged crate against the others as crates.io will see them. dist's dry-run

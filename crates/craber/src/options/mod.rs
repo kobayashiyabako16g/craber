@@ -54,6 +54,8 @@ pub struct Input {
     pub include: Vec<String>,
     pub exclude: Vec<String>,
     pub depth: Option<usize>,
+    /// Workflow files, each read in [`Self::dialect`] against the schema.
+    pub flows: Vec<PathBuf>,
 }
 
 pub struct ExportOptions {
@@ -80,7 +82,7 @@ pub struct ServeOptions {
 impl ExportArgs {
     pub fn resolve(&self, config: &Config) -> Result<ExportOptions> {
         Ok(ExportOptions {
-            input: Input::resolve(&self.source, &self.scope, config)?,
+            input: Input::resolve(&self.source, &self.scope, &self.workflows, config)?,
             // `--format` carries no clap default for this reason: a default
             // would be indistinguishable from the user asking for json, and the
             // config could never win.
@@ -118,7 +120,7 @@ impl BuildArgs {
         };
 
         let options = BuildOptions {
-            input: Input::resolve(&self.source, &self.scope, config)?,
+            input: Input::resolve(&self.source, &self.scope, &self.workflows, config)?,
             output,
             base_path: self
                 .base_path
@@ -149,7 +151,7 @@ impl ServeArgs {
         };
 
         let options = ServeOptions {
-            input: Input::resolve(&self.source, &self.scope, config)?,
+            input: Input::resolve(&self.source, &self.scope, &self.workflows, config)?,
             port: self.port.or(config.serve.port).unwrap_or(DEFAULT_PORT),
             watch: watched,
         };
@@ -164,6 +166,7 @@ impl Input {
     fn resolve(
         source: &crate::cli::Source,
         scope: &crate::cli::Scope,
+        workflows: &crate::cli::Workflows,
         config: &Config,
     ) -> Result<Self> {
         let Some(source) = pick_source(source, config) else {
@@ -179,6 +182,7 @@ impl Input {
             include: pick(&scope.include, &config.include).to_vec(),
             exclude: pick(&scope.exclude, &config.exclude).to_vec(),
             depth: scope.depth.or(config.depth),
+            flows: workflows.files.clone(),
         })
     }
 }

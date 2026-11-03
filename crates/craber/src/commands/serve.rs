@@ -7,10 +7,10 @@ use crate::options::ServeOptions;
 use crate::{pipeline, server, watch};
 
 pub fn run(options: &ServeOptions) -> Result<()> {
-    let (schema, diagnostics) = pipeline::load(&options.input)?;
-    report(&diagnostics);
+    let loaded = pipeline::load(&options.input)?;
+    report(&loaded.diagnostics);
 
-    let site = server::run(&schema, options.port)?;
+    let site = server::run(&loaded, options.port)?;
     if let Some(path) = &options.watch {
         watch::reload_on_change(site, path.clone(), options.input.clone());
     }

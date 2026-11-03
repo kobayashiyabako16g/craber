@@ -52,6 +52,8 @@ pub struct ServeArgs {
     pub source: Source,
     #[command(flatten)]
     pub scope: Scope,
+    #[command(flatten)]
+    pub workflows: Workflows,
     /// Port to listen on. Defaults to 4300.
     #[arg(long)]
     pub port: Option<u16>,
@@ -66,6 +68,8 @@ pub struct BuildArgs {
     pub source: Source,
     #[command(flatten)]
     pub scope: Scope,
+    #[command(flatten)]
+    pub workflows: Workflows,
     /// Output directory, or the HTML file when --single-file is set.
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
@@ -83,6 +87,8 @@ pub struct ExportArgs {
     pub source: Source,
     #[command(flatten)]
     pub scope: Scope,
+    #[command(flatten)]
+    pub workflows: Workflows,
     /// Output format. Defaults to json.
     #[arg(long, value_enum)]
     pub format: Option<Format>,
@@ -115,6 +121,15 @@ pub struct Source {
     /// command line or a shell history.
     #[arg(long, value_name = "URL", env = "CRABER_DSN", hide_env_values = true)]
     pub dsn: Option<String>,
+}
+
+/// DML to play back over the diagram, step by step.
+#[derive(Debug, Clone, Args)]
+pub struct Workflows {
+    /// Read a workflow — SELECT/INSERT/UPDATE/DELETE, one step per statement —
+    /// from a .sql file. Repeatable; each file is one workflow.
+    #[arg(long = "flow", value_name = "PATH")]
+    pub files: Vec<PathBuf>,
 }
 
 /// Which part of the schema to draw.
