@@ -1,0 +1,56 @@
+[
+  {
+    "case": "an exact qualified match wins over a same-named table elsewhere",
+    "tables": [{ "schema": "public", "name": "users" }, { "schema": "audit", "name": "users" }],
+    "ref": { "schema": "audit", "name": "users" },
+    "expect": "audit.users"
+  },
+  {
+    "case": "a qualified reference that misses does not fall back to the bare name",
+    "tables": [{ "schema": "public", "name": "users" }],
+    "ref": { "schema": "audit", "name": "users" },
+    "expect": null
+  },
+  {
+    "case": "a qualified reference does not match an unqualified table",
+    "tables": [{ "name": "users" }],
+    "ref": { "schema": "public", "name": "users" },
+    "expect": null
+  },
+  {
+    "case": "an unqualified reference resolves to the only table of that name",
+    "tables": [{ "schema": "public", "name": "users" }],
+    "ref": { "name": "users" },
+    "expect": "public.users"
+  },
+  {
+    "case": "an unqualified reference resolves to an unqualified table",
+    "tables": [{ "name": "users" }],
+    "ref": { "name": "users" },
+    "expect": "users"
+  },
+  {
+    "case": "an unqualified reference refuses a name two schemas share",
+    "tables": [{ "schema": "public", "name": "users" }, { "schema": "audit", "name": "users" }],
+    "ref": { "name": "users" },
+    "expect": null
+  },
+  {
+    "case": "an unqualified table does not beat a qualified one of the same name",
+    "tables": [{ "name": "users" }, { "schema": "public", "name": "users" }],
+    "ref": { "name": "users" },
+    "expect": null
+  },
+  {
+    "case": "a missing table resolves to nothing",
+    "tables": [{ "name": "users" }],
+    "ref": { "name": "ghosts" },
+    "expect": null
+  },
+  {
+    "case": "a name that merely ends with the reference is not a match",
+    "tables": [{ "name": "power_users" }],
+    "ref": { "name": "users" },
+    "expect": null
+  }
+]

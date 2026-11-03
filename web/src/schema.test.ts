@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "./schema";
-import type { Table } from "./types";
+import type { Table, TableRef } from "./types";
+// Read as text, like the stylesheets in classNames.test.ts, so the file stays
+// outside the bundle's module graph and needs no JSON-module typings.
+import resolveCases from "../../crates/craber-core/tests/cases/resolve.json?raw";
+
+type ResolveCase = { case: string; tables: TableRef[]; ref: TableRef; expect: string | null };
 
 function table(name: string, schema?: string): Table {
   return { name, ...(schema ? { schema } : {}), columns: [] };
@@ -17,36 +22,20 @@ describe("qualifiedName", () => {
 /**
  * `resolveRef` mirrors `SchemaIndex::resolve` on the Rust side, and it is the
  * rule that decides whether an edge is drawn at all: a reference that does not
- * resolve is a relationship the reader never sees.
+ * resolve is a relationship the reader never sees. The cases are the ones
+ * `crates/craber-core/tests/resolve.rs` checks the Rust side against, so the
+ * two cannot drift apart without one of the suites failing.
  */
 describe("resolveRef", () => {
-  it("prefers an exact qualified match", () => {
-    const known = tableIndex([table("users", "public"), table("users", "audit")]);
-    expect(resolveRef({ name: "users", schema: "audit" }, known)).toBe("audit.users");
+  const cases = JSON.parse(resolveCases) as ResolveCase[];
+
+  it("has cases to check", () => {
+    expect(cases.length).toBeGreaterThan(0);
   });
 
-  it("falls back to a unique bare-name match", () => {
-    const known = tableIndex([table("users", "public")]);
-    expect(resolveRef({ name: "users" }, known)).toBe("public.users");
-  });
-
-  /**
-   * Two schemas with the same table name is the case the fallback must not
-   * guess at: picking either one draws an edge to a table the DDL did not name.
-   */
-  it("refuses an ambiguous bare name rather than picking one", () => {
-    const known = tableIndex([table("users", "public"), table("users", "audit")]);
-    expect(resolveRef({ name: "users" }, known)).toBeNull();
-  });
-
-  it("is null for a table the schema does not contain", () => {
-    expect(resolveRef({ name: "ghosts" }, tableIndex([table("users")]))).toBeNull();
-  });
-
-  /** `.endsWith(".users")` must not match `power_users`. */
-  it("does not match a name that merely ends with the reference", () => {
-    const known = tableIndex([table("power_users")]);
-    expect(resolveRef({ name: "users" }, known)).toBeNull();
+  it.each(cases)("$case", ({ tables, ref, expect: expected }) => {
+    const known = tableIndex(tables.map(({ name, schema }) => table(name, schema ?? undefined)));
+    expect(resolveRef(ref, known)).toBe(expected);
   });
 });
 
