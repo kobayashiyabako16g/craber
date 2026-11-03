@@ -2,11 +2,11 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
 import { ColumnGlyph } from "./ColumnGlyph";
-import { ACCESS_CLASS } from "../lib/flow";
+import { ACCESS_CLASS, valueLabel } from "../lib/flow";
 import { handleId } from "../lib/handles";
 import { CommentIcon, TableIcon } from "./icons";
 import { foreignKeyColumns, primaryKeyColumns } from "../lib/schema";
-import type { Access, Table } from "../types";
+import type { Access, ColumnValue, Table } from "../types";
 
 import "./TableNode.css";
 
@@ -20,6 +20,8 @@ export type TableNodeData = {
   related?: boolean;
   /** What the workflow step being played does to this table. */
   access?: Access;
+  /** Per column, the values that step writes or filters by. */
+  values?: ReadonlyMap<string, readonly ColumnValue[]>;
 };
 export type TableNodeType = Node<TableNodeData, "table">;
 
@@ -33,7 +35,7 @@ export type TableNodeType = Node<TableNodeData, "table">;
  * table at the other end. Nothing here decides geometry.
  */
 export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
-  const { table, anchors, litColumns, related, access } = data;
+  const { table, anchors, litColumns, related, access, values } = data;
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const columns = table.columns ?? [];
@@ -71,12 +73,33 @@ export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
               <ColumnGlyph column={column} isPk={pk.has(column.name)} isFk={fk.has(column.name)} />
               <span className="craber-node-column-name">{column.name}</span>
               <Note text={column.comment} />
-              <span className="craber-node-column-type">{column.dataType}</span>
+              <ColumnEnd type={column.dataType} values={values?.get(column.name)} />
             </div>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The right end of a row: its type, or — while a workflow step names a value
+ * for it — that value, with the type kept in the tooltip.
+ *
+ * In place of the type rather than beside it: the node is as wide as the layout
+ * made room for, and a value and a type do not both fit in it.
+ */
+function ColumnEnd({ type, values }: { type: string; values?: readonly ColumnValue[] }) {
+  const first = values?.[0];
+  if (!values || !first) return <span className="craber-node-column-type">{type}</span>;
+  const label = values.map(valueLabel).join("  ");
+  return (
+    <span
+      className={`craber-node-column-value ${first.kind === "set" ? "is-set" : "is-filter"}`}
+      title={`${type}\n${values.map(valueLabel).join("\n")}`}
+    >
+      {label}
+    </span>
   );
 }
 

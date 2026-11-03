@@ -108,6 +108,25 @@
   cursor: help;
 }
 
+/* A value a workflow step names for the row, where its type usually is. */
+.craber-node-column-value {
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.craber-node-column-value.is-set {
+  color: var(--craber-node-lit, var(--craber-text));
+  font-weight: 600;
+}
+
+.craber-node-column-value.is-filter {
+  color: var(--craber-text-muted);
+  font-style: italic;
+}
+
 .craber-node-column-type {
   color: var(--craber-text-muted);
   font-size: 11px;

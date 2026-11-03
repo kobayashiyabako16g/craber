@@ -157,7 +157,12 @@ export function Diagram({
           return {
             ...node,
             data: access
-              ? { ...node.data, litColumns: played.columns.get(node.id), access }
+              ? {
+                  ...node.data,
+                  litColumns: played.columns.get(node.id),
+                  values: played.values.get(node.id),
+                  access,
+                }
               : node.data,
             hidden: hidden.has(node.id),
             selected: false,

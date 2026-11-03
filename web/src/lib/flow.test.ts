@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { tableIndex } from "./schema";
 import type { Step, Table } from "../types";
-import { stepLit, stepTarget } from "./flow";
+import { stepLit, stepTarget, valueLabel } from "./flow";
 import { toEdges } from "./graph";
 
 const users: Table = {
@@ -118,5 +118,34 @@ describe("stepTarget", () => {
 
   it("is the first table for a read-only step", () => {
     expect(stepTarget(select)).toBe("users");
+  });
+});
+
+describe("stepLit's values", () => {
+  const update: Step = {
+    kind: "update",
+    sql: "UPDATE orders SET total = 59.80 WHERE id = 100 AND total > 0",
+    touches: [
+      {
+        table: { name: "orders" },
+        access: "write",
+        columns: ["total", "id"],
+        values: [
+          { column: "total", kind: "filter", text: "> 0" },
+          { column: "total", kind: "set", text: "59.80" },
+          { column: "id", kind: "filter", text: "= 100" },
+        ],
+      },
+    ],
+  };
+
+  it("groups values by node and column, what is set before the conditions", () => {
+    const orders = stepLit(update, relations, known).values.get("public.orders");
+    expect(orders?.get("total")?.map(valueLabel)).toEqual(["← 59.80", "> 0"]);
+    expect(orders?.get("id")?.map(valueLabel)).toEqual(["= 100"]);
+  });
+
+  it("has no entry for a table without values", () => {
+    expect(stepLit(select, relations, known).values.size).toBe(0);
   });
 });
