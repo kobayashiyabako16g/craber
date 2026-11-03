@@ -357,7 +357,7 @@ fn is_internal(name: &str, dialect: Dialect) -> bool {
     dialect == Dialect::Sqlite && name.to_ascii_lowercase().starts_with("sqlite_")
 }
 
-fn name_parts(name: &ObjectName) -> Vec<String> {
+pub(crate) fn name_parts(name: &ObjectName) -> Vec<String> {
     name.0
         .iter()
         .filter_map(|p| p.as_ident())
@@ -367,7 +367,7 @@ fn name_parts(name: &ObjectName) -> Vec<String> {
 
 /// `schema.table` → `(Some("schema"), "table")`. Longer paths (`db.schema.table`)
 /// keep only the last two parts, which is what the diagram namespaces by.
-fn split_object_name(name: &ObjectName) -> (Option<String>, String) {
+pub(crate) fn split_object_name(name: &ObjectName) -> (Option<String>, String) {
     split_parts(&name_parts(name))
 }
 
