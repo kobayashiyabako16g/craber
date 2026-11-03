@@ -22,6 +22,9 @@
   --craber-accent-text: #1a0d09;
   --craber-surface-hover: #2d323d;
   --craber-highlight: #f0434f;
+  --craber-flow-read: #4f9cf0;
+  --craber-flow-write: #3fbf7f;
+  --craber-flow-delete: #e0a030;
 
   --craber-node-width: 260px;
   --craber-node-header: 40px;

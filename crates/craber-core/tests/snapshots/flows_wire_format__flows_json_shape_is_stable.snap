@@ -1,0 +1,68 @@
+---
+source: crates/craber-core/tests/flows_wire_format.rs
+expression: sample()
+---
+{
+  "flowsVersion": 1,
+  "workflows": [
+    {
+      "name": "checkout",
+      "steps": [
+        {
+          "kind": "select",
+          "sql": "SELECT o.id FROM orders AS o JOIN users AS u ON o.user_id = u.id",
+          "touches": [
+            {
+              "table": {
+                "name": "orders"
+              },
+              "access": "read",
+              "columns": [
+                "id",
+                "user_id"
+              ]
+            },
+            {
+              "table": {
+                "name": "users"
+              },
+              "access": "read",
+              "columns": [
+                "id"
+              ]
+            }
+          ],
+          "joins": [
+            {
+              "left": {
+                "table": {
+                  "name": "orders"
+                },
+                "column": "user_id"
+              },
+              "right": {
+                "table": {
+                  "name": "users"
+                },
+                "column": "id"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "delete",
+          "sql": "DELETE FROM orders",
+          "touches": [
+            {
+              "table": {
+                "schema": "public",
+                "name": "orders"
+              },
+              "access": "delete"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

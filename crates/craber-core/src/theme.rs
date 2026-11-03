@@ -128,6 +128,12 @@ palette! {
         accent_text => "--craber-accent-text",
         surface_hover => "--craber-surface-hover",
         highlight => "--craber-highlight",
+        /// A table a workflow step reads from.
+        flow_read => "--craber-flow-read",
+        /// A table a workflow step inserts into or updates.
+        flow_write => "--craber-flow-write",
+        /// A table a workflow step deletes from.
+        flow_delete => "--craber-flow-delete",
     }
 }
 
@@ -142,6 +148,11 @@ impl Chrome {
             // key and the brand, so a lit relationship has to be told apart
             // from those at a glance.
             highlight: "#f0434f",
+            // Read, write, delete: cool to hot, and none of them the
+            // highlight red, which a step's joins are lit in.
+            flow_read: "#4f9cf0",
+            flow_write: "#3fbf7f",
+            flow_delete: "#e0a030",
         }
     }
 }

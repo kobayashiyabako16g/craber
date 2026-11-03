@@ -3,3 +3,6 @@
 
 /** The `schema.json` shape this build reads. See `SCHEMA_VERSION` in ir/schema.rs. */
 export const SCHEMA_VERSION = 2;
+
+/** The `flows.json` shape this build reads. See `FLOWS_VERSION` in flow.rs. */
+export const FLOWS_VERSION = 1;
