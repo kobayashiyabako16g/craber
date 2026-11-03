@@ -10,14 +10,17 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Sidebar } from "./Sidebar";
+import { StepBar } from "./StepBar";
 import { TableDetails } from "./TableDetails";
 import { TableNode, type TableNodeType } from "./TableNode";
 import { Toolbar } from "./Toolbar";
 import { TopBar } from "./TopBar";
+import { WorkflowPicker } from "./WorkflowPicker";
 import { STUB_LENGTH } from "./diagram/handles";
 import { CardinalityMarkers } from "./diagram/Markers";
 import { RelationEdge } from "./diagram/RelationEdge";
 import { anchorEdges, type Box } from "./diagram/anchors";
+import { stepLit } from "./diagram/flow";
 import {
   anchorColumns,
   bakedNodes,
@@ -27,9 +30,9 @@ import {
 } from "./diagram/graph";
 import { download } from "./download";
 import { initialFit, useViewSync } from "./hooks/useViewSync";
-import { qualifiedName } from "./schema";
+import { qualifiedName, tableIndex } from "./schema";
 import { schemaSql, sqlFileName } from "./sql";
-import type { Schema } from "./types";
+import type { Schema, Workflow } from "./types";
 import type { ViewState } from "./viewState";
 
 import "./Diagram.css";
@@ -47,7 +50,15 @@ const edgeTypes = { relation: RelationEdge };
  * the arrangement: the schema-derived graph, the live geometry, and how
  * selection dims the parts of the diagram that are not being asked about.
  */
-export function Diagram({ schema, initial }: { schema: Schema; initial: ViewState }) {
+export function Diagram({
+  schema,
+  workflows,
+  initial,
+}: {
+  schema: Schema;
+  workflows: Workflow[];
+  initial: ViewState;
+}) {
   const tables = useMemo(() => schema.tables ?? [], [schema]);
   const flow = useReactFlow<TableNodeType>();
   const { zoom } = useViewport();
@@ -72,8 +83,20 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
     tidyUp();
   }, [tidyUp]);
 
-  const { selected, setSelected, hidden, focusTable, toggleHidden, setAllHidden, recordViewport } =
-    useViewSync(initial);
+  const {
+    selected,
+    setSelected,
+    hidden,
+    focusTable,
+    toggleHidden,
+    setAllHidden,
+    recordViewport,
+    playing: playingName,
+    playFlow,
+    step,
+    setStep,
+  } = useViewSync(initial);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const relations = useMemo(() => toEdges(tables, STUB_LENGTH), [tables]);
   const selectedTable = useMemo(
@@ -95,9 +118,52 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
     [relations, selected, hoveredTable],
   );
 
+  // A workflow being played back takes the canvas over from selection and
+  // hover: the step's tables light in the colour of what it does to them, the
+  // relationships its joins run along light with them, and the rest dims.
+  // Until `flows.json` has loaded, a `?flow=` from the URL matches nothing and
+  // the diagram draws as usual.
+  const playing = useMemo(
+    () => workflows.find((workflow) => workflow.name === playingName) ?? null,
+    [workflows, playingName],
+  );
+  const known = useMemo(() => tableIndex(tables), [tables]);
+  const played = useMemo(() => {
+    const current = playing?.steps[Math.min(step, playing.steps.length - 1)];
+    return current ? stepLit(current, relations, known) : null;
+  }, [playing, step, relations, known]);
+
+  // Each step brings what it touches into view, so a workflow that wanders
+  // across a large diagram can be followed without panning after it.
+  useEffect(() => {
+    if (!played) return;
+    const ids = [...played.access.keys()].filter((id) => !hidden.has(id));
+    if (ids.length === 0) return;
+    void flow.fitView({
+      nodes: ids.map((id) => ({ id })),
+      duration: 400,
+      maxZoom: 1.2,
+      padding: 0.3,
+    });
+    // `hidden` is left out on purpose: hiding a table mid-playback should not
+    // move the canvas.
+  }, [played, flow]);
+
   const renderedNodes = useMemo(
     () =>
       nodes.map((node) => {
+        if (played) {
+          const access = played.access.get(node.id);
+          return {
+            ...node,
+            data: access
+              ? { ...node.data, litColumns: played.columns.get(node.id), access }
+              : node.data,
+            hidden: hidden.has(node.id),
+            selected: false,
+            className: access ? undefined : "craber-canvas-dimmed",
+          };
+        }
         const columns = lit.columns.get(node.id);
         const related = lit.tables.has(node.id);
         return {
@@ -112,7 +178,7 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
           className: focus && !focus.has(node.id) && !related ? "craber-canvas-dimmed" : undefined,
         };
       }),
-    [nodes, hidden, selected, focus, lit],
+    [nodes, hidden, selected, focus, lit, played],
   );
 
   // Where every node sits at this moment. Dragging changes `nodes`, so the
@@ -137,7 +203,8 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
     () =>
       relations.map((edge) => {
         const anchor = anchors.get(edge.id);
-        const isLit = lit.edges.has(edge.id);
+        const isLit = played ? played.edges.has(edge.id) : lit.edges.has(edge.id);
+        const dimmed = played ? !isLit : Boolean(focus);
         return {
           ...edge,
           data: isLit && edge.data ? { ...edge.data, lit: true } : edge.data,
@@ -157,13 +224,13 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
             // Lit, not merely left alone: dimming the rest says which lines do
             // not matter, and colouring these says which ones do. The markers
             // follow without being told — they stroke in `context-stroke`.
-            isLit ? "craber-edge-focus" : focus ? "craber-canvas-dimmed" : undefined,
+            isLit ? "craber-edge-focus" : dimmed ? "craber-canvas-dimmed" : undefined,
           ]
             .filter(Boolean)
             .join(" "),
         };
       }),
-    [relations, anchors, hidden, focus, lit],
+    [relations, anchors, hidden, focus, lit, played],
   );
 
   // The toolbar moves the canvas programmatically, so `onMoveEnd` reports it
@@ -195,6 +262,18 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
         onExportSql={exportSql}
+        workflowCount={workflows.length}
+        onOpenWorkflows={() => setPickerOpen(true)}
+      />
+      <WorkflowPicker
+        open={pickerOpen}
+        workflows={workflows}
+        current={playing?.name ?? null}
+        onPick={(name) => {
+          playFlow(name);
+          setPickerOpen(false);
+        }}
+        onClose={() => setPickerOpen(false)}
       />
       <div className="craber-body">
         {sidebarOpen && (
@@ -250,6 +329,14 @@ export function Diagram({ schema, initial }: { schema: Schema; initial: ViewStat
             onFitView={() => void moveCanvas(() => flow.fitView({ duration: 300 }))}
             onTidyUp={tidyUp}
           />
+          {playing && (
+            <StepBar
+              workflow={playing}
+              step={Math.min(step, Math.max(playing.steps.length - 1, 0))}
+              onStep={setStep}
+              onStop={() => playFlow(null)}
+            />
+          )}
         </div>
         {selectedTable && (
           <TableDetails

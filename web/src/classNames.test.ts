@@ -31,6 +31,8 @@ const OWNERS: Record<string, string[]> = {
   "TableNode.css": ["craber-node"],
   "ColumnGlyph.css": ["craber-glyph"],
   "TableDetails.css": ["craber-details"],
+  "WorkflowPicker.css": ["craber-picker"],
+  "StepBar.css": ["craber-stepbar"],
   "diagram/Markers.css": ["craber-markers"],
 };
 

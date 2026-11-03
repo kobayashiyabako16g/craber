@@ -143,6 +143,34 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+/** Workflows: steps joined in sequence. */
+export function FlowIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="1.5" y="2" width="5" height="4" rx="1" />
+      <rect x="9.5" y="10" width="5" height="4" rx="1" />
+      <path d="M4 6v2.5a1.5 1.5 0 0 0 1.5 1.5H9.5" />
+      <path d="M8 8.5 9.5 10 8 11.5" />
+    </Svg>
+  );
+}
+
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M10 3.5 5.5 8l4.5 4.5" />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M6 3.5 10.5 8 6 12.5" />
+    </Svg>
+  );
+}
+
 export function DownloadIcon(props: IconProps) {
   return (
     <Svg {...props}>

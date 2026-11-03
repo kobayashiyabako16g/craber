@@ -2,10 +2,11 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
 import { ColumnGlyph } from "./ColumnGlyph";
+import { ACCESS_CLASS } from "./diagram/flow";
 import { handleId } from "./diagram/handles";
 import { CommentIcon, TableIcon } from "./icons";
 import { foreignKeyColumns, primaryKeyColumns } from "./schema";
-import type { Table } from "./types";
+import type { Access, Table } from "./types";
 
 import "./TableNode.css";
 
@@ -17,6 +18,8 @@ export type TableNodeData = {
   litColumns?: ReadonlySet<string>;
   /** This table is the selected or hovered one, or one relationship away. */
   related?: boolean;
+  /** What the workflow step being played does to this table. */
+  access?: Access;
 };
 export type TableNodeType = Node<TableNodeData, "table">;
 
@@ -30,14 +33,21 @@ export type TableNodeType = Node<TableNodeData, "table">;
  * table at the other end. Nothing here decides geometry.
  */
 export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
-  const { table, anchors, litColumns, related } = data;
+  const { table, anchors, litColumns, related, access } = data;
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const columns = table.columns ?? [];
 
   return (
     <div
-      className={`craber-node${selected ? " is-selected" : ""}${related ? " is-related" : ""}`}
+      className={[
+        "craber-node",
+        selected && "is-selected",
+        related && "is-related",
+        access && ACCESS_CLASS[access],
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {/* The node's own middle, for a relationship whose column CrabER could
           not place — a foreign key on a column the parser did not read. */}

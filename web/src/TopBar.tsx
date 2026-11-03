@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { CheckIcon, DownloadIcon, SidebarIcon } from "./icons";
+import { CheckIcon, DownloadIcon, FlowIcon, SidebarIcon } from "./icons";
 
 import "./TopBar.css";
 
@@ -9,9 +9,19 @@ type TopBarProps = {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onExportSql: () => void;
+  /** How many workflows were published; the button is left out at none. */
+  workflowCount: number;
+  onOpenWorkflows: () => void;
 };
 
-export function TopBar({ schemaName, sidebarOpen, onToggleSidebar, onExportSql }: TopBarProps) {
+export function TopBar({
+  schemaName,
+  sidebarOpen,
+  onToggleSidebar,
+  onExportSql,
+  workflowCount,
+  onOpenWorkflows,
+}: TopBarProps) {
   const [exported, setExported] = useState(false);
 
   // A download starts in the browser's chrome, not on the page, so the button
@@ -40,6 +50,19 @@ export function TopBar({ schemaName, sidebarOpen, onToggleSidebar, onExportSql }
       <span className="craber-topbar-schema">{schemaName}</span>
 
       <div className="craber-topbar-spacer" />
+
+      {workflowCount > 0 && (
+        <button
+          type="button"
+          className="craber-ghost-button craber-topbar-workflows"
+          title="Play a workflow back over the diagram, step by step"
+          onClick={onOpenWorkflows}
+        >
+          <FlowIcon size={14} />
+          Workflows
+          <span className="craber-topbar-count">{workflowCount}</span>
+        </button>
+      )}
 
       <button
         type="button"

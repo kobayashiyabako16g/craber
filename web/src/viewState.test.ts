@@ -5,9 +5,11 @@ import { readViewState, viewStateUrl } from "./viewState";
 /** The page a link would be copied from. Both functions take their input as an
  *  argument, so none of this needs a DOM. */
 const page = { origin: "https://example.test", pathname: "/er/" };
+/** No workflow playing — what every link without `?flow=` reads as. */
+const noFlow = { flow: null, step: 0 };
 describe("readViewState", () => {
   it("is all defaults for an empty query", () => {
-    expect(readViewState("")).toEqual({ selected: null, hidden: [], viewport: null });
+    expect(readViewState("")).toEqual({ selected: null, hidden: [], viewport: null, ...noFlow });
   });
 
   it("reads the selected table and the hidden list", () => {
@@ -15,6 +17,7 @@ describe("readViewState", () => {
       selected: "public.users",
       hidden: ["a", "b"],
       viewport: null,
+      ...noFlow,
     });
   });
 
@@ -45,12 +48,12 @@ describe("viewStateUrl", () => {
    * table selected, nothing hidden — stays short enough to paste in a message.
    */
   it("omits the defaults", () => {
-    const url = viewStateUrl({ selected: null, hidden: [], viewport: null }, page);
+    const url = viewStateUrl({ selected: null, hidden: [], viewport: null, ...noFlow }, page);
     expect(new URL(url).search).toBe("");
   });
 
   it("round trips through readViewState", () => {
-    const state = { selected: "public.users", hidden: ["a", "b"], viewport: null };
+    const state = { selected: "public.users", hidden: ["a", "b"], viewport: null, ...noFlow };
     const url = viewStateUrl(state, page);
     expect(readViewState(new URL(url).search)).toEqual(state);
   });
@@ -65,6 +68,7 @@ describe("viewStateUrl", () => {
       selected: "public.orders",
       hidden: [],
       viewport: { x: 120, y: -40, zoom: 0.85 },
+      ...noFlow,
     };
     expect(readViewState(new URL(viewStateUrl(state, page)).search)).toEqual(state);
   });
@@ -72,9 +76,26 @@ describe("viewStateUrl", () => {
   /** Rounded so a drifting float does not make every link unique. */
   it("rounds a viewport to whole pixels and three digits of zoom", () => {
     const url = viewStateUrl(
-      { selected: null, hidden: [], viewport: { x: 10.4, y: -20.6, zoom: 1.23456 } },
+      { selected: null, hidden: [], viewport: { x: 10.4, y: -20.6, zoom: 1.23456 }, ...noFlow },
       page,
     );
     expect(new URL(url).searchParams.get("at")).toBe("10,-21,1.235");
   });
+
+  /** A link into a playback opens on the same step, counted from 1 as shown. */
+  it("round trips a workflow and its step", () => {
+    const state = { selected: null, hidden: [], viewport: null, flow: "checkout", step: 2 };
+    const url = viewStateUrl(state, page);
+    expect(new URL(url).searchParams.get("step")).toBe("3");
+    expect(readViewState(new URL(url).search)).toEqual(state);
+  });
+});
+
+describe("readViewState's step", () => {
+  it.each(["?flow=a", "?flow=a&step=0", "?flow=a&step=-2", "?flow=a&step=x", "?flow=a&step=1.5"])(
+    "starts the workflow over for %s",
+    (search) => {
+      expect(readViewState(search).step).toBe(0);
+    },
+  );
 });

@@ -26,3 +26,22 @@
   color: var(--craber-text-muted);
   font-family: var(--craber-font-mono);
 }
+
+/* A ghost button, at the height of the primary one beside it. */
+.craber-topbar-workflows {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.craber-topbar-count {
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--craber-surface-raised);
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}

@@ -16,6 +16,11 @@ export type ViewState = {
   hidden: string[];
   /** Absent when the link carries no viewport, which means "fit the diagram". */
   viewport: Viewport | null;
+  /** Name of the workflow being played back, if any. */
+  flow: string | null;
+  /** Index of its current step, from 0. `?step=` counts from 1, as the step
+   *  bar does. */
+  step: number;
 };
 
 export function readViewState(search: string = window.location.search): ViewState {
@@ -24,6 +29,8 @@ export function readViewState(search: string = window.location.search): ViewStat
     selected: params.get("table"),
     hidden: (params.get("hide") ?? "").split(",").filter(Boolean),
     viewport: asViewport(params.get("at")),
+    flow: params.get("flow"),
+    step: asStep(params.get("step")),
   };
 }
 
@@ -45,6 +52,10 @@ export function viewStateUrl(
     const { x, y, zoom } = state.viewport;
     params.set("at", [round(x), round(y), round(zoom, 3)].join(","));
   }
+  if (state.flow) {
+    params.set("flow", state.flow);
+    params.set("step", String(state.step + 1));
+  }
   const query = params.toString();
   const { origin, pathname } = at;
   return query ? `${origin}${pathname}?${query}` : `${origin}${pathname}`;
@@ -58,6 +69,12 @@ function asViewport(value: string | null): Viewport | null {
     return null;
   }
   return { x, y, zoom };
+}
+
+/** A step number that is not a positive integer starts the workflow over. */
+function asStep(value: string | null): number {
+  const step = Number(value);
+  return Number.isInteger(step) && step >= 1 ? step - 1 : 0;
 }
 
 function round(value: number, digits = 0): number {

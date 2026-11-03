@@ -23,6 +23,29 @@
     0 0 16px color-mix(in srgb, var(--craber-highlight) 55%, transparent);
 }
 
+/* A workflow step's tables, in the colour of what the step does to them. The
+   rows it names light in the same colour, through `--craber-node-lit`. */
+.craber-node.is-read {
+  --craber-node-lit: var(--craber-flow-read);
+}
+
+.craber-node.is-write {
+  --craber-node-lit: var(--craber-flow-write);
+}
+
+.craber-node.is-delete {
+  --craber-node-lit: var(--craber-flow-delete);
+}
+
+.craber-node.is-read,
+.craber-node.is-write,
+.craber-node.is-delete {
+  border-color: var(--craber-node-lit);
+  box-shadow:
+    0 0 0 1px var(--craber-node-lit),
+    0 0 16px color-mix(in srgb, var(--craber-node-lit) 50%, transparent);
+}
+
 .craber-node-header {
   height: var(--craber-node-header);
   display: flex;
@@ -64,7 +87,7 @@
 }
 
 .craber-node-column.is-lit {
-  background: color-mix(in srgb, var(--craber-highlight) 18%, transparent);
+  background: color-mix(in srgb, var(--craber-node-lit, var(--craber-highlight)) 18%, transparent);
 }
 
 .craber-node-column + .craber-node-column {
