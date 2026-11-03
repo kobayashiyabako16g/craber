@@ -24,3 +24,7 @@ web/dist/
 
 # CrabER
 /er.svg
+
+# Written by `just sample`/`just ui` for the dev server; the committed sample
+# schema.json has no workflows to go with it.
+/web/public/flows.json

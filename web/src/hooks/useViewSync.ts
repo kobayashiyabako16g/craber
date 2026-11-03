@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReactFlow, type FitViewOptions } from "@xyflow/react";
 
-import { qualifiedName } from "../schema";
-import type { TableNodeType } from "../TableNode";
-import type { Table } from "../types";
-import { viewStateUrl, type ViewState, type Viewport } from "../viewState";
+import { qualifiedName } from "@/lib/schema";
+import type { TableNodeType } from "@/components/TableNode/TableNode";
+import type { Table } from "@/types";
+import { viewStateUrl, type ViewState, type Viewport } from "@/lib/viewState";
 
 /** How a link that names a table frames it: close, but not nose-to-the-glass. */
 const FIT_ONE = { maxZoom: 1.2, padding: 0.4 } as const;
@@ -33,7 +33,7 @@ export function initialFit(initial: ViewState, tables: Table[]): FitViewOptions 
 
 /**
  * The part of the view that belongs in the URL, and the URL kept in step with
- * it.
+ * it — including which workflow is playing and on which step.
  *
  * A published diagram has no server to keep state in, so the address bar is the
  * only place a reader can point at "this table, at this zoom". Selection, the
@@ -46,13 +46,21 @@ export function useViewSync(initial: ViewState) {
   const [selected, setSelected] = useState<string | null>(initial.selected);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set(initial.hidden));
   const [viewport, setViewport] = useState<Viewport | null>(initial.viewport);
+  const [playing, setPlaying] = useState<string | null>(initial.flow);
+  const [step, setStep] = useState(initial.step);
 
   // The address bar follows the view, so a reload — or a link pasted straight
   // out of it — lands where the reader was.
   useEffect(() => {
-    const url = viewStateUrl({ selected, hidden: [...hidden], viewport });
+    const url = viewStateUrl({ selected, hidden: [...hidden], viewport, flow: playing, step });
     window.history.replaceState(null, "", url);
-  }, [selected, hidden, viewport]);
+  }, [selected, hidden, viewport, playing, step]);
+
+  /** Start a workflow from its first step, or stop playing one with null. */
+  const playFlow = useCallback((name: string | null) => {
+    setPlaying(name);
+    setStep(0);
+  }, []);
 
   /** Select a table and bring it into view — what the sidebar and the details
    *  panel both mean by clicking a name. */
@@ -91,5 +99,9 @@ export function useViewSync(initial: ViewState) {
     toggleHidden,
     setAllHidden,
     recordViewport: setViewport,
+    playing,
+    playFlow,
+    step,
+    setStep,
   };
 }

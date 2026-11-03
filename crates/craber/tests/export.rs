@@ -185,3 +185,50 @@ fn a_missing_source_is_rejected_by_the_argument_parser() {
     let output = craber(&["export"]);
     assert!(!output.status.success());
 }
+
+#[test]
+fn flows_are_exported_one_workflow_per_file() {
+    let output = craber(&[
+        "export",
+        "--file",
+        fixture("tiny.sql").to_str().unwrap(),
+        "--flow",
+        fixture("flows/checkout.sql").to_str().unwrap(),
+        "--flow",
+        fixture("flows/account-closure.sql").to_str().unwrap(),
+        "--format",
+        "flows",
+    ]);
+    assert_success(&output, "craber export --format flows");
+
+    let flows: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    let names: Vec<&str> = flows["workflows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|w| w["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, ["checkout", "account-closure"]);
+    assert_eq!(flows["workflows"][0]["steps"].as_array().unwrap().len(), 6);
+}
+
+#[test]
+fn a_workflow_table_the_diagram_lacks_is_a_warning() {
+    let output = craber(&[
+        "export",
+        "--file",
+        fixture("tiny.sql").to_str().unwrap(),
+        "--exclude",
+        "coupons",
+        "--flow",
+        fixture("flows/checkout.sql").to_str().unwrap(),
+        "--format",
+        "flows",
+    ]);
+    assert_success(&output, "craber export --format flows");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("public.coupons"),
+        "expected a warning naming the excluded table, got: {stderr}"
+    );
+}

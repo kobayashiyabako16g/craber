@@ -14,6 +14,7 @@ mod codegen;
 pub mod diagnostic;
 pub mod dialect;
 pub mod filter;
+pub mod flow;
 pub mod geometry;
 pub mod index;
 pub mod ir;
@@ -23,6 +24,10 @@ pub mod theme;
 pub use diagnostic::{Diagnostic, Outcome, Severity};
 pub use dialect::{Dialect, UnknownDialect};
 pub use filter::{Filter, FilterError};
+pub use flow::{
+    Access, ColumnRef, ColumnValue, FLOWS_VERSION, Flows, Join, Step, StepKind, Touch, ValueKind,
+    Workflow,
+};
 pub use geometry::{metrics, node_size, visible_columns};
 pub use index::{Edge, SchemaIndex, TableId};
 pub use ir::{

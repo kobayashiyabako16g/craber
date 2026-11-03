@@ -1,9 +1,10 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { useState } from "react";
 
-import { Diagram } from "./Diagram";
-import { useSchema } from "./hooks/useSchema";
-import { readViewState, type ViewState } from "./viewState";
+import { Diagram } from "@/components/Diagram/Diagram";
+import { useFlows } from "@/hooks/useFlows";
+import { useSchema } from "@/hooks/useSchema";
+import { readViewState, type ViewState } from "@/lib/viewState";
 
 /**
  * The shell: load `schema.json`, then hand it to the canvas.
@@ -14,6 +15,7 @@ import { readViewState, type ViewState } from "./viewState";
  */
 export function App() {
   const { schema, error } = useSchema();
+  const workflows = useFlows();
   // Read once, on the first render: the URL goes on to follow the view, so
   // re-reading it later would mean reacting to CrabER's own writes.
   const [initial] = useState<ViewState>(() => readViewState());
@@ -35,7 +37,7 @@ export function App() {
 
   return (
     <ReactFlowProvider>
-      <Diagram schema={schema} initial={initial} />
+      <Diagram schema={schema} workflows={workflows} initial={initial} />
     </ReactFlowProvider>
   );
 }

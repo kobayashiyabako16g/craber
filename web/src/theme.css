@@ -86,6 +86,16 @@ button {
   color: var(--craber-text);
 }
 
+.craber-icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.craber-icon-button:disabled:hover {
+  background: none;
+  color: var(--craber-text-muted);
+}
+
 .craber-ghost-button {
   display: inline-flex;
   align-items: center;

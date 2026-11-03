@@ -1,6 +1,6 @@
 //! `SchemaIndex::resolve` against `cases/resolve.json`.
 //!
-//! The web app resolves references itself (`resolveRef` in `web/src/schema.ts`)
+//! The web app resolves references itself (`resolveRef` in `web/src/lib/schema.ts`)
 //! to decide which edges to draw, and the two used to agree only by a comment
 //! asking them to. They disagreed: a qualified reference that missed fell back
 //! to a bare-name match in the browser and not here, so the viewer drew an edge

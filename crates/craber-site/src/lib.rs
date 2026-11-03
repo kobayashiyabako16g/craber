@@ -1,10 +1,11 @@
 //! The static site `craber build` writes.
 //!
-//! A published diagram is the web bundle plus one `schema.json`: the bundle is
-//! the same for every schema and is embedded in the binary at compile time (see
-//! `build.rs`), while `schema.json` is produced per run. Nothing here knows
+//! A published diagram is the web bundle plus `schema.json` and `flows.json`:
+//! the bundle is the same for every schema and is embedded in the binary at
+//! compile time (see `build.rs`), while the two JSON files are produced per run. Nothing here knows
 //! about SQL, and nothing in the frontend knows about this crate — the contract
-//! between them is the file layout below and `craber_core::SCHEMA_VERSION`.
+//! between them is the file layout below, `craber_core::SCHEMA_VERSION` and
+//! `craber_core::FLOWS_VERSION`.
 //!
 //! ```text
 //! dist/
@@ -12,13 +13,14 @@
 //!   assets/index-<hash>.js
 //!   assets/index-<hash>.css
 //!   schema.json              # IR + table coordinates
+//!   flows.json               # workflows from --flow; empty when none were given
 //!   serve.json               # cache headers for static hosts that read it
 //! ```
 
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
 
-use craber_core::Schema;
+use craber_core::{Flows, Schema};
 
 include!(concat!(env!("OUT_DIR"), "/bundle.rs"));
 
@@ -105,7 +107,7 @@ pub struct SiteFile {
 }
 
 /// The servable site: the web bundle, with `index.html` adapted to this schema,
-/// plus the `schema.json` it draws.
+/// plus the `schema.json` it draws and the `flows.json` it can play back.
 ///
 /// This is what a site *is*. Writing it to a directory adds things that are
 /// facts about that directory rather than about the site — cache headers for a
@@ -118,12 +120,16 @@ pub struct SiteFile {
 /// included. Pass it only when an absolute prefix is actually wanted.
 ///
 /// Returns the files in a stable order.
-pub fn files(schema: &Schema, base_path: Option<&str>) -> Result<Vec<SiteFile>, Error> {
+pub fn files(
+    schema: &Schema,
+    flows: &Flows,
+    base_path: Option<&str>,
+) -> Result<Vec<SiteFile>, Error> {
     if !is_embedded() {
         return Err(Error::MissingBundle);
     }
 
-    let mut files = Vec::with_capacity(FILES.len() + 1);
+    let mut files = Vec::with_capacity(FILES.len() + 2);
     for (name, bytes) in FILES {
         let contents = match (*name, std::str::from_utf8(bytes)) {
             ("index.html", Ok(html)) => {
@@ -144,6 +150,12 @@ pub fn files(schema: &Schema, base_path: Option<&str>) -> Result<Vec<SiteFile>, 
         path: PathBuf::from("schema.json"),
         contents: Cow::Owned(serde_json::to_vec(schema)?),
     });
+    // Written even when empty, so the page can tell "no workflows" from a
+    // site built before workflows existed by the version, not by a 404.
+    files.push(SiteFile {
+        path: PathBuf::from("flows.json"),
+        contents: Cow::Owned(serde_json::to_vec(flows)?),
+    });
 
     files.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(files)
@@ -158,11 +170,12 @@ pub fn files(schema: &Schema, base_path: Option<&str>) -> Result<Vec<SiteFile>, 
 /// Returns the files written, relative to `out_dir`, in a stable order.
 pub fn write(
     schema: &Schema,
+    flows: &Flows,
     out_dir: &Path,
     base_path: Option<&str>,
 ) -> Result<Vec<PathBuf>, Error> {
     let mut written = Vec::with_capacity(FILES.len() + 2);
-    for file in files(schema, base_path)? {
+    for file in files(schema, flows, base_path)? {
         written.push(write_file(out_dir, &file.path, &file.contents)?);
     }
     written.push(write_file(
@@ -344,7 +357,7 @@ mod tests {
         if !is_embedded() {
             return;
         }
-        let site = files(&Schema::new("shop"), None).expect("a site");
+        let site = files(&Schema::new("shop"), &Flows::default(), None).expect("a site");
         let names: Vec<String> = site
             .iter()
             .map(|f| f.path.to_string_lossy().into_owned())
@@ -352,6 +365,7 @@ mod tests {
 
         assert!(names.contains(&"index.html".to_owned()), "{names:?}");
         assert!(names.contains(&"schema.json".to_owned()), "{names:?}");
+        assert!(names.contains(&"flows.json".to_owned()), "{names:?}");
         assert!(
             !names.iter().any(|n| n == "serve.json" || n == MANIFEST),
             "cache headers and the build manifest are facts about a directory, \
@@ -366,7 +380,7 @@ mod tests {
         if !is_embedded() {
             return;
         }
-        let site = files(&Schema::new("shop"), None).expect("a site");
+        let site = files(&Schema::new("shop"), &Flows::default(), None).expect("a site");
         let js = site
             .iter()
             .find(|f| f.path.extension().is_some_and(|e| e == "js"))

@@ -1,0 +1,105 @@
+.craber-picker {
+  width: min(480px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 64px));
+  padding: 0;
+  overflow: hidden;
+  background: var(--craber-surface);
+  color: var(--craber-text);
+  border: 1px solid var(--craber-border);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 55%);
+}
+
+.craber-picker::backdrop {
+  background: color-mix(in srgb, var(--craber-bg) 60%, transparent);
+}
+
+.craber-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 10px 0 14px;
+  border-bottom: 1px solid var(--craber-border);
+  color: var(--craber-text-muted);
+}
+
+.craber-picker-title {
+  flex: 1 1 auto;
+  color: var(--craber-text);
+  font-weight: 600;
+}
+
+.craber-picker-list {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  max-height: calc(min(560px, 100vh - 64px) - 44px);
+}
+
+.craber-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.craber-picker-item:hover {
+  background: var(--craber-surface-hover);
+}
+
+.craber-picker-item.is-current {
+  background: var(--craber-surface-raised);
+  box-shadow: inset 2px 0 0 var(--craber-accent);
+}
+
+.craber-picker-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--craber-font-mono);
+}
+
+.craber-picker-kinds {
+  display: flex;
+  gap: 4px;
+}
+
+/* The access colour of the statement kind, as the step bar shows it. */
+.craber-picker-kind {
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--craber-font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.craber-picker-kind.is-read {
+  color: var(--craber-flow-read);
+  background: color-mix(in srgb, var(--craber-flow-read) 16%, transparent);
+}
+
+.craber-picker-kind.is-write {
+  color: var(--craber-flow-write);
+  background: color-mix(in srgb, var(--craber-flow-write) 16%, transparent);
+}
+
+.craber-picker-kind.is-delete {
+  color: var(--craber-flow-delete);
+  background: color-mix(in srgb, var(--craber-flow-delete) 16%, transparent);
+}
+
+.craber-picker-count {
+  flex: 0 0 auto;
+  min-width: 52px;
+  color: var(--craber-text-muted);
+  font-size: 11px;
+  text-align: right;
+}

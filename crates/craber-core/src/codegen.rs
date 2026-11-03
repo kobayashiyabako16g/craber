@@ -63,7 +63,7 @@ pub(crate) fn tokens_css() -> String {
 /// `web/src/generated/metrics.ts` — what the frontend needs from Rust that is
 /// not a type and not a CSS custom property.
 ///
-/// Only the wire version. The node metrics used to be emitted here too and
+/// Only the wire versions. The node metrics used to be emitted here too and
 /// nothing imported them: the browser sizes a node from `--craber-node-*` in
 /// [`tokens_css`], which is the copy that is actually load-bearing. TypeScript
 /// cannot see an unused *export*, so they would have gone on being generated
@@ -75,8 +75,12 @@ pub(crate) fn metrics_ts() -> String {
          // Do not edit: change the Rust definition and regenerate.\n\
          \n\
          /** The `schema.json` shape this build reads. See `SCHEMA_VERSION` in ir/schema.rs. */\n\
-         export const SCHEMA_VERSION = {version};\n",
+         export const SCHEMA_VERSION = {version};\n\
+         \n\
+         /** The `flows.json` shape this build reads. See `FLOWS_VERSION` in flow.rs. */\n\
+         export const FLOWS_VERSION = {flows};\n",
         version = crate::ir::SCHEMA_VERSION,
+        flows = crate::flow::FLOWS_VERSION,
     )
 }
 

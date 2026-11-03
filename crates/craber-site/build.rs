@@ -109,11 +109,12 @@ fn collect(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf)>) {
         }
         // `web/public/schema.json` is whatever schema the dev server was last
         // pointed at. Embedding it would ship a stale diagram inside every
-        // binary, and `write` overwrites it with the real one anyway.
+        // binary, and `write` overwrites it with the real one anyway. The same
+        // goes for `flows.json`.
         let Ok(relative) = path.strip_prefix(root) else {
             continue;
         };
-        if relative == Path::new("schema.json") {
+        if relative == Path::new("schema.json") || relative == Path::new("flows.json") {
             continue;
         }
         let site_path = relative

@@ -63,7 +63,7 @@ const s = await fetch("schema.json").then((r) => r.json());
 ```
 
 `nodes` must equal `tables`. `edges` is allowed to come out lower than `fks` —
-`toEdges()` in `diagram/graph.ts` drops a foreign key whose target it
+`toEdges()` in `lib/graph.ts` drops a foreign key whose target it
 cannot resolve — but a gap there
 is a finding, not noise.
 

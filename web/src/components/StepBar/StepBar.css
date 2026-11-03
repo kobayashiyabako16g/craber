@@ -1,0 +1,77 @@
+/* Above the toolbar, which already holds the bottom centre of the canvas. */
+.craber-stepbar {
+  position: absolute;
+  left: 50%;
+  bottom: 68px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: min(720px, calc(100% - 32px));
+  padding: 6px 8px 6px 12px;
+  background: var(--craber-surface);
+  border: 1px solid var(--craber-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
+  font-size: 12px;
+}
+
+.craber-stepbar-name {
+  flex: 0 0 auto;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+}
+
+.craber-stepbar-position {
+  min-width: 34px;
+  text-align: center;
+  font-family: var(--craber-font-mono);
+  font-size: 11px;
+}
+
+.craber-stepbar-kind {
+  flex: 0 0 auto;
+  margin-left: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--craber-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.craber-stepbar-kind.is-read {
+  color: var(--craber-flow-read);
+  background: color-mix(in srgb, var(--craber-flow-read) 16%, transparent);
+}
+
+.craber-stepbar-kind.is-write {
+  color: var(--craber-flow-write);
+  background: color-mix(in srgb, var(--craber-flow-write) 16%, transparent);
+}
+
+.craber-stepbar-kind.is-delete {
+  color: var(--craber-flow-delete);
+  background: color-mix(in srgb, var(--craber-flow-delete) 16%, transparent);
+}
+
+.craber-stepbar-table {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.craber-stepbar-sql {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 11px;
+}

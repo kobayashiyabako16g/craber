@@ -1,0 +1,47 @@
+.craber-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: var(--craber-surface);
+  border-bottom: 1px solid var(--craber-border);
+}
+
+.craber-topbar-spacer {
+  flex: 1 1 auto;
+}
+
+.craber-topbar-logo {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.craber-topbar-logo span {
+  color: var(--craber-accent);
+}
+
+.craber-topbar-schema {
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+}
+
+/* A ghost button, at the height of the primary one beside it. */
+.craber-topbar-workflows {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.craber-topbar-count {
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--craber-surface-raised);
+  color: var(--craber-text-muted);
+  font-family: var(--craber-font-mono);
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
