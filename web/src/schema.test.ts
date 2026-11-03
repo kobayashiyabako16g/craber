@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex } from "./schema";
+import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "./schema";
 import type { Table } from "./types";
 
 function table(name: string, schema?: string): Table {
@@ -73,5 +73,18 @@ describe("key columns", () => {
       ],
     };
     expect([...foreignKeyColumns(orders)].sort()).toEqual(["tenant_id", "user_id"]);
+  });
+
+  it("counts a column as unique only when a unique index covers it alone", () => {
+    const users: Table = {
+      ...table("users"),
+      indexes: [
+        { columns: ["email"], unique: true },
+        { columns: ["tenant_id", "handle"], unique: true },
+        { name: "users_name_idx", columns: ["name"], unique: false },
+      ],
+    };
+    expect([...uniqueColumns(users)]).toEqual(["email"]);
+    expect([...uniqueColumns(table("users"))]).toEqual([]);
   });
 });

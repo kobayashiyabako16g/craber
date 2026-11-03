@@ -59,3 +59,13 @@ export function primaryKeyColumns(table: Table): ReadonlySet<string> {
 export function foreignKeyColumns(table: Table): ReadonlySet<string> {
   return new Set((table.fks ?? []).flatMap((fk) => fk.columns));
 }
+
+/**
+ * Column names that a unique index covers on its own. A composite unique index
+ * `(tenant_id, email)` makes neither column unique, so it is not counted.
+ */
+export function uniqueColumns(table: Table): ReadonlySet<string> {
+  return new Set(
+    (table.indexes ?? []).flatMap((index) => (index.unique && index.columns.length === 1 ? index.columns : [])),
+  );
+}

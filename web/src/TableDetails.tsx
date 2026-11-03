@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { ColumnGlyph } from "./ColumnGlyph";
 import { cardinalityLabel } from "./diagram/graph";
 import { CloseIcon, LinkIcon, TableIcon } from "./icons";
-import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex } from "./schema";
+import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "./schema";
 import type { Column, Table, TableRef } from "./types";
 
 import "./TableDetails.css";
@@ -39,6 +39,7 @@ type TableDetailsProps = {
 export function TableDetails({ table, tables, onSelect, onClose }: TableDetailsProps) {
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
+  const unique = uniqueColumns(table);
   const relationships = useMemo(() => relationshipsOf(table, tables), [table, tables]);
 
   return (
@@ -65,6 +66,7 @@ export function TableDetails({ table, tables, onSelect, onClose }: TableDetailsP
               column={column}
               isPk={pk.has(column.name)}
               isFk={fk.has(column.name)}
+              isUnique={unique.has(column.name)}
             />
           ))}
         </section>
@@ -119,10 +121,12 @@ function ColumnCard({
   column,
   isPk,
   isFk,
+  isUnique,
 }: {
   column: Column;
   isPk: boolean;
   isFk: boolean;
+  isUnique: boolean;
 }) {
   return (
     <div className="craber-details-card">
@@ -134,6 +138,7 @@ function ColumnCard({
         <Fact label="Type" value={column.dataType} mono />
         <Fact label={column.nullable ? "Nullable" : "Not null"} />
         {isPk && <Fact label="Primary key" />}
+        {isUnique && <Fact label="Unique" />}
         {column.default != null && <Fact label="Default" value={column.default} mono />}
         {column.comment && <Fact label="Comment" value={column.comment} prose />}
       </dl>
