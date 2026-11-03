@@ -1,12 +1,12 @@
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
-import { ColumnGlyph } from "../ColumnGlyph/ColumnGlyph";
-import { ACCESS_CLASS, valueLabel } from "../../lib/flow";
-import { handleId } from "../../lib/handles";
-import { CommentIcon, TableIcon } from "../icons/icons";
-import { foreignKeyColumns, primaryKeyColumns } from "../../lib/schema";
-import type { Access, ColumnValue, Table } from "../../types";
+import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
+import { ACCESS_CLASS, valueLabel } from "@/lib/flow";
+import { handleId } from "@/lib/handles";
+import { CommentIcon, TableIcon } from "@/components/icons/icons";
+import { foreignKeyColumns, primaryKeyColumns } from "@/lib/schema";
+import type { Access, ColumnValue, Table } from "@/types";
 
 import "./TableNode.css";
 

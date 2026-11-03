@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReactFlow, type FitViewOptions } from "@xyflow/react";
 
-import { qualifiedName } from "../lib/schema";
-import type { TableNodeType } from "../components/TableNode/TableNode";
-import type { Table } from "../types";
-import { viewStateUrl, type ViewState, type Viewport } from "../lib/viewState";
+import { qualifiedName } from "@/lib/schema";
+import type { TableNodeType } from "@/components/TableNode/TableNode";
+import type { Table } from "@/types";
+import { viewStateUrl, type ViewState, type Viewport } from "@/lib/viewState";
 
 /** How a link that names a table frames it: close, but not nose-to-the-glass. */
 const FIT_ONE = { maxZoom: 1.2, padding: 0.4 } as const;

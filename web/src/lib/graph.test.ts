@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { ForeignKey, Table } from "../types";
+import type { ForeignKey, Table } from "@/types";
 import { cardinalityLabel, endKinds, litRelations, toEdges } from "./graph";
 
 /**

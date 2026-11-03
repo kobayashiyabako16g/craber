@@ -4,6 +4,9 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  // `@/…` is `src/…`, from `paths` in tsconfig.json — one definition, read by
+  // both tsc and Vite (and so Vitest).
+  resolve: { tsconfigPaths: true },
   // Every asset is referenced relatively so that `craber build` output can be
   // dropped under any prefix — GitHub Pages serves it from /<repo>/ — without
   // rewriting the bundle. `craber build --base-path` overrides this at build

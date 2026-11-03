@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { loadFlows } from "../lib/flows";
-import type { Workflow } from "../types";
+import { loadFlows } from "@/lib/flows";
+import type { Workflow } from "@/types";
 
 /** The published workflows — empty until they load, and if they never do. */
 export function useFlows(): Workflow[] {

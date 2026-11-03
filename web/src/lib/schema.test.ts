@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "./schema";
-import type { Table, TableRef } from "../types";
+import type { Table, TableRef } from "@/types";
 // Read as text, like the stylesheets in classNames.test.ts, so the file stays
 // outside the bundle's module graph and needs no JSON-module typings.
 import resolveCases from "../../../crates/craber-core/tests/cases/resolve.json?raw";

@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 
-import type { EndKind } from "../../lib/graph";
-import { MARKER_LENGTH } from "../../lib/handles";
+import type { EndKind } from "@/lib/graph";
+import { MARKER_LENGTH } from "@/lib/handles";
 
 import "./Markers.css";
 

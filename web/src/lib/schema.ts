@@ -1,5 +1,5 @@
-import { SCHEMA_VERSION } from "../generated/metrics";
-import type { Schema, Table, TableRef } from "../types";
+import { SCHEMA_VERSION } from "@/generated/metrics";
+import type { Schema, Table, TableRef } from "@/types";
 
 /**
  * The `schema.json` shape this build reads, generated from

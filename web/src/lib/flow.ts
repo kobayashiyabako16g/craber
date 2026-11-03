@@ -1,5 +1,5 @@
 import { resolveRef } from "./schema";
-import type { Access, ColumnValue, Step, StepKind, Table } from "../types";
+import type { Access, ColumnValue, Step, StepKind, Table } from "@/types";
 import type { Relation } from "./graph";
 
 /**

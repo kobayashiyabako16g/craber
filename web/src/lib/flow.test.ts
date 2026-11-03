@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { tableIndex } from "./schema";
-import type { Step, Table } from "../types";
+import type { Step, Table } from "@/types";
 import { stepLit, stepTarget, valueLabel } from "./flow";
 import { toEdges } from "./graph";
 

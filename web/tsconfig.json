@@ -13,7 +13,8 @@
     "noEmit": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "vite.config.ts"]
 }

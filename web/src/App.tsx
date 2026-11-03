@@ -1,10 +1,10 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { useState } from "react";
 
-import { Diagram } from "./components/Diagram/Diagram";
-import { useFlows } from "./hooks/useFlows";
-import { useSchema } from "./hooks/useSchema";
-import { readViewState, type ViewState } from "./lib/viewState";
+import { Diagram } from "@/components/Diagram/Diagram";
+import { useFlows } from "@/hooks/useFlows";
+import { useSchema } from "@/hooks/useSchema";
+import { readViewState, type ViewState } from "@/lib/viewState";
 
 /**
  * The shell: load `schema.json`, then hand it to the canvas.

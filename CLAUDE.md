@@ -36,7 +36,7 @@ Pipeline: **input → IR (`Schema`) → filter → layout → output**. `crates/
 - `craber-export` — owns every `--format`. A new output format is added here only; the CLI just asks it for bytes.
 - `craber-site` — embeds `web/dist` at compile time via `build.rs` (or `bundle/` vendored by `just vendor-bundle`, or `CRABER_WEB_DIST`).
 - `craber` — CLI (`cli.rs`, `options/` resolves flag > env > `craber.toml` > default), `commands/`, a small HTTP server in `server/`, `--watch` in `watch.rs`. `milestone.rs` names the milestone for not-yet-implemented commands/formats.
-- `web/` — React 19 + React Flow (`@xyflow/react`) + Vite. Loads `schema.json`; components in `src/components/<Name>/` (one directory each, `<Name>.tsx` with its `<Name>.css` beside it), React-free logic in `src/lib/`, hooks in `src/hooks/`; view state lives in the URL (`lib/viewState.ts`).
+- `web/` — React 19 + React Flow (`@xyflow/react`) + Vite. Loads `schema.json`; components in `src/components/<Name>/` (one directory each, `<Name>.tsx` with its `<Name>.css` beside it), React-free logic in `src/lib/`, hooks in `src/hooks/`; an import that leaves its own directory goes through `@/` (= `src/`, from `paths` in `web/tsconfig.json`), one within it stays `./`; view state lives in the URL (`lib/viewState.ts`).
 
 ## Rules that are easy to break
 

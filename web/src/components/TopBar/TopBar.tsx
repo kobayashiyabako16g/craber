@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { CheckIcon, DownloadIcon, FlowIcon, SidebarIcon } from "../icons/icons";
+import { CheckIcon, DownloadIcon, FlowIcon, SidebarIcon } from "@/components/icons/icons";
 
 import "./TopBar.css";
 

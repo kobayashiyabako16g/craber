@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { schemaSql, sqlFileName } from "./sql";
-import type { Schema } from "../types";
+import type { Schema } from "@/types";
 
 const shop: Schema = {
   schemaVersion: 2,

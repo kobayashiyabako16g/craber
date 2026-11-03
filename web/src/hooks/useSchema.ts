@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { loadSchema } from "../lib/schema";
-import type { Schema } from "../types";
+import { loadSchema } from "@/lib/schema";
+import type { Schema } from "@/types";
 
 /**
  * The published `schema.json`, or why it could not be read.
