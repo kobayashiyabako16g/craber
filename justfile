@@ -32,8 +32,9 @@ bindings:
 # Everything CI runs on the Rust side
 check: fmt-check lint test
 
-# The pure modules only — `graph.ts`, `anchors.ts`, `schema.ts`, `sql.ts`,
-# `viewState.ts`. Those are React-free by design; this is what checks them.
+# The pure modules only — the ones in `web/src/lib/`, such as `graph.ts`,
+# `schema.ts` and `viewState.ts`. Those are React-free by design; this is what
+# checks them.
 # A component needs a browser, which is what `.claude/skills/ui-check` is for.
 #
 # Run the frontend unit tests

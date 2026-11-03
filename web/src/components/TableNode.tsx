@@ -2,17 +2,17 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
 import { ColumnGlyph } from "./ColumnGlyph";
-import { ACCESS_CLASS } from "./diagram/flow";
-import { handleId } from "./diagram/handles";
+import { ACCESS_CLASS } from "../lib/flow";
+import { handleId } from "../lib/handles";
 import { CommentIcon, TableIcon } from "./icons";
-import { foreignKeyColumns, primaryKeyColumns } from "./schema";
-import type { Access, Table } from "./types";
+import { foreignKeyColumns, primaryKeyColumns } from "../lib/schema";
+import type { Access, Table } from "../types";
 
 import "./TableNode.css";
 
 export type TableNodeData = {
   table: Table;
-  /** Column names an edge attaches to — see `anchorColumns` in `diagram/graph.ts`. */
+  /** Column names an edge attaches to — see `anchorColumns` in `lib/graph.ts`. */
   anchors: ReadonlySet<string>;
   /** Rows joined by a relationship of the selected or hovered table. */
   litColumns?: ReadonlySet<string>;
@@ -29,7 +29,7 @@ export type TableNodeType = Node<TableNodeData, "table">;
  * Edges attach to a *column*, not to the node: a relationship is between
  * `orders.user_id` and `users.id`, and the diagram says so only if the line
  * starts and ends on those rows. Each column that an edge can reach therefore
- * carries handles on both of its sides, and `diagram/anchors.ts` picks the side facing the
+ * carries handles on both of its sides, and `lib/anchors.ts` picks the side facing the
  * table at the other end. Nothing here decides geometry.
  */
 export function TableNode({ data, selected }: NodeProps<TableNodeType>) {

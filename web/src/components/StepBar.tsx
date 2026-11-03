@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL, stepTarget } from "./diagram/flow";
+import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL, stepTarget } from "../lib/flow";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "./icons";
-import type { Workflow } from "./types";
+import type { Workflow } from "../types";
 
 import "./StepBar.css";
 

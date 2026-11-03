@@ -1,5 +1,5 @@
-import { FLOWS_VERSION } from "./generated/metrics";
-import type { Flows, Workflow } from "./types";
+import { FLOWS_VERSION } from "../generated/metrics";
+import type { Flows, Workflow } from "../types";
 
 /**
  * The workflows published beside the diagram, or none.

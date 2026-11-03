@@ -93,7 +93,7 @@ pub fn node_size(table: &Table, detail: Detail) -> (f32, f32) {
 
 /// The column rows a node draws at this detail level.
 ///
-/// The layout, the SVG renderer and `web/src/TableNode.tsx` all have to agree on
+/// The layout, the SVG renderer and `web/src/components/TableNode.tsx` all have to agree on
 /// this, so the rule lives in one place and both Rust callers share it.
 #[must_use]
 pub fn visible_columns(table: &Table, detail: Detail) -> Vec<&Column> {

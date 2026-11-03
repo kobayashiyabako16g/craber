@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { List, type RowComponentProps } from "react-window";
 
 import { EyeIcon, EyeOffIcon, SearchIcon, TableIcon } from "./icons";
-import { qualifiedName } from "./schema";
-import type { Table } from "./types";
+import { qualifiedName } from "../lib/schema";
+import type { Table } from "../types";
 
 import "./Sidebar.css";
 

@@ -25,7 +25,7 @@ const STROKE_WIDTH: f32 = 1.5;
 /// How one end of a relationship line is drawn.
 ///
 /// The same three CrabER can derive from DDL as the web app draws — see
-/// `EndKind` and `endKinds` in `web/src/diagram/graph.ts`, and
+/// `EndKind` and `endKinds` in `web/src/lib/graph.ts`, and
 /// `annotate_relationships` for where the two facts behind them come from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum End {

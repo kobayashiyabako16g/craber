@@ -5,7 +5,7 @@
  * and the string `anchors.ts` asks for have to be the same string. It is built
  * here so that neither side writes the format out.
  *
- * In `diagram/` rather than beside the component because `anchors.ts` is pure
+ * In `lib/` rather than beside the component because `anchors.ts` is pure
  * geometry and used to reach into `TableNode.tsx` for this — which made the
  * geometry, and anything testing it, depend on React.
  */

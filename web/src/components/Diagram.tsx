@@ -16,24 +16,24 @@ import { TableNode, type TableNodeType } from "./TableNode";
 import { Toolbar } from "./Toolbar";
 import { TopBar } from "./TopBar";
 import { WorkflowPicker } from "./WorkflowPicker";
-import { STUB_LENGTH } from "./diagram/handles";
-import { CardinalityMarkers } from "./diagram/Markers";
-import { RelationEdge } from "./diagram/RelationEdge";
-import { anchorEdges, type Box } from "./diagram/anchors";
-import { stepLit } from "./diagram/flow";
+import { STUB_LENGTH } from "../lib/handles";
+import { CardinalityMarkers } from "./Markers";
+import { RelationEdge } from "./RelationEdge";
+import { anchorEdges, type Box } from "../lib/anchors";
+import { stepLit } from "../lib/flow";
 import {
   anchorColumns,
   bakedNodes,
   litRelations,
   neighbourhood,
   toEdges,
-} from "./diagram/graph";
-import { download } from "./download";
-import { initialFit, useViewSync } from "./hooks/useViewSync";
-import { qualifiedName, tableIndex } from "./schema";
-import { schemaSql, sqlFileName } from "./sql";
-import type { Schema, Workflow } from "./types";
-import type { ViewState } from "./viewState";
+} from "../lib/graph";
+import { download } from "../lib/download";
+import { initialFit, useViewSync } from "../hooks/useViewSync";
+import { qualifiedName, tableIndex } from "../lib/schema";
+import { schemaSql, sqlFileName } from "../lib/sql";
+import type { Schema, Workflow } from "../types";
+import type { ViewState } from "../lib/viewState";
 
 import "./Diagram.css";
 

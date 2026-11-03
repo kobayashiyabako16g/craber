@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 
 import { ColumnGlyph } from "./ColumnGlyph";
-import { cardinalityLabel } from "./diagram/graph";
+import { cardinalityLabel } from "../lib/graph";
 import { CloseIcon, LinkIcon, TableIcon } from "./icons";
-import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "./schema";
-import type { Column, Table, TableRef } from "./types";
+import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "../lib/schema";
+import type { Column, Table, TableRef } from "../types";
 
 import "./TableDetails.css";
 

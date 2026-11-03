@@ -1,4 +1,4 @@
-import { resolveRef } from "../schema";
+import { resolveRef } from "./schema";
 import type { Access, Step, StepKind, Table } from "../types";
 import type { Relation } from "./graph";
 

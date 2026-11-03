@@ -19,7 +19,7 @@ import type {
   Table,
   TableIndex,
   TableRef,
-} from "./types";
+} from "../types";
 
 /** The whole schema as a single SQL script. */
 export function schemaSql(schema: Schema): string {

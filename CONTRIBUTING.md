@@ -60,8 +60,8 @@ one hand-written file; it is a barrel over the generated ones.)
 ## The frontend's gates
 
 `tsc --noEmit` and `pnpm test` (`just web-test`). The tests cover the modules
-that have no React in them — `diagram/graph.ts`, `diagram/anchors.ts`,
-`schema.ts`, `sql.ts`, `viewState.ts` — and in particular the rules that are
+that have no React in them — `lib/graph.ts`, `lib/anchors.ts`,
+`lib/schema.ts`, `lib/sql.ts`, `lib/viewState.ts` — and in particular the rules that are
 stated once on each side of the language boundary: `endKinds` has to agree with
 `End::referencing` in `crates/craber-render/src/edge.rs`, and `resolveRef` with
 `SchemaIndex::resolve`. A disagreement there is not an error, it is one schema
