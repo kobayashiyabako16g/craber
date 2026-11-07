@@ -58,7 +58,14 @@ export function WorkflowPicker({ open, workflows, current, onPick, onClose }: Wo
               className={`craber-picker-item${workflow.name === current ? " is-current" : ""}`}
               onClick={() => onPick(workflow.name)}
             >
-              <span className="craber-picker-name">{workflow.name}</span>
+              <span className="craber-picker-text">
+                <span className="craber-picker-name">{workflow.name}</span>
+                {workflow.description && (
+                  <span className="craber-picker-description" title={workflow.description}>
+                    {workflow.description}
+                  </span>
+                )}
+              </span>
               <span className="craber-picker-kinds">
                 {kinds(workflow).map((kind) => (
                   <span key={kind} className={`craber-picker-kind ${ACCESS_CLASS[KIND_ACCESS[kind]]}`}>

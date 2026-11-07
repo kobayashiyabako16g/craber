@@ -57,13 +57,28 @@
   box-shadow: inset 2px 0 0 var(--craber-accent);
 }
 
-.craber-picker-name {
+/* The name, and under it the comment at the top of the workflow's file. */
+.craber-picker-text {
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
+}
+
+.craber-picker-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--craber-font-mono);
+}
+
+.craber-picker-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--craber-text-muted);
+  font-size: 11px;
 }
 
 .craber-picker-kinds {

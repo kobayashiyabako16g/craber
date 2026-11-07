@@ -23,11 +23,12 @@ type StepBarProps = {
 /**
  * Playback controls for a workflow, floating over the bottom of the canvas.
  *
- * The statement is one line, cut to fit; expanding the bar shows the whole of
- * it above, laid out over lines and highlighted, and stays expanded from step
- * to step. A line too long for the bar wraps, indented under its start. The
- * arrow keys step (← →) and expand (↑ ↓) too, unless something that takes
- * typing has focus.
+ * The step's description — the comment above its statement — sits over the
+ * controls. The statement is one line, cut to fit; expanding the bar shows the
+ * whole of it above, laid out over lines and highlighted, and stays expanded
+ * from step to step. A line too long for the bar wraps, indented under its
+ * start. The arrow keys step (← →) and expand (↑ ↓) too, unless something that
+ * takes typing has focus.
  */
 export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
   const count = workflow.steps.length;
@@ -81,8 +82,14 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
           </code>
         </pre>
       )}
+      {current?.description && (
+        <p className="craber-stepbar-description">{current.description}</p>
+      )}
       <div className="craber-stepbar-controls">
-        <span className="craber-stepbar-name" title={workflow.name}>
+        <span
+          className="craber-stepbar-name"
+          title={workflow.description ? `${workflow.name}\n\n${workflow.description}` : workflow.name}
+        >
           {workflow.name}
         </span>
         <button

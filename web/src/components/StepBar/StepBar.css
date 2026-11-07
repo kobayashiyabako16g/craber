@@ -48,6 +48,14 @@
   overflow-wrap: anywhere;
 }
 
+/* The comment above the step's statement in its file, as prose. */
+.craber-stepbar-description {
+  margin: 0;
+  padding: 8px 12px 2px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
 /* A line that wraps continues indented under its own start, so a long JOIN
    still reads as one line. */
 .craber-stepbar-line {
