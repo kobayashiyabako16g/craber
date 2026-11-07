@@ -6,6 +6,7 @@
 //! reported as a [`craber_core::Diagnostic`] and skipped, so a
 //! single unsupported statement never costs the user the whole diagram.
 
+mod comments;
 mod dialect;
 mod flow;
 mod translate;
@@ -54,8 +55,12 @@ pub fn parse(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Sc
 /// [`parse`], only a script that cannot be parsed at all is an error; a
 /// statement that is not DML is a warning and is skipped.
 pub fn parse_flow(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Workflow> {
-    match Parser::parse_sql(sqlparser_dialect(dialect).as_ref(), sql) {
-        Ok(statements) => flow::workflow(&statements, name.into()),
+    let parser_dialect = sqlparser_dialect(dialect);
+    match Parser::parse_sql(parser_dialect.as_ref(), sql) {
+        Ok(statements) => {
+            let comments = comments::Comments::read(sql, parser_dialect.as_ref(), statements.len());
+            flow::workflow(&statements, name.into(), &comments)
+        }
         Err(error) => {
             let mut outcome = Outcome::new(Workflow::new(name));
             outcome.push(Diagnostic::error(format!(

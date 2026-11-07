@@ -51,6 +51,11 @@ impl Default for Flows {
 pub struct Workflow {
     /// Display name — normally the source filename.
     pub name: String,
+    /// What the workflow is for: the comment at the top of its file, when one
+    /// stands apart from the first statement. Added after `flowsVersion` 1
+    /// shipped; a reader that predates it ignores it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     #[serde(default)]
     pub steps: Vec<Step>,
 }
@@ -59,6 +64,7 @@ impl Workflow {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
+            description: None,
             steps: Vec::new(),
         }
     }
@@ -70,6 +76,11 @@ impl Workflow {
 #[ts(export)]
 pub struct Step {
     pub kind: StepKind,
+    /// The comment written directly above the statement, with no blank line
+    /// between. Added after `flowsVersion` 1 shipped, like `description` on
+    /// [`Workflow`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     /// The statement, re-rendered from the parse rather than copied from the
     /// source and pretty-printed, so it is laid out over lines the same way
     /// however it was written.

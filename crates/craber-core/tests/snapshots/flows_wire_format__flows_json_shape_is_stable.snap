@@ -7,9 +7,11 @@ expression: sample()
   "workflows": [
     {
       "name": "checkout",
+      "description": "A checkout: the order is created and paid.",
       "steps": [
         {
           "kind": "select",
+          "description": "Who is buying.",
           "sql": "SELECT o.id FROM orders AS o JOIN users AS u ON o.user_id = u.id",
           "touches": [
             {

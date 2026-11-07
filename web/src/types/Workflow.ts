@@ -8,4 +8,10 @@ export type Workflow = {
 /**
  * Display name — normally the source filename.
  */
-name: string, steps: Array<Step>, };
+name: string, 
+/**
+ * What the workflow is for: the comment at the top of its file, when one
+ * stands apart from the first statement. Added after `flowsVersion` 1
+ * shipped; a reader that predates it ignores it.
+ */
+description?: string | null, steps: Array<Step>, };

@@ -237,3 +237,138 @@ fn a_step_keeps_its_statement_pretty_printed() {
         "got {sql:?}"
     );
 }
+
+fn descriptions(outcome: &Outcome<Workflow>) -> Vec<Option<&str>> {
+    outcome
+        .value
+        .steps
+        .iter()
+        .map(|s| s.description.as_deref())
+        .collect()
+}
+
+#[test]
+fn a_comment_directly_above_a_statement_describes_its_step() {
+    let outcome = postgres(
+        "-- Who is buying.
+         SELECT * FROM users;
+
+         -- Create the order,
+         -- still pending.
+         INSERT INTO orders (id) VALUES (1);
+
+         UPDATE orders SET total = 1 WHERE id = 1;",
+    );
+    assert_eq!(
+        descriptions(&outcome),
+        [
+            Some("Who is buying."),
+            Some("Create the order,\nstill pending."),
+            None
+        ]
+    );
+    // Attached to the first statement, it is that step's and not the workflow's.
+    assert_eq!(outcome.value.description, None);
+}
+
+#[test]
+fn the_comment_at_the_top_set_apart_by_a_blank_line_describes_the_workflow() {
+    let outcome = postgres(
+        "-- A checkout:
+         -- the order is created and paid.
+
+         -- Who is buying.
+         SELECT * FROM users;",
+    );
+    assert_eq!(
+        outcome.value.description.as_deref(),
+        Some("A checkout:\nthe order is created and paid.")
+    );
+    assert_eq!(descriptions(&outcome), [Some("Who is buying.")]);
+}
+
+#[test]
+fn a_comment_a_blank_line_away_from_a_later_statement_describes_nothing() {
+    let outcome = postgres(
+        "SELECT * FROM users;
+
+         -- Left here on its own.
+
+         DELETE FROM orders;",
+    );
+    assert_eq!(descriptions(&outcome), [None, None]);
+    assert_eq!(outcome.value.description, None);
+}
+
+#[test]
+fn a_comment_after_a_semicolon_is_not_the_next_statements() {
+    let outcome = postgres(
+        "SELECT * FROM users; -- note on the select
+         DELETE FROM orders;",
+    );
+    assert_eq!(descriptions(&outcome), [None, None]);
+}
+
+#[test]
+fn comments_inside_a_statement_describe_nothing() {
+    let outcome = postgres(
+        "SELECT *
+         -- not a description
+         FROM users;
+         DELETE FROM orders;",
+    );
+    assert_eq!(descriptions(&outcome), [None, None]);
+}
+
+#[test]
+fn block_comments_describe_like_line_comments() {
+    let outcome = postgres(
+        "/*
+          * Account closure.
+          */
+
+         /* Forget the sessions. */
+         DELETE FROM sessions;",
+    );
+    assert_eq!(
+        outcome.value.description.as_deref(),
+        Some("Account closure.")
+    );
+    assert_eq!(descriptions(&outcome), [Some("Forget the sessions.")]);
+}
+
+#[test]
+fn skipped_statements_keep_the_descriptions_in_line() {
+    let outcome = postgres(
+        "BEGIN;
+         -- Not DML.
+         CREATE TABLE t (id int);
+         -- Forget the sessions.
+         DELETE FROM sessions;
+         COMMIT;",
+    );
+    assert_eq!(descriptions(&outcome), [Some("Forget the sessions.")]);
+}
+
+#[test]
+fn the_checkout_fixture_is_described() {
+    let sql = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../fixtures/flows/checkout.sql"
+    ))
+    .unwrap();
+    let outcome = postgres(&sql);
+    assert!(
+        outcome
+            .value
+            .description
+            .as_deref()
+            .is_some_and(|d| d.starts_with("A checkout against fixtures/tiny.sql"))
+    );
+    let described = descriptions(&outcome);
+    assert_eq!(
+        described.first(),
+        Some(&Some("Who is buying, and whether their coupon is valid."))
+    );
+    assert_eq!(described.last(), Some(&Some("The coupon is single-use.")));
+}

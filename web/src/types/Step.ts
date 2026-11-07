@@ -8,6 +8,12 @@ import type { Touch } from "./Touch";
  */
 export type Step = { kind: StepKind, 
 /**
+ * The comment written directly above the statement, with no blank line
+ * between. Added after `flowsVersion` 1 shipped, like `description` on
+ * [`Workflow`].
+ */
+description?: string | null, 
+/**
  * The statement, re-rendered from the parse rather than copied from the
  * source and pretty-printed, so it is laid out over lines the same way
  * however it was written.

@@ -26,12 +26,19 @@ use sqlparser::ast::{
     TableFactor, TableObject, TableWithJoins, Update, UpdateTableFromKind,
 };
 
+use crate::comments::Comments;
 use crate::translate::{name_parts, split_object_name};
 
-/// Read each statement of `statements` as one step of a workflow called `name`.
-pub(crate) fn workflow(statements: &[Statement], name: String) -> Outcome<Workflow> {
+/// Read each statement of `statements` as one step of a workflow called `name`,
+/// described by the script's `comments`.
+pub(crate) fn workflow(
+    statements: &[Statement],
+    name: String,
+    comments: &Comments,
+) -> Outcome<Workflow> {
     let mut outcome = Outcome::new(Workflow::new(name));
-    for statement in statements {
+    outcome.value.description.clone_from(&comments.workflow);
+    for (index, statement) in statements.iter().enumerate() {
         let kind = match statement {
             Statement::Query(_) => StepKind::Select,
             Statement::Insert(_) => StepKind::Insert,
@@ -60,6 +67,7 @@ pub(crate) fn workflow(statements: &[Statement], name: String) -> Outcome<Workfl
         }
         outcome.value.steps.push(Step {
             kind,
+            description: comments.step(index),
             // sqlparser's pretty form ends a statement with a space.
             sql: format!("{statement:#}").trim_end().to_owned(),
             touches: step.touches,

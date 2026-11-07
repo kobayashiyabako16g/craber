@@ -9,9 +9,11 @@ use craber_core::{
 
 fn sample() -> Flows {
     let mut workflow = Workflow::new("checkout");
+    workflow.description = Some("A checkout: the order is created and paid.".into());
     workflow.steps = vec![
         Step {
             kind: StepKind::Select,
+            description: Some("Who is buying.".into()),
             sql: "SELECT o.id FROM orders AS o JOIN users AS u ON o.user_id = u.id".into(),
             touches: vec![
                 Touch {
@@ -40,6 +42,7 @@ fn sample() -> Flows {
         },
         Step {
             kind: StepKind::Delete,
+            description: None,
             sql: "DELETE FROM orders".into(),
             touches: vec![Touch {
                 table: TableRef::qualified("public", "orders"),
@@ -51,6 +54,7 @@ fn sample() -> Flows {
         },
         Step {
             kind: StepKind::Update,
+            description: None,
             sql: "UPDATE orders SET total = 59.80 WHERE id = 100".into(),
             touches: vec![Touch {
                 table: TableRef::new("orders"),
