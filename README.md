@@ -182,6 +182,62 @@ unsupported statement never costs you the whole diagram.
 [`examples/`](https://github.com/kobayashiyabako16g/craber/tree/main/examples) walks through all of it on schemas you can read — start
 with `just example`.
 
+## Workflows
+
+A workflow is a `.sql` file of `SELECT` / `INSERT` / `UPDATE` / `DELETE`
+statements that CrabER plays back over the diagram one statement at a time —
+a checkout, an account closure, whatever a feature does to the database. Each
+step lights the tables its statement reads, writes or deletes from, in a colour
+per access, with the columns and values it names and the relationships its
+joins run along. Nothing is executed; a step shows what the SQL says it
+touches.
+
+```sql
+-- checkout.sql
+-- A checkout: the buyer is looked up, an order is created and paid,
+-- and the coupon is used up.
+
+-- Who is buying, and whether their coupon is valid.
+SELECT u.id, c.code
+FROM users u
+LEFT JOIN coupons c ON c.code = 'WELCOME'
+WHERE u.email = 'alice@example.com';
+
+-- Create the order as pending.
+INSERT INTO orders (id, user_id, status, total) VALUES (100, 1, 'pending', 0);
+
+UPDATE orders SET status = 'paid', total = 59.80 WHERE id = 100;
+
+-- The coupon is single-use.
+DELETE FROM coupons WHERE id = 7;
+```
+
+Pass it with `--flow`, which every command takes and which repeats — each file
+is one workflow, named after the file:
+
+```console
+$ craber serve --file shop.sql --flow checkout.sql --flow account-closure.sql
+$ craber build --file shop.sql --flow checkout.sql -o dist/
+$ craber export --file shop.sql --flow checkout.sql --format flows   # flows.json
+```
+
+In the viewer, **Workflows** in the top bar lists them; pick one and a step bar
+appears. ← / → step, ↑ / ↓ show the whole statement, Esc stops. The workflow
+and step are in the URL, so a link opens on the same step — on a static site
+as much as under `craber serve`.
+
+Comments describe the playback. A comment directly above a statement, with no
+blank line between, describes that step; the comment at the top of the file,
+set apart from the first statement by a blank line, describes the workflow.
+A comment after a `;` on the same line, or one a blank line away from a later
+statement, describes nothing.
+
+Workflow files are read in the schema's dialect. A statement that is not DML
+(`CREATE`, `GRANT`, …) is a warning and is skipped, `BEGIN` / `COMMIT` are
+ignored, and a table the diagram does not have — a typo, or one `--exclude`
+dropped — is a warning while the step is kept. `--watch` re-reads workflow
+files too.
+
 ## Configuration
 
 Anything you would otherwise retype in every CI job can live in a `craber.toml`
