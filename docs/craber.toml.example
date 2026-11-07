@@ -26,6 +26,11 @@ exclude = ["schema_migrations", "ar_internal_metadata", "*_audit"]
 # Also pull in tables within N foreign-key hops of the included ones.
 # depth = 2
 
+# Workflows to play back over the diagram: .sql files, or directories that
+# stand for every .sql file beneath them. Relative to this file. `--flow` on
+# the command line replaces this list rather than adding to it.
+# flows = ["db/flows/"]
+
 # URL prefix the generated site is served under, e.g. GitHub Pages project
 # sites live at /<repo>/. Used by `craber build`.
 # base-path = "/myrepo/"

@@ -315,3 +315,56 @@ fn the_config_sourced_schema_is_the_same_one_the_flag_produces() {
             .is_some()
     );
 }
+
+/// The workflow names in `flows.json`, exported from `dir`.
+fn flow_names_in(dir: &std::path::Path, args: &[&str]) -> Vec<String> {
+    let mut args = args.to_vec();
+    args.extend(["--format", "flows"]);
+    craber_json_in(dir, &args)["workflows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|w| w["name"].as_str().unwrap().to_owned())
+        .collect()
+}
+
+/// `flows` resolves against the config's own directory, like `file`, so a
+/// command run from deeper in the repository still finds them.
+#[test]
+fn the_config_can_supply_the_workflows() {
+    let dir = project(
+        "flows",
+        "file = \"tiny.sql\"\nflows = [\"flows\", \"one-off.sql\"]\n",
+    );
+    std::fs::create_dir_all(dir.join("flows/billing")).expect("flow directory");
+    for path in [
+        "flows/checkout.sql",
+        "flows/billing/refund.sql",
+        "one-off.sql",
+    ] {
+        std::fs::write(dir.join(path), "SELECT * FROM public.users;").expect("flow file");
+    }
+    let deep = dir.join("a/b");
+    std::fs::create_dir_all(&deep).expect("nested directories");
+
+    assert_eq!(
+        flow_names_in(&deep, &["export"]),
+        ["billing/refund", "checkout", "one-off"]
+    );
+}
+
+/// `--flow` replaces the config's `flows` rather than adding to them.
+#[test]
+fn a_flow_flag_replaces_the_configs_workflows() {
+    let dir = project(
+        "flows-replace",
+        "file = \"tiny.sql\"\nflows = [\"one-off.sql\"]\n",
+    );
+    for path in ["one-off.sql", "other.sql"] {
+        std::fs::write(dir.join(path), "SELECT * FROM public.users;").expect("flow file");
+    }
+    assert_eq!(
+        flow_names_in(&dir, &["export", "--flow", "other.sql"]),
+        ["other"]
+    );
+}

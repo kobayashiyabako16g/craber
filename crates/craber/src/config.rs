@@ -31,6 +31,9 @@ pub struct Config {
     #[serde(default)]
     pub exclude: Vec<String>,
     pub depth: Option<usize>,
+    /// Workflow files and directories, as `--flow` takes them.
+    #[serde(default)]
+    pub flows: Vec<ConfigPath>,
 
     #[serde(default)]
     pub build: Build,

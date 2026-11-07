@@ -231,6 +231,15 @@ directories are passed over.
 $ craber serve --file shop.sql --flow flows/
 ```
 
+Or commit them in `craber.toml`, relative to the file like `file` is; a
+`--flow` on the command line replaces the list rather than adding to it:
+
+```toml
+# craber.toml
+file  = "db/schema.sql"
+flows = ["db/flows/"]
+```
+
 In the viewer, **Workflows** in the top bar lists them; pick one and a step bar
 appears. ← / → step, ↑ / ↓ show the whole statement, Esc stops. The workflow
 and step are in the URL, so a link opens on the same step — on a static site
@@ -376,6 +385,7 @@ rejected rather than ignored, so a typo says so.
 | `dialect` | top level | `postgres` / `mysql` / `sqlite` |
 | `include` / `exclude` | top level | table globs |
 | `depth` | top level | foreign-key hops to grow the selection by |
+| `flows` | top level | workflow files and directories |
 | `output` | `[build]`, `[export]` | directory for `build`, file for `export` |
 | `base-path` | `[build]` | URL prefix for the published assets |
 | `port` | `[serve]` | port to listen on |

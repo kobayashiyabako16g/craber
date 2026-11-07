@@ -29,7 +29,7 @@ use craber_export::Format;
 
 use crate::cli::{BuildArgs, ExportArgs, ServeArgs};
 use crate::config::{self, Config};
-use crate::options::precedence::{pick, pick_source};
+use crate::options::precedence::{pick, pick_flows, pick_source};
 
 /// `serve`'s port when neither the flag nor the config names one.
 const DEFAULT_PORT: u16 = 4300;
@@ -182,7 +182,7 @@ impl Input {
             include: pick(&scope.include, &config.include).to_vec(),
             exclude: pick(&scope.exclude, &config.exclude).to_vec(),
             depth: scope.depth.or(config.depth),
-            flows: workflows.files.clone(),
+            flows: pick_flows(workflows, config),
         })
     }
 }

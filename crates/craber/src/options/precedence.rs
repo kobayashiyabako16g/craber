@@ -5,6 +5,8 @@
 //! Scalars need no help: `flag.or(config.x)` already means this, and the
 //! `resolve` functions spell it inline.
 
+use std::path::PathBuf;
+
 use craber_core::Dialect;
 
 use crate::cli;
@@ -34,6 +36,20 @@ pub(super) fn pick_source(source: &cli::Source, config: &Config) -> Option<Sourc
 /// than adding to it.
 pub(super) fn pick<'a>(cli: &'a [String], config: &'a [String]) -> &'a [String] {
     if cli.is_empty() { config } else { cli }
+}
+
+/// The workflows to read: `--flow` replaces the config's `flows` outright, as
+/// the scope flags replace its lists.
+pub(super) fn pick_flows(cli: &cli::Workflows, config: &Config) -> Vec<PathBuf> {
+    if cli.files.is_empty() {
+        config
+            .flows
+            .iter()
+            .map(|path| path.resolve(config))
+            .collect()
+    } else {
+        cli.files.clone()
+    }
 }
 
 /// The dialect asked for, by either route.
