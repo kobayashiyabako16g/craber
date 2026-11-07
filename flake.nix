@@ -95,7 +95,7 @@
             # Mandatory, and 4 specifically: 1 and 2 were removed in nixpkgs
             # 26.11 and 3 is rejected outright for pnpm_11 and newer.
             fetcherVersion = 4;
-            hash = "sha256-8O+RCcLj/qbGcHwhad35V6UosmZTI5GeeVRtnLXET1E=";
+            hash = "sha256-6ZvH45JlQnOU7zvo1aLJbDrOlEI/p0llzjP+ciFW/z8=";
           };
 
           buildPhase = ''
