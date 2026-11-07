@@ -3,7 +3,7 @@
 
 mod common;
 
-use common::{assert_success, column, craber, fixture, table};
+use common::{assert_success, column, craber, fixture, scratch, table};
 
 #[test]
 fn exports_the_fixture_as_json() {
@@ -230,5 +230,76 @@ fn a_workflow_table_the_diagram_lacks_is_a_warning() {
     assert!(
         stderr.contains("public.coupons"),
         "expected a warning naming the excluded table, got: {stderr}"
+    );
+}
+
+/// The names of the workflows in `flows.json` on `output`'s stdout.
+fn workflow_names(output: &std::process::Output) -> Vec<String> {
+    let flows: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    flows["workflows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|w| w["name"].as_str().unwrap().to_owned())
+        .collect()
+}
+
+fn export_flows(flows: &[&std::path::Path]) -> std::process::Output {
+    let tiny = fixture("tiny.sql");
+    let mut args = vec!["export", "--file", tiny.to_str().unwrap()];
+    for flow in flows {
+        args.extend(["--flow", flow.to_str().unwrap()]);
+    }
+    args.extend(["--format", "flows"]);
+    craber(&args)
+}
+
+#[test]
+fn a_flow_directory_reads_every_sql_file_beneath_it_named_by_its_path() {
+    let dir = scratch("flow-dir");
+    let write = |path: &str| {
+        let path = dir.join(path);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, "SELECT * FROM public.users;").unwrap();
+    };
+    write("checkout.sql");
+    write("billing/refund.sql");
+    write("billing/nested/checkout.sql");
+    write("notes.txt");
+    write(".drafts/hidden.sql");
+
+    let output = export_flows(&[&dir]);
+    assert_success(&output, "craber export --flow <dir>");
+    assert_eq!(
+        workflow_names(&output),
+        ["billing/nested/checkout", "billing/refund", "checkout"]
+    );
+}
+
+#[test]
+fn a_flow_directory_and_a_file_can_be_given_together() {
+    let output = export_flows(&[&fixture("flows"), &fixture("flows/checkout.sql")]);
+    assert_success(&output, "craber export --flow <dir> --flow <file>");
+    assert_eq!(
+        workflow_names(&output),
+        ["account-closure", "checkout", "checkout"]
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("two workflows are named checkout"),
+        "expected a warning about the repeated name, got: {stderr}"
+    );
+}
+
+#[test]
+fn an_empty_flow_directory_is_a_warning() {
+    let dir = scratch("flow-dir-empty");
+    let output = export_flows(&[&dir]);
+    assert_success(&output, "craber export --flow <empty dir>");
+    assert_eq!(workflow_names(&output), Vec::<String>::new());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("no .sql files under workflow directory"),
+        "expected a warning about the empty directory, got: {stderr}"
     );
 }

@@ -127,7 +127,8 @@ pub struct Source {
 #[derive(Debug, Clone, Args)]
 pub struct Workflows {
     /// Read a workflow — SELECT/INSERT/UPDATE/DELETE, one step per statement —
-    /// from a .sql file. Repeatable; each file is one workflow.
+    /// from a .sql file, or every .sql file under a directory. Repeatable; each
+    /// file is one workflow.
     #[arg(long = "flow", value_name = "PATH")]
     pub files: Vec<PathBuf>,
 }

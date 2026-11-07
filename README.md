@@ -221,6 +221,16 @@ $ craber build --file shop.sql --flow checkout.sql -o dist/
 $ craber export --file shop.sql --flow checkout.sql --format flows   # flows.json
 ```
 
+`--flow` also takes a directory, which stands for every `.sql` file beneath it,
+subdirectories included. Each is named by its path from that directory, so
+`flows/billing/refund.sql` plays as `billing/refund`, and they are listed in
+order of those paths — number the files to choose the order. Hidden files and
+directories are passed over.
+
+```console
+$ craber serve --file shop.sql --flow flows/
+```
+
 In the viewer, **Workflows** in the top bar lists them; pick one and a step bar
 appears. ← / → step, ↑ / ↓ show the whole statement, Esc stops. The workflow
 and step are in the URL, so a link opens on the same step — on a static site
@@ -236,7 +246,7 @@ Workflow files are read in the schema's dialect. A statement that is not DML
 (`CREATE`, `GRANT`, …) is a warning and is skipped, `BEGIN` / `COMMIT` are
 ignored, and a table the diagram does not have — a typo, or one `--exclude`
 dropped — is a warning while the step is kept. `--watch` re-reads workflow
-files too.
+files too, and picks up a file added to or removed from a workflow directory.
 
 ## Configuration
 

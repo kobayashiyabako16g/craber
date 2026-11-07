@@ -1,5 +1,6 @@
-//! `--watch`: re-read the schema when its file — or a workflow file — changes,
-//! and swap what `serve` is handing out.
+//! `--watch`: re-read the schema when its file or a workflow file changes, or a
+//! file is added to or taken out of a workflow directory, and swap what `serve`
+//! is handing out.
 //!
 //! Polling `mtime` rather than taking a filesystem-notification dependency: the
 //! check is one `stat` a second per file, which is not worth a crate.
@@ -19,19 +20,36 @@ use crate::{pipeline, server};
 /// `--watch` on a live connection while the invocation is being resolved, so
 /// there is no "nothing to watch" case left to handle here.
 pub fn reload_on_change(site: server::Site, path: PathBuf, input: Input) {
-    let paths: Vec<PathBuf> = std::iter::once(path).chain(input.flows.clone()).collect();
-    let stamps =
-        |paths: &[PathBuf]| -> Vec<_> { paths.iter().map(|path: &PathBuf| stamp(path)).collect() };
-    let mut last = stamps(&paths);
+    // A workflow directory is listed again on every tick, so a file added to
+    // it, or taken out, is a change like an edit is.
+    let watched = move |flows: &[PathBuf]| -> Vec<PathBuf> {
+        let files: Vec<PathBuf> = pipeline::workflow_files(flows)
+            .map(|outcome| outcome.value.into_iter().map(|(file, _)| file).collect())
+            .unwrap_or_default();
+        std::iter::once(path.clone()).chain(files).collect()
+    };
+    let stamps = |paths: Vec<PathBuf>| -> Vec<_> {
+        paths
+            .into_iter()
+            .map(|path| {
+                let stamp = stamp(&path);
+                (path, stamp)
+            })
+            .collect()
+    };
+    let mut last = stamps(watched(&input.flows));
 
-    for path in &paths {
+    for (path, _) in &last {
         tracing::info!(path = %path.display(), "watching — reload the page after a change");
+    }
+    for dir in input.flows.iter().filter(|p| p.is_dir()) {
+        tracing::info!(path = %dir.display(), "watching for workflow files added or removed");
     }
 
     std::thread::spawn(move || {
         loop {
             std::thread::sleep(std::time::Duration::from_secs(1));
-            let current = stamps(&paths);
+            let current = stamps(watched(&input.flows));
             if current == last {
                 continue;
             }
