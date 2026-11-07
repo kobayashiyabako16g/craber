@@ -1,7 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL, stepTarget } from "@/lib/flow";
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/icons/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  CloseIcon,
+} from "@/components/icons/icons";
 import type { Workflow } from "@/types";
 
 import "./StepBar.css";
@@ -17,12 +22,15 @@ type StepBarProps = {
 /**
  * Playback controls for a workflow, floating over the bottom of the canvas.
  *
- * The statement is one line, cut to fit; the whole of it is the tooltip. The
- * arrow keys step too, unless something that takes typing has focus.
+ * The statement is one line, cut to fit; expanding the bar shows the whole of
+ * it above, laid out over lines, and stays expanded from step to step. The
+ * arrow keys step (← →) and expand (↑ ↓) too, unless something that takes
+ * typing has focus.
  */
 export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
   const count = workflow.steps.length;
   const current = workflow.steps[step];
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -30,6 +38,8 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
       if (target?.closest("input, textarea, select, dialog")) return;
       if (event.key === "ArrowLeft" && step > 0) onStep(step - 1);
       else if (event.key === "ArrowRight" && step < count - 1) onStep(step + 1);
+      else if (event.key === "ArrowUp") setExpanded(true);
+      else if (event.key === "ArrowDown") setExpanded(false);
       else if (event.key === "Escape") onStop();
       else return;
       event.preventDefault();
@@ -40,48 +50,65 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
 
   return (
     <div className="craber-stepbar" role="toolbar" aria-label={`Workflow ${workflow.name}`}>
-      <span className="craber-stepbar-name" title={workflow.name}>
-        {workflow.name}
-      </span>
-      <button
-        type="button"
-        className="craber-icon-button"
-        title="Previous step (←)"
-        disabled={step === 0}
-        onClick={() => onStep(step - 1)}
-      >
-        <ChevronLeftIcon size={14} />
-      </button>
-      <span className="craber-stepbar-position">
-        {count === 0 ? 0 : step + 1}/{count}
-      </span>
-      <button
-        type="button"
-        className="craber-icon-button"
-        title="Next step (→)"
-        disabled={step >= count - 1}
-        onClick={() => onStep(step + 1)}
-      >
-        <ChevronRightIcon size={14} />
-      </button>
-
-      {current ? (
-        <>
-          <span className={`craber-stepbar-kind ${ACCESS_CLASS[KIND_ACCESS[current.kind]]}`}>
-            {KIND_LABEL[current.kind]}
-          </span>
-          <span className="craber-stepbar-table">{stepTarget(current)}</span>
-          <code className="craber-stepbar-sql" title={current.sql}>
-            {current.sql}
-          </code>
-        </>
-      ) : (
-        <span className="craber-stepbar-sql">This workflow has no steps.</span>
+      {expanded && current && (
+        <pre className="craber-stepbar-statement">
+          <code>{current.sql}</code>
+        </pre>
       )}
+      <div className="craber-stepbar-controls">
+        <span className="craber-stepbar-name" title={workflow.name}>
+          {workflow.name}
+        </span>
+        <button
+          type="button"
+          className="craber-icon-button"
+          title="Previous step (←)"
+          disabled={step === 0}
+          onClick={() => onStep(step - 1)}
+        >
+          <ChevronLeftIcon size={14} />
+        </button>
+        <span className="craber-stepbar-position">
+          {count === 0 ? 0 : step + 1}/{count}
+        </span>
+        <button
+          type="button"
+          className="craber-icon-button"
+          title="Next step (→)"
+          disabled={step >= count - 1}
+          onClick={() => onStep(step + 1)}
+        >
+          <ChevronRightIcon size={14} />
+        </button>
 
-      <button type="button" className="craber-icon-button" title="Stop (Esc)" onClick={onStop}>
-        <CloseIcon size={14} />
-      </button>
+        {current ? (
+          <>
+            <span className={`craber-stepbar-kind ${ACCESS_CLASS[KIND_ACCESS[current.kind]]}`}>
+              {KIND_LABEL[current.kind]}
+            </span>
+            <span className="craber-stepbar-table">{stepTarget(current)}</span>
+            <code className="craber-stepbar-sql" title={expanded ? undefined : current.sql}>
+              {current.sql}
+            </code>
+          </>
+        ) : (
+          <span className="craber-stepbar-sql">This workflow has no steps.</span>
+        )}
+
+        <button
+          type="button"
+          className={`craber-icon-button craber-stepbar-toggle${expanded ? " is-expanded" : ""}`}
+          title={expanded ? "Hide the statement (↓)" : "Show the whole statement (↑)"}
+          aria-expanded={expanded}
+          disabled={!current}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          <ChevronUpIcon size={14} />
+        </button>
+        <button type="button" className="craber-icon-button" title="Stop (Esc)" onClick={onStop}>
+          <CloseIcon size={14} />
+        </button>
+      </div>
     </div>
   );
 }

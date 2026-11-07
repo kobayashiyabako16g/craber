@@ -6,15 +6,41 @@
   transform: translateX(-50%);
   z-index: 5;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
   width: min(720px, calc(100% - 32px));
-  padding: 6px 8px 6px 12px;
   background: var(--craber-surface);
   border: 1px solid var(--craber-border);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
   font-size: 12px;
+}
+
+.craber-stepbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+}
+
+/* The whole statement, above the controls so they stay where they were. */
+.craber-stepbar-statement {
+  max-height: min(40vh, 320px);
+  overflow: auto;
+  margin: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--craber-border);
+  font-family: var(--craber-font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.craber-stepbar-toggle svg {
+  transition: transform 150ms;
+}
+
+.craber-stepbar-toggle.is-expanded svg {
+  transform: rotate(180deg);
 }
 
 .craber-stepbar-name {

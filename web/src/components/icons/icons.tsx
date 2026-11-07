@@ -171,6 +171,14 @@ export function ChevronRightIcon(props: IconProps) {
   );
 }
 
+export function ChevronUpIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M3.5 10 8 5.5l4.5 4.5" />
+    </Svg>
+  );
+}
+
 export function DownloadIcon(props: IconProps) {
   return (
     <Svg {...props}>
