@@ -71,7 +71,8 @@ impl Workflow {
 pub struct Step {
     pub kind: StepKind,
     /// The statement, re-rendered from the parse rather than copied from the
-    /// source, so it is one line however it was written.
+    /// source and pretty-printed, so it is laid out over lines the same way
+    /// however it was written.
     pub sql: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub touches: Vec<Touch>,

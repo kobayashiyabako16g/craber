@@ -60,7 +60,8 @@ pub(crate) fn workflow(statements: &[Statement], name: String) -> Outcome<Workfl
         }
         outcome.value.steps.push(Step {
             kind,
-            sql: statement.to_string(),
+            // sqlparser's pretty form ends a statement with a space.
+            sql: format!("{statement:#}").trim_end().to_owned(),
             touches: step.touches,
             joins: step.joins,
         });

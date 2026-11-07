@@ -9,6 +9,7 @@ import type { Touch } from "./Touch";
 export type Step = { kind: StepKind, 
 /**
  * The statement, re-rendered from the parse rather than copied from the
- * source, so it is one line however it was written.
+ * source and pretty-printed, so it is laid out over lines the same way
+ * however it was written.
  */
 sql: string, touches?: Array<Touch>, joins?: Array<Join>, };

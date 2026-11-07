@@ -225,3 +225,15 @@ fn a_constant_in_an_on_clause_is_a_filter_and_a_column_pair_is_not() {
     );
     assert_eq!(values(&outcome, 0), ["coupons.code Filter = 'WELCOME'"]);
 }
+
+#[test]
+fn a_step_keeps_its_statement_pretty_printed() {
+    let outcome =
+        postgres("SELECT u.id FROM users u JOIN orders o ON o.user_id = u.id WHERE u.id = 1;");
+    let sql = &outcome.value.steps[0].sql;
+    assert!(sql.contains('\n'), "expected several lines, got {sql:?}");
+    assert!(
+        sql.starts_with("SELECT") && sql.ends_with("= 1"),
+        "got {sql:?}"
+    );
+}
