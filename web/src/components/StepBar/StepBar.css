@@ -22,8 +22,20 @@
   padding: 6px 8px 6px 12px;
 }
 
-/* The whole statement, above the controls so they stay where they were. */
+/* The whole statement, above the controls so they stay where they were.
+   The --craber-sql-* colours are what sqlHighlight.ts's Shiki theme refers
+   each token to; they stay clear of the read/write/delete colours, which mean
+   something else on this bar. */
 .craber-stepbar-statement {
+  --craber-sql-foreground: var(--craber-text);
+  --craber-sql-token-keyword: #c49bff;
+  --craber-sql-token-function: #66c6d8;
+  --craber-sql-token-string: #ef9f9f;
+  --craber-sql-token-string-expression: #ef9f9f;
+  --craber-sql-token-constant: #e7c787;
+  --craber-sql-token-comment: var(--craber-text-muted);
+  --craber-sql-token-punctuation: var(--craber-text-muted);
+
   max-height: min(40vh, 320px);
   overflow: auto;
   margin: 0;
@@ -32,7 +44,16 @@
   font-family: var(--craber-font-mono);
   font-size: 12px;
   line-height: 1.5;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* A line that wraps continues indented under its own start, so a long JOIN
+   still reads as one line. */
+.craber-stepbar-line {
+  display: block;
+  padding-left: 4ch;
+  text-indent: -4ch;
 }
 
 .craber-stepbar-toggle svg {

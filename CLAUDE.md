@@ -51,7 +51,7 @@ Pipeline: **input → IR (`Schema`) → filter → layout → output**. `crates/
 
 ## Frontend verification
 
-Components are not unit-tested; vitest covers only the React-free modules (the tests beside the modules in `web/src/lib/`: `graph.ts`, `anchors.ts`, `path.ts`, `flow.ts`, `schema.ts`, `sql.ts`, `viewState.ts`). `classNames.test.ts` also reads the stylesheets and components as text to hold the CSS naming rules. A UI change is checked by looking at it in Chrome — use the `ui-check` skill (`.claude/skills/ui-check`): `just ui` → screenshot + console via claude-in-chrome → `just sample-reset`.
+Components are not unit-tested; vitest covers only the React-free modules (the tests beside the modules in `web/src/lib/`: `graph.ts`, `anchors.ts`, `path.ts`, `flow.ts`, `schema.ts`, `sql.ts`, `sqlHighlight.ts`, `viewState.ts`). `classNames.test.ts` also reads the stylesheets and components as text to hold the CSS naming rules. A UI change is checked by looking at it in Chrome — use the `ui-check` skill (`.claude/skills/ui-check`): `just ui` → screenshot + console via claude-in-chrome → `just sample-reset`.
 
 ## Commits and releases
 

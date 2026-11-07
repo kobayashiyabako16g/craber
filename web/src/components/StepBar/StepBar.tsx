@@ -7,6 +7,7 @@ import {
   ChevronUpIcon,
   CloseIcon,
 } from "@/components/icons/icons";
+import type { SqlToken } from "@/lib/sqlHighlight";
 import type { Workflow } from "@/types";
 
 import "./StepBar.css";
@@ -23,7 +24,8 @@ type StepBarProps = {
  * Playback controls for a workflow, floating over the bottom of the canvas.
  *
  * The statement is one line, cut to fit; expanding the bar shows the whole of
- * it above, laid out over lines, and stays expanded from step to step. The
+ * it above, laid out over lines and highlighted, and stays expanded from step
+ * to step. A line too long for the bar wraps, indented under its start. The
  * arrow keys step (← →) and expand (↑ ↓) too, unless something that takes
  * typing has focus.
  */
@@ -31,6 +33,20 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
   const count = workflow.steps.length;
   const current = workflow.steps[step];
   const [expanded, setExpanded] = useState(false);
+  const [highlight, setHighlight] = useState<((sql: string) => SqlToken[][]) | null>(null);
+
+  // Shiki is fetched the first time the statement is shown, not with the page.
+  // Until it arrives the statement is drawn plain, laid out the same way.
+  useEffect(() => {
+    if (!expanded || highlight) return;
+    let live = true;
+    void import("@/lib/sqlHighlight").then(({ sqlTokens }) => {
+      if (live) setHighlight(() => sqlTokens);
+    });
+    return () => {
+      live = false;
+    };
+  }, [expanded, highlight]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -52,7 +68,17 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
     <div className="craber-stepbar" role="toolbar" aria-label={`Workflow ${workflow.name}`}>
       {expanded && current && (
         <pre className="craber-stepbar-statement">
-          <code>{current.sql}</code>
+          <code>
+            {(highlight ? highlight(current.sql) : plainLines(current.sql)).map((line, i) => (
+              <span key={i} className="craber-stepbar-line">
+                {line.map((token, j) => (
+                  <span key={j} style={token.color ? { color: token.color } : undefined}>
+                    {token.text}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </code>
         </pre>
       )}
       <div className="craber-stepbar-controls">
@@ -111,4 +137,9 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
       </div>
     </div>
   );
+}
+
+/** The statement before Shiki has loaded: the same lines, uncoloured. */
+function plainLines(sql: string): SqlToken[][] {
+  return sql.split("\n").map((text) => [{ text, color: "" }]);
 }
