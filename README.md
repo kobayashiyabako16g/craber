@@ -192,9 +192,6 @@ per access, with the columns and values it names and the relationships its
 joins run along. Nothing is executed; a step shows what the SQL says it
 touches.
 
-<p align="center">
-  <video controls muted src="https://github.com/user-attachments/assets/da27b328-fd33-4457-aadc-0d3e39b4b5db"></video>
-</p>
 <p align="center"><a href="https://github.com/user-attachments/assets/da27b328-fd33-4457-aadc-0d3e39b4b5db">Playing back checkout.sql</a></p>
 
 ```sql
