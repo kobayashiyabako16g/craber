@@ -192,6 +192,10 @@ per access, with the columns and values it names and the relationships its
 joins run along. Nothing is executed; a step shows what the SQL says it
 touches.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/craber-workflow.gif" alt="Playing back checkout.sql: the Workflows menu opens, then each step lights the tables it touches — users and coupons for the SELECT, orders for the INSERT and UPDATE, coupons for the DELETE">
+</p>
+
 ```sql
 -- checkout.sql
 -- A checkout: the buyer is looked up, an order is created and paid,
