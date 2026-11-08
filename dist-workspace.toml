@@ -57,6 +57,11 @@ publish-jobs = ["homebrew", "./publish-crates", "./publish-docker"]
 # to work end to end.
 pr-run-mode = "upload"
 
+# dist 0.33.1 picks macos-14 for aarch64-apple-darwin, and GitHub has retired
+# that image ("The configuration 'macos-14-arm64-us-default' is not supported").
+[dist.github-custom-runners]
+aarch64-apple-darwin = "macos-15"
+
 # dist gives custom publish jobs `id-token: write` and `packages: write` by
 # default, and a job that names any permission gets `none` for every one it does
 # not name — which would leave both of these unable to check the repository out.
