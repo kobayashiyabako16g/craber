@@ -14,7 +14,6 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (SVG, JS
 | Before pushing | `just check` (fmt-check + clippy `-D warnings` + `cargo test --workspace`) |
 | Rust single test | `cargo test -p <crate> --test <file> <name>` |
 | Accept snapshots | `cargo insta review` |
-| Web single test | `cd web && pnpm vitest run src/lib/graph.test.ts` |
 | Web typecheck + build | `just web-build` |
 | Regenerate TS bindings | `just bindings` |
 | Quick layout check | `just svg [file]` → `er.svg` |
@@ -28,7 +27,7 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (SVG, JS
 | Repository layout | `docs/README.md` |
 | Config options | `docs/craber.toml.example` |
 | PR checklist | `.github/pull_request_template.md` |
-| UI check procedure | `.claude/skills/ui-check` |
+| Frontend commands and conventions | `web/AGENTS.md` |
 
 ## Architecture
 - Pipeline: input → IR (`Schema`) → filter → layout → output; every command goes through `crates/craber/src/pipeline.rs::load`.
@@ -46,11 +45,7 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (SVG, JS
 - Unsupported SQL yields a warning `Diagnostic` and the statement is skipped; only error-severity diagnostics abort.
 - Never put a DSN in an error or log message.
 - The web bundle is fail-soft: run `just web-build` before `cargo build` (`just dist`/`just install` do this); only `just nix-build` proves the bundle is in the binary.
-- Web: components in `web/src/components/<Name>/` (`<Name>.tsx` + `<Name>.css`), React-free logic in `src/lib/`, hooks in `src/hooks/`.
-- Web imports leaving their own directory use `@/`; within it, `./`.
-- View state lives in the URL (`web/src/lib/viewState.ts`).
-- CSS classes: `craber-<block>[-<element>]`, states as `is-<state>`; `theme.css` holds only shared styles; register new stylesheets/blocks in `OWNERS` in `web/src/classNames.test.ts`.
-- Components have no unit tests; verify UI changes in Chrome via the `ui-check` skill (`just ui` → screenshot + console → `just sample-reset`).
+- Frontend conventions live in `web/AGENTS.md`.
 - Change the version only with `just bump <version>` (`crates/craber/tests/version.rs` catches drift).
 - `.github/workflows/release.yml` is generated: edit `dist-workspace.toml`, run `dist generate`.
 - After changing `web/pnpm-lock.yaml`, run `just nix-pnpm-hash`.
