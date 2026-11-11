@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Diagram } from "@/components/Diagram/Diagram";
 import { useFlows } from "@/hooks/useFlows";
 import { useSchema } from "@/hooks/useSchema";
-import { readViewState, type ViewState } from "@/lib/viewState";
+import { forTables, readViewState, type ViewState } from "@/lib/viewState";
 
 /**
  * The shell: load `schema.json`, then hand it to the canvas.
@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <ReactFlowProvider>
-      <Diagram schema={schema} workflows={workflows} initial={initial} />
+      <Diagram schema={schema} workflows={workflows} initial={forTables(initial, schema.tables ?? [])} />
     </ReactFlowProvider>
   );
 }

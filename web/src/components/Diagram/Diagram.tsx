@@ -302,7 +302,7 @@ export function Diagram({
             colorMode="dark"
             minZoom={0.05}
             fitView={!initial.viewport}
-            fitViewOptions={initialFit(initial, tables)}
+            fitViewOptions={initialFit(initial)}
             defaultViewport={initial.viewport ?? undefined}
             proOptions={{ hideAttribution: false }}
             onNodeClick={(_, node) => setSelected(node.id)}

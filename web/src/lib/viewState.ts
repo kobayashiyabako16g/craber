@@ -7,6 +7,10 @@
  * link copied out of it work.
  */
 
+import type { Table } from "@/types";
+
+import { qualifiedName } from "./schema";
+
 export type Viewport = { x: number; y: number; zoom: number };
 
 export type ViewState = {
@@ -31,6 +35,23 @@ export function readViewState(search: string = window.location.search): ViewStat
     viewport: asViewport(params.get("at")),
     flow: params.get("flow"),
     step: asStep(params.get("step")),
+  };
+}
+
+/**
+ * The view with every table this schema does not have dropped from it.
+ *
+ * A link outlives the schema it was copied from: a table gets renamed, or the
+ * link is opened against another build. A selection that names no table would
+ * dim the whole canvas around nothing, with no details panel to say why, so it
+ * reads as no selection at all.
+ */
+export function forTables(state: ViewState, tables: readonly Table[]): ViewState {
+  const known = new Set(tables.map(qualifiedName));
+  return {
+    ...state,
+    selected: state.selected !== null && known.has(state.selected) ? state.selected : null,
+    hidden: state.hidden.filter((id) => known.has(id)),
   };
 }
 

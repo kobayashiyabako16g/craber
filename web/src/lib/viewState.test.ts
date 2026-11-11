@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readViewState, viewStateUrl } from "./viewState";
+import { forTables, readViewState, viewStateUrl } from "./viewState";
 
 /** The page a link would be copied from. Both functions take their input as an
  *  argument, so none of this needs a DOM. */
@@ -98,4 +98,22 @@ describe("readViewState's step", () => {
       expect(readViewState(search).step).toBe(0);
     },
   );
+});
+
+describe("forTables", () => {
+  const tables = [{ name: "users", schema: "public", columns: [] }, { name: "orders", columns: [] }];
+
+  it("keeps a selection and hidden tables the schema has", () => {
+    const state = { ...readViewState("?table=public.users&hide=orders") };
+    expect(forTables(state, tables)).toEqual(state);
+  });
+
+  /** A stale `?table=` used to dim every node around a table that was not there. */
+  it("drops a selection the schema does not have", () => {
+    expect(forTables(readViewState("?table=ghost"), tables).selected).toBeNull();
+  });
+
+  it("drops hidden names the schema does not have", () => {
+    expect(forTables(readViewState("?hide=ghost,orders"), tables).hidden).toEqual(["orders"]);
+  });
 });
