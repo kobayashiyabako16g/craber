@@ -125,7 +125,14 @@ fn build(patterns: &[String]) -> Result<Option<GlobSet>, FilterError> {
         })?;
         builder.add(glob);
     }
-    // Every glob was validated as it was added, and a set of valid globs
-    // always builds.
-    Ok(Some(builder.build().expect("validated globs build")))
+    // Each glob is valid on its own, but the set is compiled into combined
+    // regexes with size limits of their own, so a long enough list can still
+    // fail here — and it is the user's list, so that is an error, not a panic.
+    builder
+        .build()
+        .map(Some)
+        .map_err(|source| FilterError::Glob {
+            pattern: patterns.join(","),
+            source,
+        })
 }

@@ -42,16 +42,21 @@ impl Schema {
         }
     }
 
-    /// The table `name` — bare or `schema.table` — means, by the rule a
-    /// foreign key is resolved with ([`SchemaIndex::resolve`]).
+    /// The table whose id — its [`qualified_name`](Table::qualified_name),
+    /// as the web app keys nodes by — is `name`, or failing that the one table
+    /// whose bare name it is.
     ///
-    /// [`SchemaIndex::resolve`]: crate::SchemaIndex::resolve
+    /// A convenience for looking a table up by what a reader would type. It
+    /// compares whole names rather than splitting `name` on a dot, so a quoted
+    /// identifier containing one is still found. Resolving a [`TableRef`] is
+    /// [`SchemaIndex::resolve`](crate::SchemaIndex::resolve)'s job.
     pub fn table(&self, name: &str) -> Option<&Table> {
-        let reference = match name.split_once('.') {
-            Some((schema, name)) => TableRef::qualified(schema, name),
-            None => TableRef::new(name),
-        };
-        self.get(crate::SchemaIndex::build(self).resolve(&reference)?)
+        if let Some(table) = self.tables.iter().find(|t| t.qualified_name() == name) {
+            return Some(table);
+        }
+        let mut bare = self.tables.iter().filter(|t| t.name == name);
+        let first = bare.next()?;
+        bare.next().is_none().then_some(first)
     }
 
     /// The table an id from [`SchemaIndex`](crate::SchemaIndex) names.
