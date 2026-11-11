@@ -13,11 +13,10 @@ impl Routes {
     pub(super) fn build(files: Vec<SiteFile>) -> Self {
         let mut routes = HashMap::with_capacity(files.len() + 1);
         for file in files {
-            let path = file.path.to_string_lossy().replace('\\', "/");
-            if path == craber_site::INDEX_FILE {
+            if file.path == craber_site::INDEX_FILE {
                 routes.insert("/".to_owned(), file.clone());
             }
-            routes.insert(format!("/{path}"), file);
+            routes.insert(format!("/{}", file.path), file);
         }
         Self(routes)
     }

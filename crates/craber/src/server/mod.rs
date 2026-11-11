@@ -11,12 +11,11 @@
 //! writes to disk, so the page served here and the page published by `build`
 //! are the same page.
 //!
-//! This module owns the listener's lifetime and nothing else: [`routes`](mod@routes) is the
-//! site as a URL table, [`http`] is one exchange on a socket, and [`mime`] is
-//! the type a filename implies.
+//! This module owns the listener's lifetime and nothing else: [`routes`](mod@routes)
+//! is the site as a URL table and [`http`] is one exchange on a socket. What
+//! type a file is served as is the site's to know (`SiteFile::content_type`).
 
 mod http;
-mod mime;
 mod routes;
 
 use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};

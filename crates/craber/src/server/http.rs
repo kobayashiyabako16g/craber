@@ -14,7 +14,6 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::time::Duration;
 
-use crate::server::mime::content_type;
 use crate::server::routes::Routes;
 
 /// How long to wait for the client's own bytes while draining.
@@ -41,7 +40,7 @@ pub(super) fn handle(stream: &TcpStream, routes: &Routes) -> std::io::Result<()>
             Some(file) => respond(
                 &mut out,
                 "200 OK",
-                content_type(&file.path.to_string_lossy()),
+                file.content_type(),
                 &file.contents,
                 head_only,
             ),
