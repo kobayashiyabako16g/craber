@@ -373,3 +373,29 @@ fn the_checkout_fixture_is_described() {
     );
     assert_eq!(described.last(), Some(&Some("The coupon is single-use.")));
 }
+
+/// A column inside a function call, a `CASE`, a `CAST`, a `GROUP BY` or an
+/// `ORDER BY` is still a column the step reads.
+#[test]
+fn columns_inside_calls_cases_and_ordering_are_read() {
+    let outcome = postgres(
+        "SELECT CASE WHEN status = 'paid' THEN total END, CAST(placed_at AS date)
+           FROM orders
+          WHERE lower(email) = 'a@example.test'
+          GROUP BY region
+          ORDER BY created_at",
+    );
+    assert_eq!(
+        touches(&outcome, 0),
+        ["orders: Read [status, total, placed_at, email, region, created_at]"]
+    );
+}
+
+/// A qualifier that names no table in scope says nothing about whose column
+/// it is, so the column is dropped rather than credited to a table the
+/// statement never mentions.
+#[test]
+fn a_qualifier_out_of_scope_is_not_a_table() {
+    let outcome = postgres("SELECT audit.log.id FROM orders");
+    assert_eq!(touches(&outcome, 0), ["orders: Read []"]);
+}
