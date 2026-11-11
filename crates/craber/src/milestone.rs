@@ -16,7 +16,7 @@
 ///
 /// `hint` is the thing to do instead, when there is one — "drop the flag to
 /// write a directory" is more use than the refusal alone.
-pub fn not_yet(feature: &str, milestone: &str, hint: Option<&str>) -> anyhow::Error {
+pub(crate) fn not_yet(feature: &str, milestone: &str, hint: Option<&str>) -> anyhow::Error {
     match hint {
         Some(hint) => anyhow::anyhow!("{feature} is not implemented yet ({milestone}); {hint}"),
         None => anyhow::anyhow!("{feature} is not implemented yet ({milestone})"),

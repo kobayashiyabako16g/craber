@@ -32,7 +32,7 @@ impl Comments {
     /// Read `sql`, which parsed into `statements` statements. A script that
     /// does not tokenize, or whose statements do not line up with the parse,
     /// has no descriptions rather than wrong ones.
-    pub fn read(sql: &str, dialect: &dyn Dialect, statements: usize) -> Self {
+    pub(crate) fn read(sql: &str, dialect: &dyn Dialect, statements: usize) -> Self {
         let Ok(tokens) = Tokenizer::new(dialect, sql).tokenize() else {
             return Self::default();
         };
@@ -44,7 +44,7 @@ impl Comments {
     }
 
     /// The description of the statement at `index`.
-    pub fn step(&self, index: usize) -> Option<String> {
+    pub(crate) fn step(&self, index: usize) -> Option<String> {
         self.steps.get(index).cloned().flatten()
     }
 

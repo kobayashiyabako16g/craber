@@ -42,8 +42,26 @@ impl Schema {
         }
     }
 
+    /// The table `name` — bare or `schema.table` — means, by the rule a
+    /// foreign key is resolved with ([`SchemaIndex::resolve`]).
+    ///
+    /// [`SchemaIndex::resolve`]: crate::SchemaIndex::resolve
     pub fn table(&self, name: &str) -> Option<&Table> {
-        self.tables.iter().find(|t| t.name == name)
+        let reference = match name.split_once('.') {
+            Some((schema, name)) => TableRef::qualified(schema, name),
+            None => TableRef::new(name),
+        };
+        self.get(crate::SchemaIndex::build(self).resolve(&reference)?)
+    }
+
+    /// The table an id from [`SchemaIndex`](crate::SchemaIndex) names.
+    pub fn get(&self, id: crate::TableId) -> Option<&Table> {
+        self.tables.get(id.index())
+    }
+
+    /// [`get`](Self::get), to change it.
+    pub fn get_mut(&mut self, id: crate::TableId) -> Option<&mut Table> {
+        self.tables.get_mut(id.index())
     }
 }
 

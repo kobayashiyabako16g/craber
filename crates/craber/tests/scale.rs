@@ -9,7 +9,7 @@
 
 mod common;
 
-use craber_core::geometry::metrics;
+use craber_core::metrics;
 
 use common::{assert_success, craber, fixture};
 
@@ -28,9 +28,9 @@ fn wide() -> serde_json::Value {
 }
 
 /// `(left, top, right, bottom)` for a table at the level the CLI draws,
-/// matching `craber_layout::node_size`.
+/// matching `craber_core::node_size`.
 ///
-/// The box comes from `craber_core::geometry::metrics` rather than from numbers
+/// The box comes from `craber_core::metrics` rather than from numbers
 /// written out here. Restating 260 and `42 + rows * 23` would make this test
 /// agree with a *copy* of the geometry: the layout could then move every table
 /// in the diagram and these assertions would still pass, which is the one

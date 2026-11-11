@@ -33,7 +33,8 @@ fn resolves_every_shared_case() {
 
         let resolved = SchemaIndex::build(&schema)
             .resolve(&case.reference)
-            .map(|id| schema.tables[id.0].qualified_name());
+            .and_then(|id| schema.get(id))
+            .map(craber_core::Table::qualified_name);
         assert_eq!(resolved, case.expect, "{}", case.case);
     }
 }

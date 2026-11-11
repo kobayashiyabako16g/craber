@@ -109,8 +109,10 @@ pub fn introspect(dsn: &str, dialect: Dialect) -> Result<Outcome<Schema>, Error>
     runtime.block_on(introspect_async(dsn, dialect))
 }
 
-/// [`introspect`] for a caller that already has a runtime.
-pub async fn introspect_async(dsn: &str, dialect: Dialect) -> Result<Outcome<Schema>, Error> {
+/// The dispatch [`introspect`] runs on its own runtime. Not public: the async
+/// signature would be one more API to keep stable, for a crate whose contract
+/// is that the runtime stops at its boundary.
+async fn introspect_async(dsn: &str, dialect: Dialect) -> Result<Outcome<Schema>, Error> {
     match dialect {
         #[cfg(feature = "postgres")]
         Dialect::Postgres => postgres::introspect(dsn).await,

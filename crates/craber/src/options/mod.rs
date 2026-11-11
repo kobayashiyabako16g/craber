@@ -40,7 +40,7 @@ const DEFAULT_PORT: u16 = 4300;
 /// exclusive, and a caller asking "is this a file?" should not have to spell it
 /// as "is the first element of the tuple present?".
 #[derive(Debug, Clone)]
-pub enum Source {
+pub(crate) enum Source {
     File(PathBuf),
     Dsn(String),
 }
@@ -48,7 +48,7 @@ pub enum Source {
 /// Everything [`crate::pipeline::load`] needs: where to read from, in which
 /// dialect, and which part of the result to keep.
 #[derive(Debug, Clone)]
-pub struct Input {
+pub(crate) struct Input {
     pub source: Source,
     pub dialect: Dialect,
     pub include: Vec<String>,
@@ -58,19 +58,19 @@ pub struct Input {
     pub flows: Vec<PathBuf>,
 }
 
-pub struct ExportOptions {
+pub(crate) struct ExportOptions {
     pub input: Input,
     pub format: Format,
     pub output: Option<PathBuf>,
 }
 
-pub struct BuildOptions {
+pub(crate) struct BuildOptions {
     pub input: Input,
     pub output: PathBuf,
     pub base_path: Option<String>,
 }
 
-pub struct ServeOptions {
+pub(crate) struct ServeOptions {
     pub input: Input,
     pub port: u16,
     /// The file to poll, when `--watch` was asked for. `None` is "do not
@@ -80,7 +80,7 @@ pub struct ServeOptions {
 }
 
 impl ExportArgs {
-    pub fn resolve(&self, config: &Config) -> Result<ExportOptions> {
+    pub(crate) fn resolve(&self, config: &Config) -> Result<ExportOptions> {
         Ok(ExportOptions {
             input: Input::resolve(&self.source, &self.scope, &self.workflows, config)?,
             // `--format` carries no clap default for this reason: a default
@@ -96,7 +96,7 @@ impl ExportArgs {
 }
 
 impl BuildArgs {
-    pub fn resolve(&self, config: &Config) -> Result<BuildOptions> {
+    pub(crate) fn resolve(&self, config: &Config) -> Result<BuildOptions> {
         if self.single_file {
             return Err(crate::milestone::not_yet(
                 "`--single-file`",
@@ -138,7 +138,7 @@ impl BuildArgs {
 }
 
 impl ServeArgs {
-    pub fn resolve(&self, config: &Config) -> Result<ServeOptions> {
+    pub(crate) fn resolve(&self, config: &Config) -> Result<ServeOptions> {
         // Before the source is required to exist: `--watch --dsn` is wrong for
         // a reason of its own, and saying "no schema source" to an invocation
         // that named one would be a worse answer.

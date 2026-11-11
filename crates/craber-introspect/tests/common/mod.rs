@@ -14,7 +14,7 @@ use craber_core::{Action, Cardinality, Schema};
 ///
 /// The crate under test is synchronous, so the tests have no runtime handed to
 /// them and no reason to be `async` themselves.
-pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
+pub(crate) fn block_on<F: std::future::Future>(future: F) -> F::Output {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -28,7 +28,7 @@ pub fn block_on<F: std::future::Future>(future: F) -> F::Output {
 /// `&'static str` sqlx wants for a query it has not been told is safe.
 /// Asserting it here is the whole of that promise, and it is written once: the
 /// only callers are the suites below, with SQL out of `fixtures/`.
-pub fn load_ddl<C>(dsn: &str, ddl: &str)
+pub(crate) fn load_ddl<C>(dsn: &str, ddl: &str)
 where
     C: sqlx::Connection,
     for<'c> &'c mut C: sqlx::Executor<'c, Database = C::Database>,
@@ -44,7 +44,7 @@ where
 }
 
 /// A schema in `fixtures/`, by filename.
-pub fn fixture(name: &str) -> PathBuf {
+pub(crate) fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures")
         .join(name)
@@ -57,7 +57,7 @@ pub fn fixture(name: &str) -> PathBuf {
 /// with an implicit transaction around the batch would roll the whole schema
 /// back. The marker comment above it is load-bearing; `fixtures/README.md`
 /// says so.
-pub fn tiny_sql() -> String {
+pub(crate) fn tiny_sql() -> String {
     const MARKER: &str = "-- Not applied:";
     let sql = std::fs::read_to_string(fixture("tiny.sql")).expect("reading tiny.sql");
     let at = sql
@@ -80,10 +80,10 @@ pub fn tiny_sql() -> String {
 /// the rest of the comparison be about the schema rather than about that;
 /// `the_known_divergences_are_these_and_only_these` asserts the ordering
 /// difference outright so it stays visible.
-pub type Shape = Vec<Table>;
+pub(crate) type Shape = Vec<Table>;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Table {
+pub(crate) struct Table {
     pub name: String,
     pub schema: Option<String>,
     pub comment: Option<String>,
@@ -94,7 +94,7 @@ pub struct Table {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Fk {
+pub(crate) struct Fk {
     pub columns: Vec<String>,
     pub ref_table: String,
     pub ref_columns: Vec<String>,
@@ -104,7 +104,7 @@ pub struct Fk {
     pub optional: bool,
 }
 
-pub fn shape(schema: &Schema) -> Shape {
+pub(crate) fn shape(schema: &Schema) -> Shape {
     let mut tables: Vec<Table> = schema
         .tables
         .iter()

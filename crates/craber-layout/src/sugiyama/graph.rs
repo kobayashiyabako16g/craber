@@ -19,7 +19,7 @@ pub(super) fn arcs(schema: &Schema) -> Arcs {
         .edges(schema)
         .into_iter()
         .filter(|edge| edge.from != edge.to)
-        .map(|edge| (edge.to.0, edge.from.0))
+        .map(|edge| (edge.to.index(), edge.from.index()))
         .collect()
 }
 

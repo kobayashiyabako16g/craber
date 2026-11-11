@@ -106,7 +106,7 @@ fn fill_referenced_keys(schema: &mut Schema) -> Vec<Diagnostic> {
             let Some(target) = index.resolve(&fk.ref_table) else {
                 continue;
             };
-            let pk = &schema.tables[target.0].pk;
+            let pk = &schema.tables[target.index()].pk;
             if pk.is_empty() {
                 diagnostics.push(
                     Diagnostic::warning(

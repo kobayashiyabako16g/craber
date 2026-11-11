@@ -6,8 +6,9 @@
 //! foreign keys read left to right, and the same input always draws the same
 //! picture.
 
+use craber_core::node_size;
 use craber_core::{Column, Detail, ForeignKey, Schema, Table, TableRef};
-use craber_layout::{Layout, SugiyamaLayout, node_size};
+use craber_layout::{Layout, SugiyamaLayout};
 
 /// `users <- orders <- order_items`, plus a table that relates to nothing.
 fn shop() -> Schema {

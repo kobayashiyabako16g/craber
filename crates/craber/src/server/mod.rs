@@ -11,7 +11,7 @@
 //! writes to disk, so the page served here and the page published by `build`
 //! are the same page.
 //!
-//! This module owns the listener's lifetime and nothing else: [`routes`] is the
+//! This module owns the listener's lifetime and nothing else: [`routes`](mod@routes) is the
 //! site as a URL table, [`http`] is one exchange on a socket, and [`mime`] is
 //! the type a filename implies.
 
@@ -26,10 +26,10 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 
 use crate::pipeline::Loaded;
-pub use crate::server::routes::Routes;
+pub(crate) use crate::server::routes::Routes;
 
 /// The site, by URL path. Swapped wholesale when `--watch` reloads.
-pub type Site = Arc<RwLock<Arc<Routes>>>;
+pub(crate) type Site = Arc<RwLock<Arc<Routes>>>;
 
 /// Browsers open connections speculatively and leave them idle. A timeout is
 /// what stops each of those from pinning a thread for the life of the tab.
@@ -40,7 +40,7 @@ const IDLE_TIMEOUT: Duration = Duration::from_secs(10);
 /// Binds to loopback only. This is a tool for looking at your own schema; there
 /// is no reason for it to be reachable from the rest of the network, and a
 /// diagram of a production database is not something to expose by accident.
-pub fn run(loaded: &Loaded, port: u16) -> Result<Site> {
+pub(crate) fn run(loaded: &Loaded, port: u16) -> Result<Site> {
     let site: Site = Arc::new(RwLock::new(Arc::new(routes(loaded)?)));
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
 
@@ -67,7 +67,7 @@ pub fn run(loaded: &Loaded, port: u16) -> Result<Site> {
 }
 
 /// Replace what is being served, for `--watch`.
-pub fn swap(site: &Site, loaded: &Loaded) -> Result<()> {
+pub(crate) fn swap(site: &Site, loaded: &Loaded) -> Result<()> {
     let routes = Arc::new(routes(loaded)?);
     *site.write().expect("the site lock is never poisoned") = routes;
     Ok(())

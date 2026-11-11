@@ -17,11 +17,11 @@ use craber_core::Dialect;
 use craber_export::Format;
 use serde::{Deserialize, Deserializer};
 
-pub const DEFAULT_FILENAME: &str = "craber.toml";
+pub(crate) const DEFAULT_FILENAME: &str = "craber.toml";
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
-pub struct Config {
+pub(crate) struct Config {
     pub file: Option<ConfigPath>,
     pub dsn: Option<String>,
     #[serde(default, deserialize_with = "parsed")]
@@ -50,7 +50,7 @@ pub struct Config {
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
-pub struct Build {
+pub(crate) struct Build {
     /// Output directory.
     pub output: Option<ConfigPath>,
     /// URL prefix `craber build` writes the asset references against.
@@ -59,13 +59,13 @@ pub struct Build {
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
-pub struct Serve {
+pub(crate) struct Serve {
     pub port: Option<u16>,
 }
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
-pub struct Export {
+pub(crate) struct Export {
     #[serde(default, deserialize_with = "parsed")]
     pub format: Option<Format>,
     /// Output file. Absent means stdout, the same as omitting `-o`.
@@ -82,7 +82,7 @@ pub struct Export {
 /// remembered at each of the three places one is read.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(transparent)]
-pub struct ConfigPath(PathBuf);
+pub(crate) struct ConfigPath(PathBuf);
 
 impl ConfigPath {
     /// The path as the file meant it: absolute as written, or relative to the
@@ -91,7 +91,7 @@ impl ConfigPath {
     /// Against the file rather than the working directory so that `file =
     /// "db/schema.sql"` means the same thing however deep in the repository the
     /// command is run from.
-    pub fn resolve(&self, config: &Config) -> PathBuf {
+    pub(crate) fn resolve(&self, config: &Config) -> PathBuf {
         if self.0.is_absolute() {
             self.0.clone()
         } else {
@@ -108,7 +108,7 @@ impl Config {
     /// The upward search is what lets a command run from a subdirectory of a
     /// repository and still draw the diagram the repository committed — the
     /// same reason `cargo`, `rustfmt` and friends walk up.
-    pub fn load(path: Option<&Path>) -> Result<Self> {
+    pub(crate) fn load(path: Option<&Path>) -> Result<Self> {
         let cwd = std::env::current_dir().context("reading the working directory")?;
 
         let path = match path {

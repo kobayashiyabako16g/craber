@@ -104,7 +104,10 @@ fn alter_table(
     };
 
     for operation in operations {
-        let table = &mut outcome.value.tables[id.0];
+        let table = outcome
+            .value
+            .get_mut(id)
+            .expect("resolved against this schema");
         let context = table.qualified_name();
         let diagnostic = match operation {
             AlterTableOperation::AddConstraint { constraint, .. } => {
@@ -153,7 +156,11 @@ fn create_index(create: &CreateIndex, index: &SchemaIndex, outcome: &mut Outcome
         // A purely expression-based index has no column to hang off a node.
         return;
     }
-    outcome.value.tables[id.0].indexes.push(TableIndex {
+    let table = outcome
+        .value
+        .get_mut(id)
+        .expect("resolved against this schema");
+    table.indexes.push(TableIndex {
         name: create.name.as_ref().map(|n| object_ref(n).name),
         columns,
         // A partial index constrains only the rows its predicate matches, so
@@ -172,8 +179,10 @@ fn comment(
     let parts = name_parts(object_name);
     match object_type {
         CommentObject::Table => {
-            if let Some(id) = index.resolve(&parts_ref(&parts)) {
-                outcome.value.tables[id.0].comment = Some(text.to_string());
+            if let Some(id) = index.resolve(&parts_ref(&parts))
+                && let Some(table) = outcome.value.get_mut(id)
+            {
+                table.comment = Some(text.to_string());
             }
         }
         CommentObject::Column => {
@@ -184,9 +193,11 @@ fn comment(
             let Some(id) = index.resolve(&parts_ref(rest)) else {
                 return;
             };
-            if let Some(column) = outcome.value.tables[id.0]
-                .columns
-                .iter_mut()
+            if let Some(column) = outcome
+                .value
+                .get_mut(id)
+                .into_iter()
+                .flat_map(|table| &mut table.columns)
                 .find(|c| &c.name == column)
             {
                 column.comment = Some(text.to_string());

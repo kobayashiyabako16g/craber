@@ -6,7 +6,14 @@ use crate::ir::{Schema, TableRef};
 
 /// Position of a table in [`Schema::tables`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TableId(pub usize);
+pub struct TableId(pub(crate) usize);
+
+impl TableId {
+    /// The table's position in [`Schema::tables`].
+    pub fn index(self) -> usize {
+        self.0
+    }
+}
 
 /// One resolved foreign key, as a graph edge.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -73,6 +73,9 @@ testcontainers-modules = { version = "0.15", features = ["postgres", "mysql", "b
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
+# `pub` on an item nothing outside its crate can reach reads as API that is
+# not. `pub(crate)` says what it is.
+unreachable_pub = "warn"
 
 [workspace.lints.clippy]
 all      = { level = "warn", priority = -1 }

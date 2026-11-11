@@ -14,7 +14,7 @@ use crate::commands::report;
 use crate::options::ExportOptions;
 use crate::pipeline;
 
-pub fn run(options: &ExportOptions) -> Result<()> {
+pub(crate) fn run(options: &ExportOptions) -> Result<()> {
     let loaded = pipeline::load(&options.input)?;
     report(&loaded.diagnostics);
     let encoded = craber_export::encode(&loaded.schema, &loaded.flows, options.format)?;

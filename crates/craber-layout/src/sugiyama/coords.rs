@@ -6,7 +6,7 @@
 use craber_core::{Detail, Schema};
 
 use super::{Direction, LEVELS, Layered, Placement, SugiyamaLayout, median, sweep};
-use crate::{NODE_WIDTH, node_size};
+use craber_core::{metrics::NODE_WIDTH, node_size};
 
 /// Space reserved across a layer for a routing dummy — the placeholder a long
 /// edge occupies in each layer it crosses. Narrow enough that edges thread

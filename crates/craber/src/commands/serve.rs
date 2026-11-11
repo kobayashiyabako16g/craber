@@ -6,7 +6,7 @@ use crate::commands::report;
 use crate::options::ServeOptions;
 use crate::{pipeline, server, watch};
 
-pub fn run(options: &ServeOptions) -> Result<()> {
+pub(crate) fn run(options: &ServeOptions) -> Result<()> {
     let loaded = pipeline::load(&options.input)?;
     report(&loaded.diagnostics);
 

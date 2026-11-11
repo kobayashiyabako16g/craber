@@ -15,19 +15,19 @@ use std::process::{Command, Output};
 
 /// A schema in `fixtures/`, by filename. See `fixtures/README.md` for what each
 /// one is for.
-pub fn fixture(name: &str) -> PathBuf {
+pub(crate) fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures")
         .join(name)
 }
 
 /// The repository's `examples/` directory.
-pub fn examples_dir() -> PathBuf {
+pub(crate) fn examples_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples")
 }
 
 /// Run the `craber` binary this test was built alongside.
-pub fn craber(args: &[&str]) -> Output {
+pub(crate) fn craber(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_craber"))
         .args(args)
         .output()
@@ -37,7 +37,7 @@ pub fn craber(args: &[&str]) -> Output {
 /// Run `craber` from `dir`, for the tests that turn on where the command was
 /// started: config discovery walks up from the working directory, and a
 /// relative path inside a config file is resolved against the file.
-pub fn craber_in(dir: &Path, args: &[&str]) -> Output {
+pub(crate) fn craber_in(dir: &Path, args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_craber"))
         .current_dir(dir)
         .args(args)
@@ -51,7 +51,7 @@ pub fn craber_in(dir: &Path, args: &[&str]) -> Output {
 /// Every config test needs one: discovery walks up from the working directory,
 /// so a test that ran in the crate directory would see whatever the repository
 /// happens to have above it.
-pub fn scratch(name: &str) -> PathBuf {
+pub(crate) fn scratch(name: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("craber-config-{name}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&path);
     std::fs::create_dir_all(&path).expect("scratch directory");
@@ -60,7 +60,7 @@ pub fn scratch(name: &str) -> PathBuf {
 
 /// Fail with the command's own stderr, which is the only place a CLI explains
 /// itself.
-pub fn assert_success(output: &Output, what: &str) {
+pub(crate) fn assert_success(output: &Output, what: &str) {
     assert!(
         output.status.success(),
         "{what} failed:\n{}",
@@ -70,14 +70,14 @@ pub fn assert_success(output: &Output, what: &str) {
 
 /// Run `craber` and parse its stdout as JSON, failing with stderr if either step
 /// does not work.
-pub fn craber_json(args: &[&str]) -> serde_json::Value {
+pub(crate) fn craber_json(args: &[&str]) -> serde_json::Value {
     json_output(&craber(args))
 }
 
 /// [`craber_json`] from a given directory, for the config tests: discovery walks
 /// up from the working directory, so where the command ran is the thing under
 /// test.
-pub fn craber_json_in(dir: &Path, args: &[&str]) -> serde_json::Value {
+pub(crate) fn craber_json_in(dir: &Path, args: &[&str]) -> serde_json::Value {
     json_output(&craber_in(dir, args))
 }
 
@@ -100,14 +100,14 @@ fn json_output(output: &Output) -> serde_json::Value {
 ///
 /// Named after the test rather than randomly, so a failed run leaves something
 /// a human can go and look at.
-pub fn out_dir(name: &str) -> PathBuf {
+pub(crate) fn out_dir(name: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("craber-build-{name}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&path);
     path
 }
 
 /// One table out of an exported `schema.json`.
-pub fn table<'a>(schema: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
+pub(crate) fn table<'a>(schema: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
     schema["tables"]
         .as_array()
         .expect("tables")
@@ -117,7 +117,7 @@ pub fn table<'a>(schema: &'a serde_json::Value, name: &str) -> &'a serde_json::V
 }
 
 /// Table names, in the order the export put them.
-pub fn table_names(schema: &serde_json::Value) -> Vec<&str> {
+pub(crate) fn table_names(schema: &serde_json::Value) -> Vec<&str> {
     schema["tables"]
         .as_array()
         .expect("tables")
@@ -127,7 +127,7 @@ pub fn table_names(schema: &serde_json::Value) -> Vec<&str> {
 }
 
 /// Assert a path exists, naming what was looked for.
-pub fn assert_exists(path: &Path) {
+pub(crate) fn assert_exists(path: &Path) {
     assert!(path.is_file(), "{} was not written", path.display());
 }
 
@@ -138,7 +138,7 @@ pub fn assert_exists(path: &Path) {
 /// CI's Rust job, or a contributor without Node — has nothing embedded. That
 /// case has tests of its own; every test that needs a real site starts here
 /// instead, because there is nothing for it to look at.
-pub fn bundle_or_skip() -> bool {
+pub(crate) fn bundle_or_skip() -> bool {
     if craber_site::is_embedded() {
         return true;
     }
@@ -147,7 +147,7 @@ pub fn bundle_or_skip() -> bool {
 }
 
 /// One column out of a table in an exported `schema.json`.
-pub fn column<'a>(table: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
+pub(crate) fn column<'a>(table: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
     table["columns"]
         .as_array()
         .expect("columns")
@@ -160,7 +160,7 @@ pub fn column<'a>(table: &'a serde_json::Value, name: &str) -> &'a serde_json::V
 ///
 /// The `Drop` matters: without it a failing assertion leaves a server holding a
 /// port for the rest of the session.
-pub struct Server {
+pub(crate) struct Server {
     child: std::process::Child,
     pub port: u16,
 }
@@ -172,7 +172,7 @@ impl Server {
     /// only way to do this without a race: picking a free port here and hoping
     /// it is still free when the child binds it fails whenever two of these
     /// tests run at once, which is the default.
-    pub fn start(extra: &[&str]) -> Self {
+    pub(crate) fn start(extra: &[&str]) -> Self {
         let mut args = vec!["serve", "--port", "0"];
         args.extend_from_slice(extra);
         Self::start_in(
@@ -187,7 +187,7 @@ impl Server {
     /// Unlike [`start`](Self::start) this adds no arguments of its own, which
     /// is what lets a test leave `--port` off entirely and check that the
     /// config file supplied it.
-    pub fn start_in(dir: &Path, args: &[&str]) -> Self {
+    pub(crate) fn start_in(dir: &Path, args: &[&str]) -> Self {
         use std::io::BufRead as _;
 
         let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_craber"))
@@ -223,18 +223,18 @@ impl Drop for Server {
 }
 
 /// One HTTP response: status code, headers lowercased by name, and the body.
-pub struct Response {
+pub(crate) struct Response {
     pub status: u16,
     pub headers: std::collections::HashMap<String, String>,
     pub body: Vec<u8>,
 }
 
 impl Response {
-    pub fn header(&self, name: &str) -> &str {
+    pub(crate) fn header(&self, name: &str) -> &str {
         self.headers.get(name).map_or("", String::as_str)
     }
 
-    pub fn text(&self) -> String {
+    pub(crate) fn text(&self) -> String {
         String::from_utf8_lossy(&self.body).into_owned()
     }
 }
@@ -243,7 +243,7 @@ impl Response {
 ///
 /// Written by hand rather than with an HTTP client because pulling in a client
 /// to test a server we wrote precisely to avoid dependencies would be absurd.
-pub fn request(port: u16, method: &str, path: &str) -> Response {
+pub(crate) fn request(port: u16, method: &str, path: &str) -> Response {
     use std::io::{Read, Write};
 
     let mut stream = std::net::TcpStream::connect(("127.0.0.1", port)).expect("connecting");
@@ -287,12 +287,12 @@ pub fn request(port: u16, method: &str, path: &str) -> Response {
     }
 }
 
-pub fn get(port: u16, path: &str) -> Response {
+pub(crate) fn get(port: u16, path: &str) -> Response {
     request(port, "GET", path)
 }
 
 /// The `src`/`href` targets `index.html` asks the browser to load.
-pub fn asset_references(html: &str) -> Vec<String> {
+pub(crate) fn asset_references(html: &str) -> Vec<String> {
     let mut found = Vec::new();
     for attribute in ["src=\"", "href=\""] {
         let mut rest = html;

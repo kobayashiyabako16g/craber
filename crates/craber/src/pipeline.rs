@@ -18,7 +18,7 @@ use crate::options::{Input, Source};
 
 /// What a run draws: the laid-out schema, the workflows to play over it, and
 /// what was skipped reading either.
-pub struct Loaded {
+pub(crate) struct Loaded {
     pub schema: Schema,
     pub flows: Flows,
     pub diagnostics: Vec<Diagnostic>,
@@ -28,7 +28,7 @@ pub struct Loaded {
 ///
 /// Diagnostics are returned rather than printed so that `serve` can eventually
 /// surface them in the UI instead of only on the terminal.
-pub fn load(input: &Input) -> Result<Loaded> {
+pub(crate) fn load(input: &Input) -> Result<Loaded> {
     let (mut schema, mut diagnostics) = match &input.source {
         Source::File(path) => from_file(path, input)?.into_parts(),
         Source::Dsn(dsn) => from_dsn(dsn, input)?.into_parts(),

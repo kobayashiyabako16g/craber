@@ -19,7 +19,7 @@ use crate::{pipeline, server};
 /// Spawn the poller. `path` is known to be a file: [`crate::options`] refuses
 /// `--watch` on a live connection while the invocation is being resolved, so
 /// there is no "nothing to watch" case left to handle here.
-pub fn reload_on_change(site: server::Site, path: PathBuf, input: Input) {
+pub(crate) fn reload_on_change(site: server::Site, path: PathBuf, input: Input) {
     // A workflow directory is listed again on every tick, so a file added to
     // it, or taken out, is a change like an edit is.
     let watched = move |flows: &[PathBuf]| -> Vec<PathBuf> {

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use craber_site::SiteFile;
 
 /// A ready-to-serve site: every file keyed by the path a browser will ask for.
-pub struct Routes(HashMap<String, SiteFile>);
+pub(crate) struct Routes(HashMap<String, SiteFile>);
 
 impl Routes {
     /// `index.html` is reachable both by name and as `/`, which is what a

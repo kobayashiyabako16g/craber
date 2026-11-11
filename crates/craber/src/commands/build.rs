@@ -6,7 +6,7 @@ use crate::commands::report;
 use crate::options::BuildOptions;
 use crate::pipeline;
 
-pub fn run(options: &BuildOptions) -> Result<()> {
+pub(crate) fn run(options: &BuildOptions) -> Result<()> {
     let loaded = pipeline::load(&options.input)?;
     report(&loaded.diagnostics);
 

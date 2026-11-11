@@ -6,8 +6,8 @@
 //! here and from the crate root, because `schema.json` is one document and a
 //! reader of it should not have to know which half a type came from.
 
-pub mod layout;
-pub mod schema;
+pub(crate) mod layout;
+pub(crate) mod schema;
 
 pub use crate::ir::layout::{Detail, Position, Positions};
 pub use crate::ir::schema::{

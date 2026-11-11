@@ -11,15 +11,17 @@
 // could reach it. See the module docs for why generating is a test at all.
 #[cfg(test)]
 mod codegen;
-pub mod diagnostic;
-pub mod dialect;
-pub mod filter;
-pub mod flow;
-pub mod geometry;
-pub mod index;
-pub mod ir;
-pub mod normalize;
-pub mod theme;
+// Private, and re-exported below: one path to each item, `craber_core::Table`,
+// rather than three.
+mod diagnostic;
+mod dialect;
+mod filter;
+mod flow;
+mod geometry;
+mod index;
+mod ir;
+mod normalize;
+mod theme;
 
 pub use diagnostic::{Diagnostic, Outcome, Severity};
 pub use dialect::{Dialect, UnknownDialect};

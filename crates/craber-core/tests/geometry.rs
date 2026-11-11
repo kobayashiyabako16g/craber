@@ -15,7 +15,7 @@
 /// border top and bottom, plus the rule under the header.
 #[test]
 fn node_height_matches_what_the_browser_lays_out() {
-    use craber_core::geometry::metrics;
+    use craber_core::metrics;
 
     #[allow(
         clippy::float_cmp,
