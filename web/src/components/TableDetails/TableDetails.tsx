@@ -2,9 +2,10 @@ import { useMemo } from "react";
 
 import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
 import { relationshipsOf, type Relation } from "@/lib/graph";
-import { CloseIcon, LinkIcon, TableIcon } from "@/components/icons/icons";
+import { CloseIcon, LinkIcon, TableIcon } from "@/components/Icons/Icons";
 import { foreignKeyColumns, primaryKeyColumns, qualifiedName, uniqueColumns } from "@/lib/schema";
 import type { Column, Table } from "@/types";
+import { cx } from "@/lib/cx";
 
 import "./TableDetails.css";
 
@@ -91,7 +92,7 @@ export function TableDetails({ table, relations, onSelect, onClose }: TableDetai
                 title={`Go to ${relationship.other}`}
               >
                 <span className="craber-details-relation-head">
-                  <LinkIcon size={12} className="craber-glyph-fk" />
+                  <LinkIcon size={12} className="craber-details-relation-icon" />
                   <span className="craber-details-relation-name">{relationship.other}</span>
                   <span className="craber-details-tag">{relationship.cardinality}</span>
                   {relationship.inferred && <span className="craber-details-tag">inferred</span>}
@@ -161,9 +162,9 @@ function Fact({
 }) {
   const stacked = prose || (value !== undefined && value.length > 24);
   return (
-    <div className={`craber-details-fact${stacked ? " is-stacked" : ""}`}>
+    <div className={cx("craber-details-fact", stacked && "is-stacked")}>
       <dt>{label}</dt>
-      <dd className={[mono ? "craber-details-mono" : "", prose ? "craber-details-prose" : ""].join(" ").trim()}>
+      <dd className={cx(mono && "craber-details-mono", prose && "craber-details-prose")}>
         {value}
       </dd>
     </div>

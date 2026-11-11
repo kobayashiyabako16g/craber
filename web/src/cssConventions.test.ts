@@ -34,6 +34,7 @@ const OWNERS: Record<string, string[]> = {
   "components/WorkflowPicker/WorkflowPicker.css": ["craber-picker"],
   "components/StepBar/StepBar.css": ["craber-stepbar"],
   "components/Markers/Markers.css": ["craber-markers"],
+  "components/RelationEdge/RelationEdge.css": ["craber-relation"],
 };
 
 const stylesheets = rel(
@@ -55,7 +56,7 @@ const CLASS = /^craber-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const STATE = /^is-[a-z]+$/;
 const REACT_FLOW = /^react-flow__[a-z-]+$/;
 // The crates, which comments and tooltips name in the same `craber-` shape.
-const CRATE = /^craber-(?:core|parser|introspect|layout|render|export|site)$/;
+const CRATE = /^craber-(?:core|parser|introspect|layout|export|site)$/;
 
 function rel(files: Record<string, string>): Record<string, string> {
   return Object.fromEntries(Object.entries(files).map(([path, text]) => [path.replace(/^\.\//, ""), text]));

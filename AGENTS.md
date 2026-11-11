@@ -11,7 +11,7 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (`craber
 | Task | Command |
 |------|---------|
 | List tasks | `just` |
-| Before pushing | `just check` (fmt-check + clippy `-D warnings` + `cargo test --workspace`) |
+| Before pushing | `just check` (fmt-check + clippy `-D warnings` + `cargo test --workspace` + web typecheck + vitest) |
 | Rust single test | `cargo test -p <crate> --test <file> <name>` |
 | Accept snapshots | `cargo insta review` |
 | Web typecheck + build | `just web-build` |

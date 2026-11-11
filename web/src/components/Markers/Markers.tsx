@@ -8,8 +8,8 @@ import "./Markers.css";
 /**
  * Crow's-foot notation, as SVG markers the edges reference by id.
  *
- * The id convention `craber-<kind>-<side>` is the contract with the edges that
- * name them; `endKinds` in `graph.ts` decides which kind each end gets.
+ * The ids come from `markerId`, which the edges name them by too; `endKinds`
+ * in `graph.ts` decides which kind each end gets.
  */
 
 /**
@@ -83,18 +83,12 @@ function EndShape({ kind, stroke }: { kind: EndKind; stroke: object }) {
 }
 
 /**
- * Crow's-foot ends, as SVG markers the edges reference by id.
+ * Crow's-foot ends: every kind, once for each face of a node it can sit on.
  *
- * Two things have to hold while a table is being dragged, and they pull in
- * opposite directions. The glyph has to stay square to the line — a foot
- * crossed by its own line reads as a scribble — which means turning with it,
- * `orient="auto"`. And it has to stay put against the node, which means being
- * drawn from the anchor outwards: geometry set back along the line swings like
- * a lever when the curve's tangent moves.
- *
- * Every kind is defined for both ends of a line, the head being the tail
- * mirrored, so that an edge can ask for a notation without also having to know
- * which way round it will be drawn.
+ * Each glyph is drawn from the anchor outwards and square to the node — see
+ * `MARKER_BOX` for why not to the line — and the left-face one is the
+ * right-face one mirrored, so an edge asks for a notation and a face without
+ * having to know which way round it will be drawn.
  *
  * `context-stroke` takes the colour and opacity of the line the marker sits on,
  * which is what keeps a dimmed edge's ends dimmed too.

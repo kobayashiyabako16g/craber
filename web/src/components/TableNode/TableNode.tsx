@@ -5,9 +5,10 @@ import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
 import { ACCESS_CLASS, valueLabel } from "@/lib/workflow";
 import { handleId } from "@/lib/edgeGeometry";
 import type { TableNodeType } from "@/lib/graph";
-import { CommentIcon, TableIcon } from "@/components/icons/icons";
+import { CommentIcon, TableIcon } from "@/components/Icons/Icons";
 import { foreignKeyColumns, primaryKeyColumns } from "@/lib/schema";
 import type { ColumnValue } from "@/types";
+import { cx } from "@/lib/cx";
 
 import "./TableNode.css";
 
@@ -29,14 +30,12 @@ export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
 
   return (
     <div
-      className={[
+      className={cx(
         "craber-node",
         selected && "is-selected",
         related && "is-related",
         access && ACCESS_CLASS[access],
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
     >
       {/* The node's own middle, for a relationship whose column CrabER could
           not place — a foreign key on a column the parser did not read. */}
@@ -53,7 +52,7 @@ export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
         <div className="craber-node-columns">
           {columns.map((column) => (
             <div
-              className={`craber-node-column${litColumns?.has(column.name) ? " is-lit" : ""}`}
+              className={cx("craber-node-column", litColumns?.has(column.name) && "is-lit")}
               key={column.name}
             >
               {anchors.has(column.name) && <ColumnHandles column={column.name} />}
@@ -82,7 +81,7 @@ function ColumnEnd({ type, values }: { type: string; values?: readonly ColumnVal
   const label = values.map(valueLabel).join("  ");
   return (
     <span
-      className={`craber-node-column-value ${first.kind === "set" ? "is-set" : "is-filter"}`}
+      className={cx("craber-node-column-value", first.kind === "set" ? "is-set" : "is-filter")}
       title={`${type}\n${values.map(valueLabel).join("\n")}`}
     >
       {label}

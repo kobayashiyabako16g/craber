@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { List, type RowComponentProps } from "react-window";
 
-import { EyeIcon, EyeOffIcon, SearchIcon, TableIcon } from "@/components/icons/icons";
+import { EyeIcon, EyeOffIcon, SearchIcon, TableIcon } from "@/components/Icons/Icons";
 import { qualifiedName } from "@/lib/schema";
 import type { Table } from "@/types";
+import { cx } from "@/lib/cx";
 
 import "./Sidebar.css";
 
@@ -135,9 +136,7 @@ function TableRow({
   return (
     <div
       style={style}
-      className={`craber-sidebar-row${id === selected ? " is-selected" : ""}${
-        isHidden ? " is-hidden" : ""
-      }`}
+      className={cx("craber-sidebar-row", id === selected && "is-selected", isHidden && "is-hidden")}
     >
       <button type="button" className="craber-sidebar-row-name" onClick={() => onSelect(id)}>
         <TableIcon size={13} />

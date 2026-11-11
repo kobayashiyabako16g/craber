@@ -100,7 +100,7 @@ export const KIND_ACCESS: Record<StepKind, Access> = {
 
 /**
  * The state class for an access. Spelled out rather than built as
- * `is-${access}`, so `classNames.test.ts` can see each one is used.
+ * `is-${access}`, so `cssConventions.test.ts` can see each one is used.
  */
 export const ACCESS_CLASS: Record<Access, string> = {
   read: "is-read",

@@ -4,6 +4,8 @@ import { endCounts, type Relation } from "@/lib/graph";
 import { MARKER_LENGTH } from "@/lib/edgeGeometry";
 import { relationPath } from "@/lib/path";
 
+import "./RelationEdge.css";
+
 /**
  * A relationship between two tables, drawn so that its notation sits on a
  * straight piece of line.
@@ -69,7 +71,7 @@ function EndCount({ x, y, side, text }: { x: number; y: number; side: Position; 
   const outward = side === Position.Left ? -1 : 1;
   return (
     <text
-      className="craber-edge-end"
+      className="craber-relation-count"
       x={x + (outward * MARKER_LENGTH) / 2}
       y={y - 13}
       textAnchor="middle"

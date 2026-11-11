@@ -30,7 +30,13 @@ bindings:
     cargo test -p craber-core
 
 # Everything CI runs on the Rust side
-check: fmt-check lint test
+# Rust and the frontend's own checks: a web change that breaks the typecheck or
+# a vitest case should not wait for `check-all` to be noticed.
+check: fmt-check lint test web-typecheck web-test
+
+# Typecheck the frontend without building it
+web-typecheck:
+    cd web && pnpm typecheck
 
 # The pure modules only — the ones in `web/src/lib/`, such as `graph.ts`,
 # `schema.ts` and `viewState.ts`. Those are React-free by design; this is what

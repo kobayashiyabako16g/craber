@@ -1,4 +1,4 @@
-import { DiamondIcon, KeyIcon, LinkIcon } from "@/components/icons/icons";
+import { DiamondIcon, KeyIcon, LinkIcon } from "@/components/Icons/Icons";
 import type { Column } from "@/types";
 
 import "./ColumnGlyph.css";

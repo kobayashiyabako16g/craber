@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 
 import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL } from "@/lib/workflow";
-import { CloseIcon, FlowIcon } from "@/components/icons/icons";
+import { CloseIcon, FlowIcon } from "@/components/Icons/Icons";
 import type { StepKind, Workflow } from "@/types";
+import { cx } from "@/lib/cx";
 
 import "./WorkflowPicker.css";
 
@@ -55,7 +56,7 @@ export function WorkflowPicker({ open, workflows, current, onPick, onClose }: Wo
           <li key={workflow.name}>
             <button
               type="button"
-              className={`craber-picker-item${workflow.name === current ? " is-current" : ""}`}
+              className={cx("craber-picker-item", workflow.name === current && "is-current")}
               onClick={() => onPick(workflow.name)}
             >
               <span className="craber-picker-text">
@@ -68,7 +69,7 @@ export function WorkflowPicker({ open, workflows, current, onPick, onClose }: Wo
               </span>
               <span className="craber-picker-kinds">
                 {kinds(workflow).map((kind) => (
-                  <span key={kind} className={`craber-picker-kind ${ACCESS_CLASS[KIND_ACCESS[kind]]}`}>
+                  <span key={kind} className={cx("craber-picker-kind", ACCESS_CLASS[KIND_ACCESS[kind]])}>
                     {KIND_LABEL[kind]}
                   </span>
                 ))}

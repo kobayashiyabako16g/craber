@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { CheckIcon, DownloadIcon, FlowIcon, SidebarIcon } from "@/components/icons/icons";
+import { CheckIcon, DownloadIcon, FlowIcon, SidebarIcon } from "@/components/Icons/Icons";
+import { cx } from "@/lib/cx";
 
 import "./TopBar.css";
 
@@ -37,7 +38,7 @@ export function TopBar({
     <header className="craber-topbar">
       <button
         type="button"
-        className={`craber-icon-button${sidebarOpen ? " is-active" : ""}`}
+        className={cx("craber-icon-button", sidebarOpen && "is-active")}
         title={sidebarOpen ? "Hide the table list" : "Show the table list"}
         onClick={onToggleSidebar}
       >

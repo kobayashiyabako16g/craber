@@ -18,6 +18,6 @@ React 19 + React Flow (`@xyflow/react`) + Vite. Reads `schema.json`; never lays 
 - View state lives in the URL (`src/lib/viewState.ts`).
 - CSS classes: `craber-<block>[-<element>]`, states as `is-<state>`.
 - `src/theme.css` holds only styles shared by several components.
-- Register a new stylesheet or block in `OWNERS` in `src/classNames.test.ts`.
-- vitest covers only `src/lib/` and `src/classNames.test.ts`; components have no unit tests.
+- Register a new stylesheet or block in `OWNERS` in `src/cssConventions.test.ts`.
+- vitest covers only `src/lib/` and `src/cssConventions.test.ts`; components have no unit tests.
 - Verify UI changes in Chrome via `.claude/skills/ui-check` (screenshot + console).

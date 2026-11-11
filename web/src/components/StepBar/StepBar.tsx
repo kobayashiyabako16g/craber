@@ -6,9 +6,10 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   CloseIcon,
-} from "@/components/icons/icons";
+} from "@/components/Icons/Icons";
 import type { SqlToken } from "@/lib/sqlHighlight";
 import type { Workflow } from "@/types";
+import { cx } from "@/lib/cx";
 
 import "./StepBar.css";
 
@@ -116,7 +117,7 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
 
         {current ? (
           <>
-            <span className={`craber-stepbar-kind ${ACCESS_CLASS[KIND_ACCESS[current.kind]]}`}>
+            <span className={cx("craber-stepbar-kind", ACCESS_CLASS[KIND_ACCESS[current.kind]])}>
               {KIND_LABEL[current.kind]}
             </span>
             <span className="craber-stepbar-table">{stepTarget(current)}</span>
@@ -130,7 +131,7 @@ export function StepBar({ workflow, step, onStep, onStop }: StepBarProps) {
 
         <button
           type="button"
-          className={`craber-icon-button craber-stepbar-toggle${expanded ? " is-expanded" : ""}`}
+          className={cx("craber-icon-button", "craber-stepbar-toggle", expanded && "is-expanded")}
           title={expanded ? "Hide the statement (↓)" : "Show the whole statement (↑)"}
           aria-expanded={expanded}
           disabled={!current}

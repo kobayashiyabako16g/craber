@@ -172,3 +172,8 @@
   margin: 0;
   color: var(--craber-text-muted);
 }
+
+/* The foreign-key colour, as the column glyph wears it. */
+.craber-details-relation-icon {
+  color: var(--craber-glyph-fk);
+}

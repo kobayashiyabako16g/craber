@@ -1,13 +1,8 @@
 import { STUB_LENGTH, handleId, type Sides } from "./edgeGeometry";
 import type { Relation } from "./graph";
 
-/**
- * Which handle each edge uses at each end.
- *
- * Pure geometry, recomputed as tables move. The *row* an edge lands on is fixed
- * by the relationship — `orders.user_id` to `users.id` — so only the side is
- * decided here.
- */
+/** Pure geometry, recomputed as tables move: which side of a row each line
+ *  attaches to. */
 
 /**
  * Where a node sits on the canvas right now, dragging included.
@@ -33,7 +28,8 @@ export type Anchor = { source: string; target: string; sides: Sides };
  * is therefore a line that runs straight across; a negative one is a line that
  * has to leave the node, turn round and come back. The faces that look at each
  * other are the right pair while the tables are clear of one another, and the
- * layout's 350px columns keep them that way.
+ * layout's columns (`SugiyamaLayout`'s node width plus its layer gap) keep
+ * them that way.
  *
  * Drag a table above or below the one it points at, though, and those two faces
  * overlap: their gap collapses towards zero, and with it the control offset, so

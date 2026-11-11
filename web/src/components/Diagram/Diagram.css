@@ -43,14 +43,6 @@
   stroke-width: 1.8;
 }
 
-/* How many rows meet at each end of a lit line, above its crow's foot. */
-.craber-edge-end {
-  fill: var(--craber-highlight);
-  font-family: var(--craber-font-mono);
-  font-size: 10px;
-  font-weight: 600;
-}
-
 .react-flow__edge.craber-edge-inferred .react-flow__edge-path {
   stroke-dasharray: 4 3;
 }

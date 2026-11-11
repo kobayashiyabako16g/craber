@@ -19,7 +19,7 @@ export default defineConfig({
     assetsDir: "assets",
   },
   test: {
-    // Vitest blanks stylesheets by default; classNames.test.ts reads them as
+    // Vitest blanks stylesheets by default; cssConventions.test.ts reads them as
     // text (`?raw`) to check the class naming rules.
     css: true,
   },

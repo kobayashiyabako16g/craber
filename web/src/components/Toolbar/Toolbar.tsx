@@ -1,4 +1,4 @@
-import { FitViewIcon, MinusIcon, PlusIcon, TidyIcon } from "@/components/icons/icons";
+import { FitViewIcon, MinusIcon, PlusIcon, TidyIcon } from "@/components/Icons/Icons";
 
 import "./Toolbar.css";
 
