@@ -40,7 +40,7 @@ diagram itself is drawn in one place only, the browser, so there is no second
 renderer to disagree with it.
 
 The TypeScript types in `web/src/types` are generated from the Rust IR by
-`ts-rs`, so the two cannot drift apart. Change `crates/craber-core/src/ir.rs`,
+`ts-rs`, so the two cannot drift apart. Change `crates/craber-core/src/ir/`,
 then run `just bindings`.
 
 ## Configuration reference

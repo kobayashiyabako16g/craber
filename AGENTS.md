@@ -41,7 +41,7 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (`craber
 - `schema.json` is a public format: renaming/retyping a field in `crates/craber-core/src/ir/` needs a `SCHEMA_VERSION` bump and a note in the PR (`crates/craber-core/tests/wire_format.rs` snapshots it).
 - Never hand-edit `web/src/types` or `web/src/generated`; edit Rust, run `just bindings`, commit the output. `web/src/types/index.ts` is the one hand-written file.
 - The diagram is drawn only by `web/`; there is no image export.
-- Cross-language rule must agree: `resolveRef` (`web/src/lib/schema.ts`) ↔ `SchemaIndex::resolve`.
+- Cross-language rule must agree: `resolveRef` (`web/src/lib/schema.ts`) ↔ `SchemaIndex::resolve` (`crates/craber-core/src/index.rs`).
 - New resolution cases go in `crates/craber-core/tests/cases/resolve.json`, not one side's tests.
 - Unsupported SQL yields a warning `Diagnostic` and the statement is skipped; only error-severity diagnostics abort.
 - Never put a DSN in an error or log message.
