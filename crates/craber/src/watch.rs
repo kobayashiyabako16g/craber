@@ -14,18 +14,32 @@ use std::path::{Path, PathBuf};
 
 use crate::commands::report;
 use crate::options::Input;
-use crate::{pipeline, server};
+use crate::{pipeline, server, workflows};
 
 /// Spawn the poller. `path` is known to be a file: [`crate::options`] refuses
 /// `--watch` on a live connection while the invocation is being resolved, so
 /// there is no "nothing to watch" case left to handle here.
 pub(crate) fn reload_on_change(site: server::Site, path: PathBuf, input: Input) {
     // A workflow directory is listed again on every tick, so a file added to
-    // it, or taken out, is a change like an edit is.
-    let watched = move |flows: &[PathBuf]| -> Vec<PathBuf> {
-        let files: Vec<PathBuf> = pipeline::workflow_files(flows)
-            .map(|outcome| outcome.value.into_iter().map(|(file, _)| file).collect())
-            .unwrap_or_default();
+    // it, or taken out, is a change like an edit is. A directory that cannot
+    // be listed is said once, not every second, and watching carries on with
+    // the files that can be seen.
+    let mut unlisted: Option<String> = None;
+    let mut watched = move |flows: &[PathBuf]| -> Vec<PathBuf> {
+        let files = match workflows::files(flows) {
+            Ok(outcome) => {
+                unlisted = None;
+                outcome.value.into_iter().map(|file| file.path).collect()
+            }
+            Err(error) => {
+                let error = format!("{error:#}");
+                if unlisted.as_ref() != Some(&error) {
+                    tracing::warn!(%error, "could not list the workflow files");
+                    unlisted = Some(error);
+                }
+                Vec::new()
+            }
+        };
         std::iter::once(path.clone()).chain(files).collect()
     };
     let stamps = |paths: Vec<PathBuf>| -> Vec<_> {
@@ -57,7 +71,7 @@ pub(crate) fn reload_on_change(site: server::Site, path: PathBuf, input: Input) 
             match pipeline::load(&input) {
                 Ok(loaded) => {
                     report(&loaded.diagnostics);
-                    match server::swap(&site, &loaded) {
+                    match site.swap(&loaded) {
                         Ok(()) => tracing::info!("reloaded"),
                         Err(error) => tracing::error!(%error, "could not swap the site"),
                     }

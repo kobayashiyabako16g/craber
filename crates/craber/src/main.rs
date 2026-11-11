@@ -14,6 +14,7 @@ mod options;
 mod pipeline;
 mod server;
 mod watch;
+mod workflows;
 
 use anyhow::Result;
 use clap::Parser;

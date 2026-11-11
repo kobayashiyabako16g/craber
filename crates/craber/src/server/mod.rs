@@ -25,10 +25,30 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 
 use crate::pipeline::Loaded;
-pub(crate) use crate::server::routes::Routes;
+use crate::server::routes::Routes;
 
-/// The site, by URL path. Swapped wholesale when `--watch` reloads.
-pub(crate) type Site = Arc<RwLock<Arc<Routes>>>;
+/// The site being served, by URL path. Swapped wholesale when `--watch`
+/// reloads; a connection keeps the version it started with.
+#[derive(Clone)]
+pub(crate) struct Site(Arc<RwLock<Arc<Routes>>>);
+
+impl Site {
+    fn new(loaded: &Loaded) -> Result<Self> {
+        Ok(Self(Arc::new(RwLock::new(Arc::new(routes(loaded)?)))))
+    }
+
+    /// What is being served right now.
+    fn current(&self) -> Arc<Routes> {
+        Arc::clone(&self.0.read().expect("the site lock is never poisoned"))
+    }
+
+    /// Replace what is being served, for `--watch`.
+    pub(crate) fn swap(&self, loaded: &Loaded) -> Result<()> {
+        let routes = Arc::new(routes(loaded)?);
+        *self.0.write().expect("the site lock is never poisoned") = routes;
+        Ok(())
+    }
+}
 
 /// Browsers open connections speculatively and leave them idle. A timeout is
 /// what stops each of those from pinning a thread for the life of the tab.
@@ -40,7 +60,7 @@ const IDLE_TIMEOUT: Duration = Duration::from_secs(10);
 /// is no reason for it to be reachable from the rest of the network, and a
 /// diagram of a production database is not something to expose by accident.
 pub(crate) fn run(loaded: &Loaded, port: u16) -> Result<Site> {
-    let site: Site = Arc::new(RwLock::new(Arc::new(routes(loaded)?)));
+    let site = Site::new(loaded)?;
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
 
     let listener = TcpListener::bind(address).map_err(|error| {
@@ -59,17 +79,10 @@ pub(crate) fn run(loaded: &Loaded, port: u16) -> Result<Site> {
         loaded.schema.name
     );
 
-    let accepting = Arc::clone(&site);
+    let accepting = site.clone();
     std::thread::spawn(move || accept_loop(&listener, &accepting));
 
     Ok(site)
-}
-
-/// Replace what is being served, for `--watch`.
-pub(crate) fn swap(site: &Site, loaded: &Loaded) -> Result<()> {
-    let routes = Arc::new(routes(loaded)?);
-    *site.write().expect("the site lock is never poisoned") = routes;
-    Ok(())
 }
 
 fn routes(loaded: &Loaded) -> Result<Routes> {
@@ -87,7 +100,7 @@ fn routes(loaded: &Loaded) -> Result<Routes> {
 fn accept_loop(listener: &TcpListener, site: &Site) {
     for stream in listener.incoming() {
         let Ok(stream) = stream else { continue };
-        let current = Arc::clone(&site.read().expect("the site lock is never poisoned"));
+        let current = site.current();
         std::thread::spawn(move || serve_one(&stream, &current));
     }
 }
