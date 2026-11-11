@@ -53,13 +53,12 @@ impl Filter {
         if self.is_noop() {
             return;
         }
-        let keep = self.select(schema);
-        let mut i = 0;
-        schema.tables.retain(|_| {
-            let keep = keep[i];
-            i += 1;
-            keep
-        });
+        let mut keep = self.select(schema).into_iter();
+        // `retain` visits in order, once each, so this pairs every table with
+        // its own verdict.
+        schema
+            .tables
+            .retain(|_| keep.next().expect("one verdict per table"));
 
         let index = SchemaIndex::build(schema);
         for table in &mut schema.tables {
@@ -126,12 +125,7 @@ fn build(patterns: &[String]) -> Result<Option<GlobSet>, FilterError> {
         })?;
         builder.add(glob);
     }
-    // Both globs above are already validated, so this cannot fail in practice.
-    builder
-        .build()
-        .map(Some)
-        .map_err(|source| FilterError::Glob {
-            pattern: patterns.join(","),
-            source,
-        })
+    // Every glob was validated as it was added, and a set of valid globs
+    // always builds.
+    Ok(Some(builder.build().expect("validated globs build")))
 }
