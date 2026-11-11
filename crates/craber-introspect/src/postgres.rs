@@ -6,13 +6,12 @@
 //! the result look like the DDL it came from.
 
 use craber_core::{
-    Action, Column, Diagnostic, Dialect, EnumType, ForeignKey, Outcome, Schema, Table, TableIndex,
-    TableRef,
+    Action, Column, Dialect, EnumType, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
 };
 use sqlx::postgres::{PgConnectOptions, PgRow};
 use sqlx::{Connection, PgConnection, Row};
 
-use crate::assemble::{self, Tables};
+use crate::assemble::{self, Catalog};
 use crate::{Error, connect};
 
 /// The relations a diagram is drawn from, and the ones it never is.
@@ -59,18 +58,18 @@ pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
         .fetch_one(&mut conn)
         .await?;
 
-    let mut diagnostics = Vec::new();
-    let mut tables = read_tables(&mut conn).await?;
-    read_columns(&mut conn, &mut tables).await?;
-    read_constraints(&mut conn, &mut tables, &mut diagnostics).await?;
-    read_indexes(&mut conn, &mut tables).await?;
-    let enums = read_enums(&mut conn).await?;
+    let mut catalog = Catalog::default();
+    read_tables(&mut conn, &mut catalog).await?;
+    read_columns(&mut conn, &mut catalog).await?;
+    read_constraints(&mut conn, &mut catalog).await?;
+    read_indexes(&mut conn, &mut catalog).await?;
+    catalog.enums = read_enums(&mut conn).await?;
 
     conn.close().await?;
-    Ok(assemble::finish(name, tables, enums, diagnostics))
+    Ok(catalog.finish(name))
 }
 
-async fn read_tables(conn: &mut PgConnection) -> Result<Tables, Error> {
+async fn read_tables(conn: &mut PgConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let sql = concat!(
         "SELECT n.nspname AS schema,
                 c.relname AS name,
@@ -82,19 +81,18 @@ async fn read_tables(conn: &mut PgConnection) -> Result<Tables, Error> {
         "          ORDER BY n.nspname, c.relname"
     );
 
-    let mut tables = Tables::default();
     for row in sqlx::query(sql).fetch_all(&mut *conn).await? {
-        let mut table = Table::new(row.get::<String, _>("name"));
-        table.schema = Some(row.get::<String, _>("schema"));
-        table.comment = assemble::comment(row.get("comment"));
-        tables.push(table);
+        let mut table = Table::new(row.try_get::<String, _>("name")?);
+        table.schema = Some(row.try_get("schema")?);
+        table.comment = row.try_get("comment")?;
+        catalog.push(table);
     }
-    Ok(tables)
+    Ok(())
 }
 
 /// `ORDER BY a.attnum` is what puts the columns in the order the DDL declared
 /// them, which is the order the node draws them in.
-async fn read_columns(conn: &mut PgConnection, tables: &mut Tables) -> Result<(), Error> {
+async fn read_columns(conn: &mut PgConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let sql = concat!(
         "SELECT n.nspname AS schema,
                 c.relname AS table_name,
@@ -114,19 +112,24 @@ async fn read_columns(conn: &mut PgConnection, tables: &mut Tables) -> Result<()
     );
 
     for row in sqlx::query(sql).fetch_all(&mut *conn).await? {
-        let Some(table) = table_of(tables, &row) else {
-            continue;
-        };
         let mut column = Column::new(
-            row.get::<String, _>("name"),
-            row.get::<String, _>("data_type"),
+            row.try_get::<String, _>("name")?,
+            row.try_get::<String, _>("data_type")?,
         );
-        column.nullable = row.get("nullable");
-        column.default = row.get("default_expr");
-        column.comment = assemble::comment(row.get("comment"));
-        table.columns.push(column);
+        column.nullable = row.try_get("nullable")?;
+        column.default = row.try_get("default_expr")?;
+        column.comment = row.try_get("comment")?;
+        if let Some(table) = catalog.table_mut(&table_of(&row)?) {
+            table.columns.push(column);
+        }
     }
     Ok(())
+}
+
+/// `pg_constraint.contype`, for the two kinds the query asks for.
+enum Constraint {
+    Primary,
+    Foreign,
 }
 
 /// Primary and foreign keys, both out of `pg_constraint`.
@@ -134,11 +137,7 @@ async fn read_columns(conn: &mut PgConnection, tables: &mut Tables) -> Result<()
 /// `conkey` and `confkey` are `smallint[]` of column numbers. They are expanded
 /// in SQL with `unnest ... WITH ORDINALITY` rather than decoded here, which
 /// keeps key order without this crate ever handling an array type.
-async fn read_constraints(
-    conn: &mut PgConnection,
-    tables: &mut Tables,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> Result<(), Error> {
+async fn read_constraints(conn: &mut PgConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let sql = concat!(
         "SELECT n.nspname  AS schema,
                 c.relname  AS table_name,
@@ -167,77 +166,64 @@ async fn read_constraints(
     );
 
     for row in sqlx::query(sql).fetch_all(&mut *conn).await? {
-        let columns: Vec<String> = row.try_get("columns").unwrap_or_default();
-        let name: String = row.get("name");
-        let contype: String = row.get("contype");
-
+        let table = table_of(&row)?;
+        let name: String = row.try_get("name")?;
+        let context = assemble::context(&table, &name);
+        let columns = row
+            .try_get::<Option<Vec<String>>, _>("columns")?
+            .unwrap_or_default();
         if columns.is_empty() {
             continue;
         }
-
-        let foreign_key = if contype == "f" {
-            let (Some(ref_table), Some(ref_columns)) = (
-                row.get::<Option<String>, _>("ref_table"),
-                row.try_get::<Option<Vec<String>>, _>("ref_columns")
-                    .unwrap_or_default(),
-            ) else {
-                diagnostics.push(
-                    Diagnostic::warning("foreign key without a referenced table")
-                        .with_context(name.clone()),
-                );
-                continue;
-            };
-            Some((ref_table, ref_columns))
-        } else {
-            None
+        let kind = match row.try_get::<String, _>("contype")?.as_str() {
+            "p" => Constraint::Primary,
+            "f" => Constraint::Foreign,
+            _ => continue,
         };
 
-        let Some(table) = table_of(tables, &row) else {
-            continue;
-        };
-
-        match foreign_key {
-            None => table.pk = columns,
-            Some((ref_table, ref_columns)) => {
-                let ref_schema: Option<String> = row.get("ref_schema");
-                let mut fk = ForeignKey::declared(
+        match kind {
+            Constraint::Primary => {
+                if let Some(table) = catalog.table_mut(&table) {
+                    table.pk = columns;
+                }
+            }
+            Constraint::Foreign => {
+                let ref_table: Option<String> = row.try_get("ref_table")?;
+                let ref_columns: Option<Vec<String>> = row.try_get("ref_columns")?;
+                let (Some(ref_table), Some(ref_columns)) = (ref_table, ref_columns) else {
+                    catalog.warn("foreign key without a referenced table", context);
+                    continue;
+                };
+                let on_delete = row.try_get::<String, _>("on_delete")?;
+                let on_update = row.try_get::<String, _>("on_update")?;
+                let fk = ForeignKey::declared(
                     columns,
                     TableRef {
-                        schema: ref_schema,
+                        schema: row.try_get("ref_schema")?,
                         name: ref_table,
                     },
                     ref_columns,
+                )
+                .named(name)
+                .with_actions(
+                    catalog.action(&on_delete, &context, action_from_char),
+                    catalog.action(&on_update, &context, action_from_char),
                 );
-                fk.name = Some(name.clone());
-                fk.on_delete = assemble::action_or_warn(
-                    &row.get::<String, _>("on_delete"),
-                    &name,
-                    diagnostics,
-                    action_from_char,
-                );
-                fk.on_update = assemble::action_or_warn(
-                    &row.get::<String, _>("on_update"),
-                    &name,
-                    diagnostics,
-                    action_from_char,
-                );
-                table.fks.push(fk);
+                if let Some(table) = catalog.table_mut(&table) {
+                    table.fks.push(fk);
+                }
             }
         }
     }
     Ok(())
 }
 
-/// The table a catalog row belongs to.
-///
-/// Every query here spans the whole catalog and is filtered by `relations!()`,
-/// so a row naming a table that is not in `tables` is ordinary — a view, a
-/// partition child — rather than an error. Four read passes resolved this the
-/// same three lines each.
-fn table_of<'a>(tables: &'a mut Tables, row: &PgRow) -> Option<&'a mut craber_core::Table> {
-    let schema: String = row.get("schema");
-    let name: String = row.get("table_name");
-    tables.get_mut(Some(&schema), &name)
+/// The table a catalog row names in its `schema` and `table_name` columns.
+fn table_of(row: &PgRow) -> Result<TableRef, sqlx::Error> {
+    Ok(TableRef::qualified(
+        row.try_get::<String, _>("schema")?,
+        row.try_get::<String, _>("table_name")?,
+    ))
 }
 
 /// `confdeltype` / `confupdtype` are single characters, not words — the one
@@ -253,7 +239,7 @@ fn action_from_char(raw: &str) -> Option<Action> {
     }
 }
 
-async fn read_indexes(conn: &mut PgConnection, tables: &mut Tables) -> Result<(), Error> {
+async fn read_indexes(conn: &mut PgConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let sql = concat!(
         "SELECT n.nspname  AS schema,
                 c.relname  AS table_name,
@@ -275,30 +261,34 @@ async fn read_indexes(conn: &mut PgConnection, tables: &mut Tables) -> Result<()
     );
 
     for row in sqlx::query(sql).fetch_all(&mut *conn).await? {
-        let columns: Vec<String> = row.try_get("columns").unwrap_or_default();
+        let columns = row
+            .try_get::<Option<Vec<String>>, _>("columns")?
+            .unwrap_or_default();
 
         // An index over an expression alone has no column row to attach to, the
         // same reason `craber_parser` drops one.
         if columns.is_empty() {
             continue;
         }
-        let Some(table) = table_of(tables, &row) else {
-            continue;
-        };
-        table.indexes.push(TableIndex {
-            name: Some(row.get::<String, _>("name")),
+        let index = TableIndex {
+            name: Some(row.try_get("name")?),
             columns,
             // A partial unique index does not make the tuple unique — rows
             // outside its predicate are unconstrained. `Table::is_unique_tuple`
             // reads this field to decide a foreign key's cardinality, so
             // recording one as unique draws the wrong crow's foot. The index is
             // still worth listing; its uniqueness is not.
-            unique: row.get::<bool, _>("is_unique") && !row.get::<bool, _>("partial"),
-        });
+            unique: row.try_get::<bool, _>("is_unique")? && !row.try_get::<bool, _>("partial")?,
+        };
+        if let Some(table) = catalog.table_mut(&table_of(&row)?) {
+            table.indexes.push(index);
+        }
     }
     Ok(())
 }
 
+/// Enum types, leaving out those an extension owns, as `relations!()` leaves
+/// out an extension's tables.
 async fn read_enums(conn: &mut PgConnection) -> Result<Vec<EnumType>, Error> {
     let sql = "SELECT n.nspname AS schema,
                       t.typname AS name,
@@ -307,17 +297,21 @@ async fn read_enums(conn: &mut PgConnection) -> Result<Vec<EnumType>, Error> {
                  JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
                  JOIN pg_catalog.pg_enum e ON e.enumtypid = t.oid
                 WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+                  AND NOT EXISTS (
+                        SELECT 1 FROM pg_catalog.pg_depend d
+                         WHERE d.classid = 'pg_type'::regclass
+                           AND d.objid = t.oid
+                           AND d.deptype = 'e')
                 GROUP BY 1, 2
                 ORDER BY 1, 2";
 
-    Ok(sqlx::query(sql)
-        .fetch_all(&mut *conn)
-        .await?
-        .into_iter()
-        .map(|row| EnumType {
-            schema: Some(row.get("schema")),
-            name: row.get("name"),
-            values: row.get("values"),
-        })
-        .collect())
+    let mut enums = Vec::new();
+    for row in sqlx::query(sql).fetch_all(&mut *conn).await? {
+        enums.push(EnumType {
+            schema: Some(row.try_get("schema")?),
+            name: row.try_get("name")?,
+            values: row.try_get("values")?,
+        });
+    }
+    Ok(enums)
 }

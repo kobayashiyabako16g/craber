@@ -12,12 +12,10 @@ mod flow;
 mod names;
 mod translate;
 
-use craber_core::{Diagnostic, Outcome, Schema, SchemaIndex, Workflow};
+use craber_core::{Diagnostic, Dialect, Outcome, Schema, SchemaIndex, Workflow};
 use sqlparser::parser::Parser;
 
 use crate::dialect::sqlparser_dialect;
-
-pub use dialect::{Dialect, UnknownDialect};
 
 /// Parse a DDL script into a schema, collecting warnings for what was skipped.
 ///
@@ -47,7 +45,7 @@ pub fn parse(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Sc
         translate::amend(statement, &index, &mut outcome);
     }
 
-    let diagnostics = craber_core::normalize::annotate_relationships(&mut outcome.value);
+    let diagnostics = craber_core::normalize(&mut outcome.value);
     outcome.diagnostics.extend(diagnostics);
     outcome
 }

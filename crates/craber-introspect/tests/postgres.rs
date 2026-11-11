@@ -72,7 +72,7 @@ fn introspecting_tiny_sql_agrees_with_parsing_it() {
 }
 
 /// Spelled out rather than left to the comparison above, because these are the
-/// ends the notation actually draws and a regression in `annotate_relationships`
+/// ends the notation actually draws and a regression in `normalize`
 /// would move them without changing anything else.
 #[test]
 #[ignore = "needs a Docker daemon"]

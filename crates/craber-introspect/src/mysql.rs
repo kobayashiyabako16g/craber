@@ -9,13 +9,16 @@
 //! reason to decode as text; the cast is what makes the column readable.
 
 use craber_core::{
-    Column, Diagnostic, Dialect, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
+    Action, Column, Dialect, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
 };
 use sqlx::mysql::{MySqlConnectOptions, MySqlRow};
 use sqlx::{Connection, MySqlConnection, Row};
 
-use crate::assemble::{self, Tables};
+use crate::assemble::{self, Catalog};
 use crate::{Error, connect};
+
+/// The name `information_schema.STATISTICS` gives a table's primary key.
+const PRIMARY: &str = "PRIMARY";
 
 pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
     let options = connect::options::<MySqlConnectOptions>(dsn, Dialect::MySql)?;
@@ -26,16 +29,16 @@ pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
         .await?;
     let name = name.ok_or(Error::NoDatabase)?;
 
-    let mut diagnostics = Vec::new();
-    let mut tables = read_tables(&mut conn).await?;
-    read_columns(&mut conn, &mut tables).await?;
-    read_indexes(&mut conn, &mut tables).await?;
-    read_foreign_keys(&mut conn, &mut tables, &mut diagnostics).await?;
+    let mut catalog = Catalog::default();
+    read_tables(&mut conn, &mut catalog).await?;
+    read_columns(&mut conn, &mut catalog).await?;
+    read_indexes(&mut conn, &mut catalog).await?;
+    read_foreign_keys(&mut conn, &name, &mut catalog).await?;
 
     conn.close().await?;
     // No enums: MySQL's are a column type rather than a named one, and their
     // values ride along in `COLUMN_TYPE`. The parser reports none either.
-    Ok(assemble::finish(name, tables, Vec::new(), diagnostics))
+    Ok(catalog.finish(name))
 }
 
 /// `Table::schema` stays `None` throughout this module.
@@ -44,7 +47,7 @@ pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
 /// `mysqldump` — the fixture's tables are a bare `users`, not `shop.users`.
 /// Putting the database name in would make every `--include` glob and every
 /// qualified name disagree between a file and a connection.
-async fn read_tables(conn: &mut MySqlConnection) -> Result<Tables, Error> {
+async fn read_tables(conn: &mut MySqlConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let rows = sqlx::query(
         "SELECT CAST(TABLE_NAME    AS CHAR) AS name,
                 CAST(TABLE_COMMENT AS CHAR) AS comment
@@ -55,13 +58,12 @@ async fn read_tables(conn: &mut MySqlConnection) -> Result<Tables, Error> {
     .fetch_all(&mut *conn)
     .await?;
 
-    let mut tables = Tables::default();
     for row in rows {
-        let mut table = Table::new(row.get::<String, _>("name"));
-        table.comment = assemble::comment(row.get("comment"));
-        tables.push(table);
+        let mut table = Table::new(row.try_get::<String, _>("name")?);
+        table.comment = row.try_get("comment")?;
+        catalog.push(table);
     }
-    Ok(tables)
+    Ok(())
 }
 
 /// `COLUMN_TYPE`, not `DATA_TYPE`.
@@ -69,7 +71,7 @@ async fn read_tables(conn: &mut MySqlConnection) -> Result<Tables, Error> {
 /// `DATA_TYPE` flattens to `enum` and `bigint`; `COLUMN_TYPE` keeps
 /// `enum('admin','member','guest')` and `bigint unsigned`, which is what the
 /// DDL said and what the parser records.
-async fn read_columns(conn: &mut MySqlConnection, tables: &mut Tables) -> Result<(), Error> {
+async fn read_columns(conn: &mut MySqlConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let rows = sqlx::query(
         "SELECT CAST(TABLE_NAME     AS CHAR) AS table_name,
                 CAST(COLUMN_NAME    AS CHAR) AS name,
@@ -86,22 +88,22 @@ async fn read_columns(conn: &mut MySqlConnection, tables: &mut Tables) -> Result
     .await?;
 
     for row in rows {
-        let table_name: String = row.get("table_name");
-        let Some(table) = tables.get_mut(None, &table_name) else {
-            continue;
-        };
         let mut column = Column::new(
-            row.get::<String, _>("name"),
-            row.get::<String, _>("data_type"),
+            row.try_get::<String, _>("name")?,
+            row.try_get::<String, _>("data_type")?,
         );
-        column.nullable = row.get::<String, _>("nullable").eq_ignore_ascii_case("YES");
+        column.nullable = row
+            .try_get::<String, _>("nullable")?
+            .eq_ignore_ascii_case("YES");
         column.default = default(
-            row.get("default_expr"),
+            row.try_get("default_expr")?,
             &column.data_type,
-            &row.get::<String, _>("extra"),
+            &row.try_get::<String, _>("extra")?,
         );
-        column.comment = assemble::comment(row.get("comment"));
-        table.columns.push(column);
+        column.comment = row.try_get("comment")?;
+        if let Some(table) = catalog.table_mut(&table_of(&row)?) {
+            table.columns.push(column);
+        }
     }
     Ok(())
 }
@@ -149,7 +151,7 @@ fn default(raw: Option<String>, data_type: &str, extra: &str) -> Option<String> 
 /// The primary key and every other index, both out of `STATISTICS`.
 ///
 /// Rows arrive one per column, so an index is finished when the name changes.
-async fn read_indexes(conn: &mut MySqlConnection, tables: &mut Tables) -> Result<(), Error> {
+async fn read_indexes(conn: &mut MySqlConnection, catalog: &mut Catalog) -> Result<(), Error> {
     let rows = sqlx::query(
         "SELECT CAST(TABLE_NAME  AS CHAR) AS table_name,
                 CAST(INDEX_NAME  AS CHAR) AS index_name,
@@ -174,60 +176,56 @@ async fn read_indexes(conn: &mut MySqlConnection, tables: &mut Tables) -> Result
     // arrive together, so an index is a consecutive run of rows — which
     // `chunk_by` gives without an accumulator and, more to the point, without a
     // trailing flush that drops the last index of the whole query if forgotten.
-    for index in rows.chunk_by(|a, b| index_key(a) == index_key(b)) {
-        let first = index.first().expect("chunk_by yields no empty group");
-        let (table_name, name) = index_key(first);
-        apply_index(
-            tables,
-            &table_name,
-            name,
-            first.get::<i64, _>("non_unique") == 0,
-            index.iter().map(|row| row.get("column_name")).collect(),
-        );
+    let rows = keyed(rows, "index_name")?;
+    for index in rows.chunk_by(|a, b| a.0 == b.0) {
+        let ((table, name), first) = &index[0];
+        let columns = index
+            .iter()
+            .map(|(_, row)| row.try_get("column_name"))
+            .collect::<Result<Vec<String>, _>>()?;
+        let unique = first.try_get::<i64, _>("non_unique")? == 0;
+        let Some(table) = catalog.table_mut(table) else {
+            continue;
+        };
+        if name == PRIMARY {
+            table.pk = columns;
+        } else {
+            table.indexes.push(TableIndex {
+                name: Some(name.clone()),
+                columns,
+                unique,
+            });
+        }
     }
     Ok(())
 }
 
-/// What makes two rows part of the same constraint.
-fn constraint_key(row: &MySqlRow) -> (String, String) {
-    (row.get("table_name"), row.get("name"))
+/// What makes two rows part of the same index or constraint: its table and its
+/// name.
+type Key = (TableRef, String);
+
+/// Each row paired with its [`Key`], the name read from `name_column`. Decoded
+/// up front, so grouping rows cannot fail halfway through.
+fn keyed(rows: Vec<MySqlRow>, name_column: &str) -> Result<Vec<(Key, MySqlRow)>, sqlx::Error> {
+    rows.into_iter()
+        .map(|row| Ok(((table_of(&row)?, row.try_get(name_column)?), row)))
+        .collect()
 }
 
-/// What makes two rows part of the same index.
-fn index_key(row: &MySqlRow) -> (String, String) {
-    (row.get("table_name"), row.get("index_name"))
+/// The table a row names in its `table_name` column.
+///
+/// Unqualified: see [`read_tables`].
+fn table_of(row: &MySqlRow) -> Result<TableRef, sqlx::Error> {
+    Ok(TableRef::new(row.try_get::<String, _>("table_name")?))
 }
 
-fn apply_index(
-    tables: &mut Tables,
-    table_name: &str,
-    name: String,
-    unique: bool,
-    columns: Vec<String>,
-) {
-    let Some(table) = tables.get_mut(None, table_name) else {
-        return;
-    };
-    if name == "PRIMARY" {
-        table.pk = columns;
-    } else {
-        table.indexes.push(TableIndex {
-            name: Some(name),
-            columns,
-            unique,
-        });
-    }
-}
-
+/// `database` is the one the connection is scoped to, which a key's
+/// `REFERENCED_TABLE_SCHEMA` is compared against.
 async fn read_foreign_keys(
     conn: &mut MySqlConnection,
-    tables: &mut Tables,
-    diagnostics: &mut Vec<Diagnostic>,
+    database: &str,
+    catalog: &mut Catalog,
 ) -> Result<(), Error> {
-    let database: Option<String> = sqlx::query_scalar("SELECT CAST(DATABASE() AS CHAR)")
-        .fetch_one(&mut *conn)
-        .await?;
-
     let rows = sqlx::query(
         "SELECT CAST(k.TABLE_NAME              AS CHAR) AS table_name,
                 CAST(k.CONSTRAINT_NAME         AS CHAR) AS name,
@@ -251,44 +249,42 @@ async fn read_foreign_keys(
 
     // As for the indexes: `ORDER BY k.TABLE_NAME, k.CONSTRAINT_NAME,
     // k.ORDINAL_POSITION` makes a constraint a consecutive run of rows.
-    for key in rows.chunk_by(|a, b| constraint_key(a) == constraint_key(b)) {
-        let (first, rest) = key.split_first().expect("chunk_by yields no empty group");
-        let (table_name, name) = constraint_key(first);
-        let ref_schema: Option<String> = first.get("ref_schema");
+    let rows = keyed(rows, "name")?;
+    for key in rows.chunk_by(|a, b| a.0 == b.0) {
+        let ((table, name), first) = &key[0];
+        let context = assemble::context(table, name);
+        let ref_schema: Option<String> = first.try_get("ref_schema")?;
 
         // A key into another database points at a table this diagram does not
         // contain, so the edge would dangle and `Filter` would drop it anyway.
         // `ref_schema` is a property of the constraint, so this is one warning
         // per key rather than one per column of it.
-        if ref_schema.is_some() && ref_schema != database {
-            diagnostics.push(
-                Diagnostic::warning("foreign key into another database, skipped")
-                    .with_context(name),
-            );
+        if ref_schema.is_some_and(|schema| schema != database) {
+            catalog.warn("foreign key into another database, skipped", context);
             continue;
         }
 
-        let mut fk = ForeignKey::new(
-            first.get::<String, _>("column_name"),
-            TableRef::new(first.get::<String, _>("ref_table")),
-            first.get::<String, _>("ref_column"),
-        );
-        for row in rest {
-            fk.columns.push(row.get("column_name"));
-            fk.ref_columns.push(row.get("ref_column"));
+        let mut columns = Vec::with_capacity(key.len());
+        let mut ref_columns = Vec::with_capacity(key.len());
+        for (_, row) in key {
+            columns.push(row.try_get("column_name")?);
+            ref_columns.push(row.try_get("ref_column")?);
         }
-        fk.name = Some(name.clone());
-        fk.on_delete =
-            assemble::action_in_words(&first.get::<String, _>("on_delete"), &name, diagnostics);
-        fk.on_update =
-            assemble::action_in_words(&first.get::<String, _>("on_update"), &name, diagnostics);
-        push_fk(tables, &table_name, fk);
+        let on_delete = first.try_get::<String, _>("on_delete")?;
+        let on_update = first.try_get::<String, _>("on_update")?;
+        let fk = ForeignKey::declared(
+            columns,
+            TableRef::new(first.try_get::<String, _>("ref_table")?),
+            ref_columns,
+        )
+        .named(name.clone())
+        .with_actions(
+            catalog.action(&on_delete, &context, Action::from_sql),
+            catalog.action(&on_update, &context, Action::from_sql),
+        );
+        if let Some(table) = catalog.table_mut(table) {
+            table.fks.push(fk);
+        }
     }
     Ok(())
-}
-
-fn push_fk(tables: &mut Tables, table_name: &str, fk: ForeignKey) {
-    if let Some(table) = tables.get_mut(None, table_name) {
-        table.fks.push(fk);
-    }
 }

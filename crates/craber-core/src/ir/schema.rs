@@ -253,7 +253,7 @@ impl ForeignKey {
     ///
     /// [`cardinality`](Self::cardinality) and [`optional`](Self::optional) are
     /// filled in by
-    /// [`annotate_relationships`](crate::normalize::annotate_relationships),
+    /// [`normalize`](crate::normalize()),
     /// which needs the whole table — the FK's own columns decide both, and
     /// neither is knowable from the constraint alone. Every producer builds
     /// keys through here and lets that pass finish them, which is what stops
@@ -270,6 +270,21 @@ impl ForeignKey {
             cardinality: Cardinality::default(),
             optional: false,
         }
+    }
+
+    /// The constraint's own name.
+    #[must_use]
+    pub fn named(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
+
+    /// What `ON DELETE` and `ON UPDATE` do.
+    #[must_use]
+    pub fn with_actions(mut self, on_delete: Action, on_update: Action) -> Self {
+        self.on_delete = on_delete;
+        self.on_update = on_update;
+        self
     }
 
     /// [`declared`](Self::declared) for the common single-column case.
@@ -293,6 +308,24 @@ pub enum Action {
     Cascade,
     SetNull,
     SetDefault,
+}
+
+impl Action {
+    /// The action SQL spells as `words` — `NO ACTION`, `SET NULL` and so on,
+    /// in any case — or `None` for anything else.
+    ///
+    /// Empty reads as `NO ACTION`: it is what a catalog reports for a key that
+    /// never said.
+    pub fn from_sql(words: &str) -> Option<Self> {
+        match words.trim().to_ascii_uppercase().as_str() {
+            "NO ACTION" | "" => Some(Self::NoAction),
+            "RESTRICT" => Some(Self::Restrict),
+            "CASCADE" => Some(Self::Cascade),
+            "SET NULL" => Some(Self::SetNull),
+            "SET DEFAULT" => Some(Self::SetDefault),
+            _ => None,
+        }
+    }
 }
 
 /// Which crow's-foot marker to draw at each end of an edge.

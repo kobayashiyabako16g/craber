@@ -17,15 +17,15 @@ use sqlparser::ast::{
     SqlOption, Statement, TableConstraint, UserDefinedTypeRepresentation,
 };
 
-use crate::dialect::Dialect;
 use crate::names::{name_parts, object_ref, parts_ref};
+use craber_core::Dialect;
 
 /// First pass: statements that bring a table or a type into existence.
 pub(crate) fn define(statement: &Statement, dialect: Dialect, outcome: &mut Outcome<Schema>) {
     match statement {
         Statement::CreateTable(create) => {
             let table = create_table(create, outcome);
-            if !is_internal(&table.name, dialect) {
+            if !dialect.is_engine_table(&table.name) {
                 outcome.value.tables.push(table);
             }
         }
@@ -291,18 +291,19 @@ fn add_constraint(table: &mut Table, constraint: &TableConstraint) -> Option<Dia
 }
 
 fn foreign_key(fk: &ForeignKeyConstraint) -> ForeignKey {
-    let mut foreign_key = ForeignKey::declared(
+    let foreign_key = ForeignKey::declared(
         fk.columns.iter().map(|i| i.value.clone()).collect(),
         object_ref(&fk.foreign_table),
         fk.referred_columns
             .iter()
             .map(|i| i.value.clone())
             .collect(),
-    );
-    foreign_key.name = fk.name.as_ref().map(|i| i.value.clone());
-    foreign_key.on_delete = action(fk.on_delete.as_ref());
-    foreign_key.on_update = action(fk.on_update.as_ref());
-    foreign_key
+    )
+    .with_actions(action(fk.on_delete.as_ref()), action(fk.on_update.as_ref()));
+    match &fk.name {
+        Some(name) => foreign_key.named(name.value.clone()),
+        None => foreign_key,
+    }
 }
 
 fn action(action: Option<&ReferentialAction>) -> Action {
@@ -330,16 +331,6 @@ fn option_comment(options: &CreateTableOptions) -> Option<String> {
         SqlOption::Comment(comment) => Some(comment.to_string()),
         _ => None,
     })
-}
-
-/// True for a table the engine maintains rather than the schema author.
-///
-/// `sqlite3 .schema` prints `sqlite_sequence` next to the real tables whenever
-/// anything uses AUTOINCREMENT, and `sqlite_stat1` once ANALYZE has run. They
-/// are part of the file, not part of the model, and drawing them puts a
-/// typeless two-column node in the middle of the diagram.
-fn is_internal(name: &str, dialect: Dialect) -> bool {
-    dialect == Dialect::Sqlite && name.to_ascii_lowercase().starts_with("sqlite_")
 }
 
 /// Index/key columns, dropping anything that is not a plain column reference

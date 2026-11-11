@@ -100,7 +100,7 @@ fn unimplemented_formats_say_so_instead_of_writing_nothing() {
 
 /// The fixture is also the notation sample: every relationship end CrabER can
 /// derive from DDL appears in it exactly once. The ends themselves are drawn
-/// from these two facts (`craber_core::normalize::annotate_relationships`), so this is
+/// from these two facts (`craber_core::normalize`), so this is
 /// where a change in how they are derived shows up — in the diagram it would
 /// only look like a different picture.
 #[test]

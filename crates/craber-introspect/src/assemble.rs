@@ -2,136 +2,90 @@
 //!
 //! Every backend asks its server a handful of independent questions — tables,
 //! then columns, then constraints, then indexes — and gets back rows that name
-//! the table they belong to. This is the part that puts them together, so the
-//! three backends cannot drift on how a table is looked up or on what has to
-//! happen before a schema is finished.
+//! the table they belong to. [`Catalog`] is the bookkeeping they share, so the
+//! three backends cannot drift on how a table is looked up, how a warning is
+//! worded, or what has to happen before a schema is finished. What is left in
+//! each backend is its queries.
 
 use std::collections::HashMap;
 
-use craber_core::{Action, Diagnostic, Outcome, Schema, Table};
+use craber_core::{Action, Diagnostic, EnumType, Outcome, Schema, Table, TableRef};
 
-/// Tables in the order the catalog listed them, with a lookup by name.
-///
-/// The order matters: it is what the diagram's table list and every snapshot
-/// are in, so it has to come from the query's `ORDER BY` rather than from a
-/// hash map's iteration.
+/// A schema being read: the tables so far, the enums, and what went wrong.
 #[derive(Debug, Default)]
-pub(crate) struct Tables {
+pub(crate) struct Catalog {
+    /// In the order the catalog listed them. That is what the diagram's table
+    /// list and every snapshot are in, so it has to come from the query's
+    /// `ORDER BY` rather than from a hash map's iteration.
     tables: Vec<Table>,
-    index: HashMap<(Option<String>, String), usize>,
+    /// Exact names only. A catalog row names its table in full, so the lenient
+    /// rule `SchemaIndex::resolve` applies to a reference has no place here.
+    index: HashMap<TableRef, usize>,
+    pub(crate) enums: Vec<EnumType>,
+    diagnostics: Vec<Diagnostic>,
 }
 
-impl Tables {
+impl Catalog {
     pub(crate) fn push(&mut self, table: Table) {
-        self.index.insert(
-            (table.schema.clone(), table.name.clone()),
-            self.tables.len(),
-        );
+        self.index.insert(table.to_ref(), self.tables.len());
         self.tables.push(table);
     }
 
-    pub(crate) fn get_mut(&mut self, schema: Option<&str>, name: &str) -> Option<&mut Table> {
-        let at = self.at(schema, name)?;
+    /// The table a catalog row belongs to.
+    ///
+    /// Every query spans the whole catalog, so a row naming a table that is
+    /// not here is ordinary — a view, a partition child — rather than an error.
+    pub(crate) fn table_mut(&mut self, name: &TableRef) -> Option<&mut Table> {
+        let at = *self.index.get(name)?;
         self.tables.get_mut(at)
     }
 
-    /// The position of a table in `tables`.
+    /// Record a warning about `context` — `table.constraint` for anything
+    /// inside a table, so every backend's messages point the same way.
+    pub(crate) fn warn(&mut self, message: impl Into<String>, context: impl Into<String>) {
+        self.diagnostics
+            .push(Diagnostic::warning(message).with_context(context));
+    }
+
+    /// A referential action, or a warning and `NO ACTION` when the catalog
+    /// named one `parse` does not know.
     ///
-    /// Builds the owned key the map is keyed by, which costs two allocations
-    /// per lookup on a path that runs once per catalog row. Left that way on
-    /// purpose: a borrowed lookup into a `HashMap<(Option<String>, String), _>`
-    /// needs either a linear scan or a second representation of the key, and
-    /// both are worse trades than two short allocations.
-    fn at(&self, schema: Option<&str>, name: &str) -> Option<usize> {
-        let key = (schema.map(ToOwned::to_owned), name.to_owned());
-        self.index.get(&key).copied()
+    /// A warning rather than a failure: an unrecognised action costs the
+    /// diagram nothing visible, and refusing to draw a schema over it would be
+    /// a far worse trade than reporting it.
+    pub(crate) fn action(
+        &mut self,
+        raw: &str,
+        context: &str,
+        parse: impl FnOnce(&str) -> Option<Action>,
+    ) -> Action {
+        parse(raw).unwrap_or_else(|| {
+            self.warn(format!("unknown referential action `{raw}`"), context);
+            Action::NoAction
+        })
     }
 
-    pub(crate) fn into_vec(self) -> Vec<Table> {
-        self.tables
-    }
-}
-
-/// Assemble the finished schema.
-///
-/// The [`annotate_relationships`](craber_core::normalize::annotate_relationships) call
-/// is why this function exists rather than each backend building its own
-/// `Outcome`. It is what fills in the crow's-foot ends and forces primary key
-/// columns `NOT NULL`, `craber_parser::parse` ends with it, and a backend that
-/// forgot it would produce a diagram whose every relationship reads
-/// many-to-one — wrong, but not wrong enough to look broken.
-pub(crate) fn finish(
-    name: impl Into<String>,
-    tables: Tables,
-    enums: Vec<craber_core::EnumType>,
-    mut diagnostics: Vec<Diagnostic>,
-) -> Outcome<Schema> {
-    let mut schema = Schema::new(name);
-    schema.tables = tables.into_vec();
-    schema.enums = enums;
-    diagnostics.extend(craber_core::normalize::annotate_relationships(&mut schema));
-    Outcome {
-        value: schema,
-        diagnostics,
+    /// The finished schema.
+    ///
+    /// The [`normalize`](craber_core::normalize()) call is why this exists
+    /// rather than each backend building its own `Outcome`. It is what fills in
+    /// the crow's-foot ends and forces primary key columns `NOT NULL`;
+    /// `craber_parser::parse` ends with it too, and a
+    /// backend that forgot it would produce a diagram whose every relationship
+    /// reads many-to-one — wrong, but not wrong enough to look broken.
+    pub(crate) fn finish(mut self, name: impl Into<String>) -> Outcome<Schema> {
+        let mut schema = Schema::new(name);
+        schema.tables = self.tables;
+        schema.enums = self.enums;
+        self.diagnostics.extend(craber_core::normalize(&mut schema));
+        Outcome {
+            value: schema,
+            diagnostics: self.diagnostics,
+        }
     }
 }
 
-/// A referential action, or a warning and `NO ACTION` when the catalog named
-/// one this does not know.
-///
-/// `parse` is the only part that differs between backends — PostgreSQL reports
-/// single characters where MySQL and SQLite report words — so the warning
-/// itself is written once rather than three times.
-///
-/// A warning rather than a failure: an unrecognised action costs the diagram
-/// nothing visible, and refusing to draw a schema over it would be a far worse
-/// trade than reporting it.
-pub(crate) fn action_or_warn(
-    raw: &str,
-    context: &str,
-    diagnostics: &mut Vec<Diagnostic>,
-    parse: impl FnOnce(&str) -> Option<Action>,
-) -> Action {
-    parse(raw).unwrap_or_else(|| {
-        diagnostics.push(
-            Diagnostic::warning(format!("unknown referential action `{raw}`"))
-                .with_context(context.to_owned()),
-        );
-        Action::NoAction
-    })
-}
-
-/// A referential action as MySQL and SQLite both spell it, or a warning.
-///
-/// [`action_or_warn`] paired with [`action_from_words`], which is what both of
-/// those backends wanted and each wrote out for itself. PostgreSQL does not use
-/// this: it reports single characters and maps them in its own module.
-pub(crate) fn action_in_words(
-    raw: &str,
-    context: &str,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> Action {
-    action_or_warn(raw, context, diagnostics, action_from_words)
-}
-
-/// The spelling MySQL and SQLite both use for a referential action.
-///
-/// PostgreSQL reports a single character instead and maps it in its own module.
-fn action_from_words(word: &str) -> Option<Action> {
-    match word.to_ascii_uppercase().as_str() {
-        "NO ACTION" | "" => Some(Action::NoAction),
-        "RESTRICT" => Some(Action::Restrict),
-        "CASCADE" => Some(Action::Cascade),
-        "SET NULL" => Some(Action::SetNull),
-        "SET DEFAULT" => Some(Action::SetDefault),
-        _ => None,
-    }
-}
-
-/// A comment that is only whitespace is no comment.
-///
-/// MySQL stores `''` rather than NULL for a table with no comment, and without
-/// this every node would carry an empty one.
-pub(crate) fn comment(raw: Option<String>) -> Option<String> {
-    raw.filter(|text| !text.trim().is_empty())
+/// `table.constraint`, the context every backend gives a warning about a key.
+pub(crate) fn context(table: &TableRef, constraint: &str) -> String {
+    format!("{}.{constraint}", table.qualified_name())
 }

@@ -4,7 +4,7 @@
 //! filename and a connection string scheme all select, and `craber-introspect`
 //! needs it without needing sqlparser. Only the mapping to a parser stays here.
 
-pub use craber_core::{Dialect, UnknownDialect};
+use craber_core::Dialect;
 
 /// A free function rather than a method: `Dialect` is a foreign type now, so it
 /// cannot grow an inherent impl in this crate.

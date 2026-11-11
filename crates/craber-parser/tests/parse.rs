@@ -1,5 +1,6 @@
+use craber_core::Dialect;
 use craber_core::{Action, Cardinality, Severity};
-use craber_parser::{Dialect, parse};
+use craber_parser::parse;
 
 fn postgres(sql: &str) -> craber_core::Outcome<craber_core::Schema> {
     parse(sql, Dialect::Postgres, "test")

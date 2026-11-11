@@ -197,7 +197,7 @@ fn a_partial_unique_index_is_not_unique() {
     assert!(full.unique);
 }
 
-/// `annotate_relationships` is what fills these in, and a backend that forgot to
+/// `normalize` is what fills these in, and a backend that forgot to
 /// call it would leave every relationship reading many-to-one.
 #[test]
 fn relationships_are_annotated() {

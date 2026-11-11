@@ -1,5 +1,6 @@
+use craber_core::Dialect;
 use craber_core::{Outcome, Severity, StepKind, Workflow};
-use craber_parser::{Dialect, parse_flow};
+use craber_parser::parse_flow;
 
 fn postgres(sql: &str) -> Outcome<Workflow> {
     parse_flow(sql, Dialect::Postgres, "test")

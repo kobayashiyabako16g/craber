@@ -4,29 +4,57 @@
 //! `ir` defines what a schema *is*, and this fills in the parts of it that only
 //! become knowable once a whole table has been read.
 //!
-//! Both producers end with this — `craber_parser::parse` and
-//! `craber_introspect`'s `assemble::finish` — which is what makes a file and a
-//! live connection describe the same relationships.
+//! Both producers end with [`normalize`] — `craber_parser::parse` and
+//! `craber_introspect`'s `Catalog::finish` — which is what makes a file and a
+//! live connection describe the same schema. Anything one producer would
+//! otherwise tidy up on its own belongs here instead.
 
 use crate::diagnostic::Diagnostic;
 use crate::index::SchemaIndex;
 use crate::ir::{Cardinality, Schema};
 
+/// Finish a parsed or introspected schema. The diagnostics name what had to be
+/// dropped.
+#[must_use = "the diagnostics name foreign keys that were dropped"]
+pub fn normalize(schema: &mut Schema) -> Vec<Diagnostic> {
+    let diagnostics = fill_referenced_keys(schema);
+    drop_blank_comments(schema);
+    annotate_relationships(schema);
+    diagnostics
+}
+
+/// A comment that is only whitespace is no comment.
+///
+/// MySQL stores `''` rather than NULL for a table with no comment, and `COMMENT
+/// ON TABLE t IS ''` is how a file clears one; without this every such node
+/// would carry an empty comment.
+fn drop_blank_comments(schema: &mut Schema) {
+    let blank = |comment: &mut Option<String>| {
+        if comment
+            .as_deref()
+            .is_some_and(|text| text.trim().is_empty())
+        {
+            *comment = None;
+        }
+    };
+    for table in &mut schema.tables {
+        blank(&mut table.comment);
+        for column in &mut table.columns {
+            blank(&mut column.comment);
+        }
+    }
+}
+
 /// Fill in what the diagram's relationship ends are drawn from, none of which
 /// a dialect states outright:
 ///
-/// - a foreign key written `REFERENCES t` with no column list means `t`'s
-///   primary key. One whose target has no primary key is dropped with a
-///   warning: it names no column for a line to attach to;
 /// - a primary key column is `NOT NULL` whether or not the DDL repeated it,
 ///   which a table-level `PRIMARY KEY (a, b)` never does;
 /// - [`ForeignKey::cardinality`](crate::ForeignKey::cardinality) from the uniqueness
 ///   of the FK's own columns —
 ///   a FK over a unique tuple is one-to-one, anything else many-to-one;
 /// - [`ForeignKey::optional`](crate::ForeignKey::optional) from their nullability.
-#[must_use = "the diagnostics name foreign keys that were dropped"]
-pub fn annotate_relationships(schema: &mut Schema) -> Vec<Diagnostic> {
-    let diagnostics = fill_referenced_keys(schema);
+fn annotate_relationships(schema: &mut Schema) {
     for table in &mut schema.tables {
         for column in &mut table.columns {
             if table.pk.contains(&column.name) {
@@ -58,11 +86,11 @@ pub fn annotate_relationships(schema: &mut Schema) -> Vec<Diagnostic> {
             fk.optional = optional;
         }
     }
-    diagnostics
 }
 
-/// Point every foreign key with no referenced columns at its target's primary
-/// key.
+/// Point every foreign key with no referenced columns — `REFERENCES t` — at
+/// its target's primary key. One whose target has no primary key is dropped
+/// with a warning: it names no column for a line to attach to.
 ///
 /// A target this schema does not have is left alone: there is no edge to draw
 /// either way, and the details panel can still name it.

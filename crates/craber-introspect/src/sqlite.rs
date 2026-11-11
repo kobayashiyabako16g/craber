@@ -6,12 +6,12 @@
 //! SQLite 3.16 — take the name as a parameter instead.
 
 use craber_core::{
-    Column, Diagnostic, Dialect, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
+    Action, Column, Dialect, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
 };
-use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::sqlite::{SqliteConnectOptions, SqliteRow};
 use sqlx::{Connection, Row, SqliteConnection};
 
-use crate::assemble::{self, Tables};
+use crate::assemble::{self, Catalog};
 use crate::{Error, connect};
 
 pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
@@ -29,37 +29,32 @@ pub(crate) async fn introspect(dsn: &str) -> Result<Outcome<Schema>, Error> {
 
     let mut conn = connect::connect(&options).await?;
 
-    let mut diagnostics = Vec::new();
-    let names = read_table_names(&mut conn).await?;
-
-    let mut tables = Tables::default();
-    for table_name in &names {
-        let mut table = Table::new(table_name.clone());
+    let mut catalog = Catalog::default();
+    for table_name in read_table_names(&mut conn).await? {
+        let mut table = Table::new(table_name);
         read_columns(&mut conn, &mut table).await?;
         read_indexes(&mut conn, &mut table).await?;
-        tables.push(table);
+        read_foreign_keys(&mut conn, &mut table, &mut catalog).await?;
+        catalog.push(table);
     }
-    // Foreign keys come second, so a key that omits its referenced columns can
-    // be resolved against the other table's primary key.
-    read_foreign_keys(&mut conn, &names, &mut tables, &mut diagnostics).await?;
 
     conn.close().await?;
     // Neither comments nor named enum types exist in SQLite. That is the dialect,
     // not something that went wrong, so it produces no diagnostic.
-    Ok(assemble::finish(name, tables, Vec::new(), diagnostics))
+    Ok(catalog.finish(name))
 }
 
-/// `sqlite_*` is the engine's own bookkeeping — `sqlite_sequence` most often —
-/// and `craber-parser` skips it by the same rule. Left in, it lands a typeless
-/// node in the middle of the diagram.
+/// The engine's own tables are left out by [`Dialect::is_engine_table`], the
+/// rule `craber-parser` skips them by.
 async fn read_table_names(conn: &mut SqliteConnection) -> Result<Vec<String>, Error> {
-    Ok(sqlx::query_scalar(
-        r"SELECT name FROM sqlite_master
-           WHERE type = 'table' AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
-           ORDER BY name",
-    )
-    .fetch_all(&mut *conn)
-    .await?)
+    let names: Vec<String> =
+        sqlx::query_scalar("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+            .fetch_all(&mut *conn)
+            .await?;
+    Ok(names
+        .into_iter()
+        .filter(|name| !Dialect::Sqlite.is_engine_table(name))
+        .collect())
 }
 
 async fn read_columns(conn: &mut SqliteConnection, table: &mut Table) -> Result<(), Error> {
@@ -73,13 +68,13 @@ async fn read_columns(conn: &mut SqliteConnection, table: &mut Table) -> Result<
     // not part of one — so a composite key keeps its declared order.
     let mut key: Vec<(i64, String)> = Vec::new();
     for row in rows {
-        let name: String = row.get("name");
-        let mut column = Column::new(name.clone(), row.get::<String, _>("type"));
-        column.nullable = row.get::<i64, _>("notnull") == 0;
-        column.default = row.get("dflt_value");
+        let name: String = row.try_get("name")?;
+        let mut column = Column::new(name.clone(), row.try_get::<String, _>("type")?);
+        column.nullable = row.try_get::<i64, _>("notnull")? == 0;
+        column.default = row.try_get("dflt_value")?;
         table.columns.push(column);
 
-        let position: i64 = row.get("pk");
+        let position: i64 = row.try_get("pk")?;
         if position > 0 {
             key.push((position, name));
         }
@@ -101,7 +96,7 @@ async fn read_indexes(conn: &mut SqliteConnection, table: &mut Table) -> Result<
     .await?;
 
     for index in indexes {
-        let name: String = index.get("name");
+        let name: String = index.try_get("name")?;
         let columns: Vec<Option<String>> =
             sqlx::query_scalar("SELECT name FROM pragma_index_info(?) ORDER BY seqno")
                 .bind(&name)
@@ -118,65 +113,63 @@ async fn read_indexes(conn: &mut SqliteConnection, table: &mut Table) -> Result<
             // Same reasoning as PostgreSQL: a partial index constrains only the
             // rows its predicate matches, so the tuple is not unique and
             // `is_unique_tuple` must not say it is.
-            unique: index.get::<i64, _>("unique") == 1 && index.get::<i64, _>("partial") == 0,
+            unique: index.try_get::<i64, _>("unique")? == 1
+                && index.try_get::<i64, _>("partial")? == 0,
             name: Some(name),
         });
     }
     Ok(())
 }
 
+/// The keys `table` declares, onto `table`.
+///
+/// The name stays `None`: PRAGMA does not report a constraint's name, even when
+/// the DDL gave it one. A `to` of NULL means the key omits the referenced
+/// column list; `normalize` fills in the primary key, for files
+/// as well.
 async fn read_foreign_keys(
     conn: &mut SqliteConnection,
-    names: &[String],
-    tables: &mut Tables,
-    diagnostics: &mut Vec<Diagnostic>,
+    table: &mut Table,
+    catalog: &mut Catalog,
 ) -> Result<(), Error> {
-    for table_name in names {
-        let rows = sqlx::query(
-            "SELECT id, \"table\", \"from\", \"to\", on_update, on_delete
-               FROM pragma_foreign_key_list(?) ORDER BY id, seq",
-        )
-        .bind(table_name)
-        .fetch_all(&mut *conn)
-        .await?;
+    let rows = sqlx::query(
+        "SELECT id, \"table\", \"from\", \"to\", on_update, on_delete
+           FROM pragma_foreign_key_list(?) ORDER BY id, seq",
+    )
+    .bind(&table.name)
+    .fetch_all(&mut *conn)
+    .await?;
 
-        // `ORDER BY id, seq` means one key's columns arrive together, so the
-        // groups are consecutive runs of equal `id` — which `chunk_by` gives
-        // without an accumulator to flush at the end. Forgetting that flush
-        // dropped the last key of every table, and silently.
-        for key in rows.chunk_by(|a, b| a.get::<i64, _>("id") == b.get::<i64, _>("id")) {
-            let (first, rest) = key.split_first().expect("chunk_by yields no empty group");
+    // `ORDER BY id, seq` means one key's columns arrive together, so the
+    // groups are consecutive runs of equal `id` — which `chunk_by` gives
+    // without an accumulator to flush at the end. Forgetting that flush
+    // dropped the last key of every table, and silently.
+    let rows = rows
+        .into_iter()
+        .map(|row| Ok((row.try_get::<i64, _>("id")?, row)))
+        .collect::<Result<Vec<(i64, SqliteRow)>, sqlx::Error>>()?;
+    for key in rows.chunk_by(|a, b| a.0 == b.0) {
+        let (id, first) = &key[0];
+        let ref_table: String = first.try_get("table")?;
+        // No name to give it, so the key is told apart by its position.
+        let context = assemble::context(&table.to_ref(), &format!("fk{id}"));
 
-            // `to` is NULL when the key omits the referenced column list, in
-            // which case it means the other table's primary key —
-            // `annotate_relationships` fills that in, for files as well.
-            // The name stays `None`: PRAGMA does not report the constraint's
-            // name, even when the DDL gave it one.
-            let mut fk = ForeignKey::declared(
-                vec![first.get("from")],
-                TableRef::new(first.get::<String, _>("table")),
-                first.get::<Option<String>, _>("to").into_iter().collect(),
-            );
-            for row in rest {
-                fk.columns.push(row.get("from"));
-                if let Some(to) = row.get::<Option<String>, _>("to") {
-                    fk.ref_columns.push(to);
-                }
-            }
-            fk.on_delete = assemble::action_in_words(
-                &first.get::<String, _>("on_delete"),
-                table_name,
-                diagnostics,
-            );
-            fk.on_update = assemble::action_in_words(
-                &first.get::<String, _>("on_update"),
-                table_name,
-                diagnostics,
-            );
-            if let Some(table) = tables.get_mut(None, table_name) {
-                table.fks.push(fk);
+        let mut columns = Vec::with_capacity(key.len());
+        let mut ref_columns = Vec::with_capacity(key.len());
+        for (_, row) in key {
+            columns.push(row.try_get("from")?);
+            if let Some(to) = row.try_get::<Option<String>, _>("to")? {
+                ref_columns.push(to);
             }
         }
+        let on_delete = first.try_get::<String, _>("on_delete")?;
+        let on_update = first.try_get::<String, _>("on_update")?;
+        table.fks.push(
+            ForeignKey::declared(columns, TableRef::new(ref_table), ref_columns).with_actions(
+                catalog.action(&on_delete, &context, Action::from_sql),
+                catalog.action(&on_update, &context, Action::from_sql),
+            ),
+        );
     }
     Ok(())
 }

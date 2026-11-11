@@ -34,5 +34,5 @@ pub use ir::{
     Action, Cardinality, Column, Detail, EnumType, ForeignKey, Position, Positions, SCHEMA_FILE,
     SCHEMA_VERSION, Schema, Table, TableIndex, TableRef,
 };
-pub use normalize::annotate_relationships;
+pub use normalize::normalize;
 pub use theme::{Chrome, Theme};
