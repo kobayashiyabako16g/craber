@@ -37,6 +37,10 @@ fn main() -> Result<()> {
         Command::Export(args) => commands::export::run(&args.resolve(&config)?),
         Command::Build(args) => commands::build::run(&args.resolve(&config)?),
         Command::Serve(args) => commands::serve::run(&args.resolve(&config)?),
-        Command::Diff(_) => Err(milestone::not_yet("`craber diff`", "M7", None)),
+        Command::Diff(_) => Err(milestone::not_yet(
+            "`craber diff`",
+            craber_core::Milestone::M7,
+            None,
+        )),
     }
 }

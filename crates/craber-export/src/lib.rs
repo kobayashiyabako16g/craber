@@ -17,7 +17,7 @@ mod format;
 
 pub use crate::format::{Format, UnknownFormat};
 
-use craber_core::{Flows, Schema};
+use craber_core::{Flows, Milestone, Schema};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -30,11 +30,11 @@ pub enum Error {
     /// settled before anyone scripts against it, and so asking for one fails
     /// loudly instead of silently falling back to another format
     /// (`crates/craber/src/cli.rs` says the same about its subcommands).
-    #[error("`--format {format}` is not implemented yet ({how})")]
+    #[error("`--format {format}` is not implemented yet ({milestone})")]
     Unsupported {
         format: Format,
-        /// What is missing and when it is due, e.g. "M3".
-        how: &'static str,
+        /// When it is due.
+        milestone: Milestone,
     },
 }
 
@@ -46,7 +46,10 @@ pub fn encode(schema: &Schema, flows: &Flows, format: Format) -> Result<String, 
     match format {
         Format::Json => Ok(serde_json::to_string_pretty(schema)?),
         Format::Flows => Ok(serde_json::to_string_pretty(flows)?),
-        Format::Mermaid | Format::Dbml => Err(Error::Unsupported { format, how: "M3" }),
+        Format::Mermaid | Format::Dbml => Err(Error::Unsupported {
+            format,
+            milestone: Milestone::M3,
+        }),
     }
 }
 

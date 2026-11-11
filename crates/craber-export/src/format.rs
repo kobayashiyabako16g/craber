@@ -113,6 +113,20 @@ mod tests {
         assert_eq!("JSON".parse::<Format>().unwrap(), Format::Json);
     }
 
+    /// `ALL` is written out, so this is what notices a format missing from
+    /// it: the `match` stops compiling when a variant is added, and the
+    /// assertion fails until `ALL` lists it too.
+    #[test]
+    fn all_lists_every_format_once() {
+        let position = |format: Format| match format {
+            Format::Json => 0,
+            Format::Mermaid => 1,
+            Format::Dbml => 2,
+            Format::Flows => 3,
+        };
+        assert_eq!(Format::ALL.map(position), [0, 1, 2, 3]);
+    }
+
     #[test]
     fn an_unknown_format_lists_the_known_ones() {
         let error = "yaml".parse::<Format>().unwrap_err().to_string();

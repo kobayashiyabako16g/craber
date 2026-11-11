@@ -10,13 +10,15 @@
 //!
 //! Formats are not here: `--format mermaid` is refused by
 //! [`craber_export::Error::Unsupported`], because which formats exist is that
-//! crate's to know.
+//! crate's to know. Both name the milestone with [`craber_core::Milestone`].
+
+use craber_core::Milestone;
 
 /// Reject `feature`, naming the milestone it is scheduled for.
 ///
 /// `hint` is the thing to do instead, when there is one — "drop the flag to
 /// write a directory" is more use than the refusal alone.
-pub(crate) fn not_yet(feature: &str, milestone: &str, hint: Option<&str>) -> anyhow::Error {
+pub(crate) fn not_yet(feature: &str, milestone: Milestone, hint: Option<&str>) -> anyhow::Error {
     match hint {
         Some(hint) => anyhow::anyhow!("{feature} is not implemented yet ({milestone}); {hint}"),
         None => anyhow::anyhow!("{feature} is not implemented yet ({milestone})"),

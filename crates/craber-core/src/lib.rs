@@ -20,6 +20,7 @@ mod flow;
 mod geometry;
 mod index;
 mod ir;
+mod milestone;
 mod normalize;
 mod theme;
 
@@ -36,5 +37,6 @@ pub use ir::{
     Action, Cardinality, Column, Detail, EnumType, ForeignKey, Position, Positions, SCHEMA_FILE,
     SCHEMA_VERSION, Schema, Table, TableIndex, TableRef,
 };
+pub use milestone::Milestone;
 pub use normalize::normalize;
 pub use theme::{Chrome, Theme};

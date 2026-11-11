@@ -100,7 +100,7 @@ impl BuildArgs {
         if self.single_file {
             return Err(crate::milestone::not_yet(
                 "`--single-file`",
-                "M3",
+                craber_core::Milestone::M3,
                 Some("drop the flag to write a directory"),
             ));
         }
