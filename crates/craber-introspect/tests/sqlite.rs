@@ -214,3 +214,15 @@ fn relationships_are_annotated() {
         "a primary key column is NOT NULL whether or not the DDL said so"
     );
 }
+
+/// The same check the PostgreSQL and MySQL suites make against Docker, and
+/// the one place it runs on every `cargo test`. `DDL` carries the two things a
+/// file and a live read used to disagree on: a partial unique index and a
+/// reference with no column list.
+#[test]
+fn introspecting_agrees_with_parsing_the_same_ddl() {
+    let live = database("round-trip");
+    let parsed = craber_parser::parse(DDL, Dialect::Sqlite, "round-trip");
+    assert!(parsed.diagnostics.is_empty(), "{:?}", parsed.diagnostics);
+    assert_eq!(common::shape(&live), common::shape(&parsed.value));
+}
