@@ -296,10 +296,16 @@ export type Relationship = {
  * what refers to it at least as much as what it refers to.
  *
  * Read off the same relations the canvas draws, so the panel names the rows
- * the line actually joins.
+ * the line actually joins. The join is written with bare table names, which
+ * fit the panel; `other` and `id` are what tell two schemas apart.
  */
-export function relationshipsOf(table: string, relations: Relation[]): Relationship[] {
-  const end = (id: string, column: string | undefined) => `${id}.${column || "?"}`;
+export function relationshipsOf(
+  table: string,
+  relations: Relation[],
+  known: ReadonlyMap<string, Table>,
+): Relationship[] {
+  const end = (id: string, column: string | undefined) =>
+    `${known.get(id)?.name ?? id}.${column || "?"}`;
   const outgoing = relations
     .filter((edge) => edge.source === table)
     .map((edge) => ({

@@ -13,6 +13,7 @@ type TableDetailsProps = {
   table: Table;
   /** Every relationship on the canvas; the panel lists this table's. */
   relations: Relation[];
+  known: ReadonlyMap<string, Table>;
   onSelect: (id: string) => void;
   onClose: () => void;
 };
@@ -25,13 +26,13 @@ type TableDetailsProps = {
  * the exact columns each relationship joins — would turn every node into a wall
  * of text, so it lives here, for the one table the reader asked about.
  */
-export function TableDetails({ table, relations, onSelect, onClose }: TableDetailsProps) {
+export function TableDetails({ table, relations, known, onSelect, onClose }: TableDetailsProps) {
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const unique = uniqueColumns(table);
   const relationships = useMemo(
-    () => relationshipsOf(qualifiedName(table), relations),
-    [table, relations],
+    () => relationshipsOf(qualifiedName(table), relations, known),
+    [table, relations, known],
   );
 
   return (

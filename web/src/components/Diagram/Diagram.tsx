@@ -205,6 +205,7 @@ export function Diagram({
           <TableDetails
             table={selectedTable}
             relations={relations}
+            known={known}
             onSelect={focusTable}
             onClose={() => select(null)}
           />
