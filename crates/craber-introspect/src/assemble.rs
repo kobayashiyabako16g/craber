@@ -35,10 +35,6 @@ impl Tables {
         self.tables.get_mut(at)
     }
 
-    pub(crate) fn get(&self, schema: Option<&str>, name: &str) -> Option<&Table> {
-        self.tables.get(self.at(schema, name)?)
-    }
-
     /// The position of a table in `tables`.
     ///
     /// Builds the owned key the map is keyed by, which costs two allocations
@@ -68,12 +64,12 @@ pub(crate) fn finish(
     name: impl Into<String>,
     tables: Tables,
     enums: Vec<craber_core::EnumType>,
-    diagnostics: Vec<Diagnostic>,
+    mut diagnostics: Vec<Diagnostic>,
 ) -> Outcome<Schema> {
     let mut schema = Schema::new(name);
     schema.tables = tables.into_vec();
     schema.enums = enums;
-    craber_core::normalize::annotate_relationships(&mut schema);
+    diagnostics.extend(craber_core::normalize::annotate_relationships(&mut schema));
     Outcome {
         value: schema,
         diagnostics,

@@ -45,7 +45,8 @@ pub fn parse(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Sc
         translate::amend(statement, &mut outcome);
     }
 
-    craber_core::normalize::annotate_relationships(&mut outcome.value);
+    let diagnostics = craber_core::normalize::annotate_relationships(&mut outcome.value);
+    outcome.diagnostics.extend(diagnostics);
     outcome
 }
 

@@ -144,12 +144,12 @@ async fn read_foreign_keys(
         // groups are consecutive runs of equal `id` — which `chunk_by` gives
         // without an accumulator to flush at the end. Forgetting that flush
         // dropped the last key of every table, and silently.
-        let mut finished: Vec<ForeignKey> = Vec::new();
         for key in rows.chunk_by(|a, b| a.get::<i64, _>("id") == b.get::<i64, _>("id")) {
             let (first, rest) = key.split_first().expect("chunk_by yields no empty group");
 
             // `to` is NULL when the key omits the referenced column list, in
-            // which case it means the other table's primary key.
+            // which case it means the other table's primary key —
+            // `annotate_relationships` fills that in, for files as well.
             // The name stays `None`: PRAGMA does not report the constraint's
             // name, even when the DDL gave it one.
             let mut fk = ForeignKey::declared(
@@ -173,26 +173,6 @@ async fn read_foreign_keys(
                 table_name,
                 diagnostics,
             );
-            finished.push(fk);
-        }
-
-        for mut fk in finished {
-            if fk.ref_columns.is_empty() {
-                match tables.get(None, &fk.ref_table.name) {
-                    Some(referenced) if !referenced.pk.is_empty() => {
-                        fk.ref_columns.clone_from(&referenced.pk);
-                    }
-                    _ => {
-                        diagnostics.push(
-                            Diagnostic::warning(
-                                "foreign key names no columns and its target has no primary key",
-                            )
-                            .with_context(format!("{table_name} -> {}", fk.ref_table.name)),
-                        );
-                        continue;
-                    }
-                }
-            }
             if let Some(table) = tables.get_mut(None, table_name) {
                 table.fks.push(fk);
             }

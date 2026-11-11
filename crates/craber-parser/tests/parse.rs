@@ -280,6 +280,27 @@ fn mysql_add_key_after_the_fact_is_the_same_index() {
     assert_eq!(posts.indexes[0].columns, ["slug"]);
 }
 
+/// `REFERENCES users` with no column list means the primary key, in every
+/// dialect. Left empty, the line has no column to attach to and the details
+/// panel's SQL would read `REFERENCES "users" ()`.
+#[test]
+fn a_reference_without_columns_means_the_primary_key() {
+    let outcome = postgres(
+        "CREATE TABLE users (id bigint PRIMARY KEY);
+         CREATE TABLE logs (id bigint);
+         CREATE TABLE posts (user_id bigint REFERENCES users, log_id bigint REFERENCES logs);",
+    );
+    let posts = outcome.value.table("posts").unwrap();
+    assert_eq!(
+        posts.fks.len(),
+        1,
+        "the key into a table with no primary key is dropped"
+    );
+    assert_eq!(posts.fks[0].ref_columns, ["id"]);
+    assert_eq!(outcome.diagnostics.len(), 1, "{:?}", outcome.diagnostics);
+    assert_eq!(outcome.diagnostics[0].severity, Severity::Warning);
+}
+
 /// A partial unique index constrains only the rows its `WHERE` matches, so the
 /// tuple is not unique. Introspection already reads it that way; a file has to
 /// agree, or the same schema draws a different relationship end.

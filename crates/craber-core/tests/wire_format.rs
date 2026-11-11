@@ -47,7 +47,8 @@ fn sample() -> Schema {
     orders.positions = Some(orders_positions);
 
     schema.tables = vec![users, orders];
-    normalize::annotate_relationships(&mut schema);
+    let diagnostics = normalize::annotate_relationships(&mut schema);
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
     schema
 }
 
