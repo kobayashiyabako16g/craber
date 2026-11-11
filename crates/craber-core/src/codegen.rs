@@ -47,13 +47,7 @@ pub(crate) fn tokens_css() -> String {
         let _ = writeln!(out, "  {name}: {value};");
     }
     out.push('\n');
-    for (name, value) in [
-        ("--craber-node-width", metrics::NODE_WIDTH),
-        ("--craber-node-header", metrics::HEADER_CONTENT),
-        ("--craber-node-row", metrics::ROW_CONTENT),
-        ("--craber-sidebar-width", metrics::SIDEBAR_WIDTH),
-        ("--craber-radius", metrics::RADIUS),
-    ] {
+    for (name, value) in metrics::TOKENS {
         let _ = writeln!(out, "  {name}: {value}px;");
     }
     out.push_str("}\n");

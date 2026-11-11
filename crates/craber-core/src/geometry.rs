@@ -11,30 +11,47 @@
 
 use crate::ir::{Column, Detail, Table};
 
+/// Declare the node metrics: each one paired with the custom property that
+/// carries it into the browser, the way `theme`'s `palette!` pairs a colour.
+///
+/// The pairing used to be a doc comment on each constant plus a hand-written
+/// list in `codegen`, two places that had to be kept in step by hand.
+macro_rules! metrics {
+    ($( $(#[$meta:meta])* $name:ident = $value:literal => $token:literal ),* $(,)?) => {
+        $( $(#[$meta])* pub const $name: f32 = $value; )*
+
+        /// Every metric the stylesheet carries, with its custom property.
+        #[cfg_attr(not(test), allow(dead_code, reason = "read by codegen, which is test-only"))]
+        pub(crate) const TOKENS: &[(&str, f32)] = &[ $( ($token, $name), )* ];
+    };
+}
+
 /// Space the diagram occupies, in the units [`crate::Position`] uses.
 ///
-/// `web/src/theme.css` sizes a node from the same numbers, so the box the
+/// `web/src/generated/tokens.css` is written from these numbers, so the box the
 /// layout reserves is the box the browser draws. Content heights are stated and
 /// the borders are added, because that is how CSS composes them — see
 /// [`metrics::node_height`].
 pub mod metrics {
-    /// `--craber-node-width`.
-    pub const NODE_WIDTH: f32 = 260.0;
-    /// `--craber-node-header`: the header row's height.
-    pub const HEADER_CONTENT: f32 = 40.0;
-    /// `--craber-node-row`: one column row's height.
-    pub const ROW_CONTENT: f32 = 22.0;
-    /// `--craber-sidebar-width`. Web-only; here so the stylesheet has one source.
-    pub const SIDEBAR_WIDTH: f32 = 230.0;
-    /// `--craber-radius`, the node corner.
-    pub const RADIUS: f32 = 8.0;
+    metrics! {
+        NODE_WIDTH = 260.0 => "--craber-node-width",
+        /// The header row's height.
+        HEADER_CONTENT = 40.0 => "--craber-node-header",
+        /// One column row's height.
+        ROW_CONTENT = 22.0 => "--craber-node-row",
+        /// Web-only; here so the stylesheet has one source.
+        SIDEBAR_WIDTH = 230.0 => "--craber-sidebar-width",
+        /// The node corner.
+        RADIUS = 8.0 => "--craber-radius",
+    }
 
     /// `.craber-node`'s own border, top and bottom.
     pub const BORDER: f32 = 1.0;
     /// The rule `.craber-node-columns` draws between the header and the columns.
     pub const HEADER_RULE: f32 = 1.0;
 
-    /// What the browser actually lays out for a node of `rows` rows.
+    /// The height of a node of `rows` rows: what the layout reserves, and what
+    /// the browser draws.
     ///
     /// `web/src/theme.css` sets `box-sizing: border-box` globally, so the 1px
     /// rule between two column rows sits *inside* the row's
@@ -43,41 +60,22 @@ pub mod metrics {
     /// under the header — and that rule belongs to `.craber-node-columns`,
     /// which `TableNode.tsx` does not render at all when a table has no
     /// columns, so a bare node is exactly its header plus its border.
-    #[must_use]
-    #[allow(
-        clippy::cast_precision_loss,
-        reason = "column counts are far below f32 precision limits"
-    )]
-    pub fn css_node_height(rows: usize) -> f32 {
-        let columns = if rows == 0 {
-            0.0
-        } else {
-            HEADER_RULE + rows as f32 * ROW_CONTENT
-        };
-        BORDER * 2.0 + HEADER_CONTENT + columns
-    }
-
-    /// The height `craber-layout` reserves for a node of `rows` rows.
     ///
-    /// This is deliberately *not* [`css_node_height`]: it counts a row as
-    /// `ROW_CONTENT + 1` and the header as `HEADER_CONTENT + 2`, so it comes out
-    /// `rows - 1` pixels taller than the node the browser draws.
-    ///
-    /// Reserving more than the node needs is safe — it only ever pushes tables
-    /// further apart, and `SugiyamaLayout::node_gap` puts 60px between them
-    /// anyway — whereas reserving less would let two tables touch. It is left
-    /// as it is because every `schema.json` ever written carries coordinates
-    /// computed from it, so tightening it moves every table in every published
-    /// diagram. [`reservation_is_never_short`] pins the property that matters.
-    ///
-    /// [`reservation_is_never_short`]: ../../../tests/generated_tokens.rs
+    /// The layout used to reserve `rows - 1` pixels more than this, a second
+    /// formula kept only so that published coordinates would not move. Spacing
+    /// between tables is `SugiyamaLayout::node_gap`'s job, not this one's.
     #[must_use]
     #[allow(
         clippy::cast_precision_loss,
         reason = "column counts are far below f32 precision limits"
     )]
     pub fn node_height(rows: usize) -> f32 {
-        HEADER_CONTENT + BORDER * 2.0 + rows as f32 * (ROW_CONTENT + BORDER)
+        let columns = if rows == 0 {
+            0.0
+        } else {
+            HEADER_RULE + rows as f32 * ROW_CONTENT
+        };
+        BORDER * 2.0 + HEADER_CONTENT + columns
     }
 }
 

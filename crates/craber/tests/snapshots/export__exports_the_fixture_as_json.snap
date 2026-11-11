@@ -52,11 +52,11 @@ expression: schema
       "positions": {
         "allFields": {
           "x": 0.0,
-          "y": 45.625
+          "y": 45.0
         },
         "keyOnly": {
           "x": 0.0,
-          "y": 48.5
+          "y": 47.75
         },
         "tableName": {
           "x": 0.0,
@@ -145,11 +145,11 @@ expression: schema
       "positions": {
         "allFields": {
           "x": 0.0,
-          "y": 216.625
+          "y": 214.0
         },
         "keyOnly": {
           "x": 0.0,
-          "y": 173.5
+          "y": 172.75
         },
         "tableName": {
           "x": 0.0,
@@ -241,7 +241,7 @@ expression: schema
       "positions": {
         "allFields": {
           "x": 350.0,
-          "y": 148.0
+          "y": 147.0
         },
         "keyOnly": {
           "x": 350.0,
@@ -307,7 +307,7 @@ expression: schema
       "positions": {
         "allFields": {
           "x": 700.0,
-          "y": 85.5
+          "y": 84.5
         },
         "keyOnly": {
           "x": 700.0,
@@ -367,11 +367,11 @@ expression: schema
       "positions": {
         "allFields": {
           "x": 700.0,
-          "y": 256.5
+          "y": 253.5
         },
         "keyOnly": {
           "x": 700.0,
-          "y": 210.5
+          "y": 209.5
         },
         "tableName": {
           "x": 700.0,
