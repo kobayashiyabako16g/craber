@@ -403,6 +403,34 @@ fn a_plain_index_does_not_make_a_relationship_one_to_one() {
     assert_eq!(posts.fks[0].cardinality, Cardinality::ManyToOne);
 }
 
+/// `UNIQUE (parent_id, position)` lets a parent have many children; only the
+/// pair is unique. liam-hq/liam#4173 drew this one-to-one.
+#[test]
+fn a_composite_unique_does_not_make_its_prefix_one_to_one() {
+    let outcome = postgres(
+        "CREATE TABLE parents (id integer PRIMARY KEY);
+         CREATE TABLE children (
+           id integer PRIMARY KEY,
+           parent_id integer NOT NULL REFERENCES parents(id),
+           position integer NOT NULL,
+           UNIQUE (parent_id, position)
+         );",
+    );
+    let children = outcome.value.table("children").unwrap();
+    assert!(children.is_unique_tuple(&["parent_id".to_string(), "position".to_string()]));
+    assert_eq!(children.fks[0].cardinality, Cardinality::ManyToOne);
+    assert!(!children.fks[0].optional);
+}
+
+/// liam-hq/liam#4110 showed `text[]` as `text`.
+#[test]
+fn array_types_keep_their_brackets() {
+    let outcome = postgres("CREATE TABLE addresses (email_to TEXT[] NOT NULL, grid int[][]);");
+    let addresses = outcome.value.table("addresses").unwrap();
+    assert_eq!(addresses.column("email_to").unwrap().data_type, "TEXT[]");
+    assert_eq!(addresses.column("grid").unwrap().data_type, "INT[][]");
+}
+
 /// A full-text (or spatial) key is an access path with nothing to draw. Not
 /// showing it is right; warning about it is not.
 #[test]
