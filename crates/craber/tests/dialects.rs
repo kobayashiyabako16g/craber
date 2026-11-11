@@ -10,18 +10,7 @@
 
 mod common;
 
-use common::{assert_success, column, craber, fixture, table, table_names};
-
-fn export(name: &str) -> serde_json::Value {
-    let output = craber(&["export", "--file", fixture(name).to_str().unwrap()]);
-    assert_success(&output, &format!("exporting {name}"));
-    assert_eq!(
-        String::from_utf8_lossy(&output.stderr).trim(),
-        "",
-        "{name} is an ordinary dump and should parse cleanly"
-    );
-    serde_json::from_slice(&output.stdout).expect("valid JSON")
-}
+use common::{column, export_clean as export, table, table_names};
 
 /// No `--dialect` anywhere here: the fixture names carry it, the same way the
 /// commands in `examples/03-dialects/README.md` rely on.

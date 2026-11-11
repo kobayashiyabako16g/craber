@@ -11,20 +11,10 @@ mod common;
 
 use craber_core::metrics;
 
-use common::{assert_success, craber, fixture};
+use common::export_clean;
 
 fn wide() -> serde_json::Value {
-    let wide = fixture("wide.sql");
-    let output = craber(&["export", "--file", wide.to_str().unwrap()]);
-    assert_success(&output, "exporting fixtures/wide.sql");
-    // The fixture is ordinary PostgreSQL. Anything CrabER warns about here is
-    // DDL coverage it is missing, not something the fixture should work around.
-    assert_eq!(
-        String::from_utf8_lossy(&output.stderr).trim(),
-        "",
-        "the fixture should parse cleanly"
-    );
-    serde_json::from_slice(&output.stdout).expect("valid JSON")
+    export_clean("wide.sql")
 }
 
 /// `(left, top, right, bottom)` for a table at the level the CLI draws,

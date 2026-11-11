@@ -26,23 +26,41 @@ pub(crate) fn examples_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples")
 }
 
+/// The `craber` binary this test was built alongside, with `args`, ready to
+/// run — the one place every helper below starts a process.
+fn command(args: &[&str]) -> Command {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_craber"));
+    command.args(args);
+    command
+}
+
 /// Run the `craber` binary this test was built alongside.
 pub(crate) fn craber(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_craber"))
-        .args(args)
-        .output()
-        .expect("running craber")
+    command(args).output().expect("running craber")
 }
 
 /// Run `craber` from `dir`, for the tests that turn on where the command was
 /// started: config discovery walks up from the working directory, and a
 /// relative path inside a config file is resolved against the file.
 pub(crate) fn craber_in(dir: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_craber"))
+    command(args)
         .current_dir(dir)
-        .args(args)
         .output()
         .expect("running craber")
+}
+
+/// Export `fixtures/<name>` as JSON, failing if the run fails or says anything
+/// on stderr: for a fixture that is ordinary DDL, any warning is coverage
+/// CrabER is missing, not something the fixture should work around.
+pub(crate) fn export_clean(name: &str) -> serde_json::Value {
+    let output = craber(&["export", "--file", fixture(name).to_str().unwrap()]);
+    assert_success(&output, &format!("exporting {name}"));
+    assert_eq!(
+        String::from_utf8_lossy(&output.stderr).trim(),
+        "",
+        "{name} should parse cleanly"
+    );
+    serde_json::from_slice(&output.stdout).expect("valid JSON")
 }
 
 /// A temporary directory that exists and is empty, for a test that writes a
@@ -190,9 +208,8 @@ impl Server {
     pub(crate) fn start_in(dir: &Path, args: &[&str]) -> Self {
         use std::io::BufRead as _;
 
-        let mut child = std::process::Command::new(env!("CARGO_BIN_EXE_craber"))
+        let mut child = command(args)
             .current_dir(dir)
-            .args(args)
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())
             .spawn()
