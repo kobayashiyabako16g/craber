@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { forTables, readViewState, viewStateUrl } from "./viewState";
+import { forTables, initialFit, readViewState, viewReducer, viewStateUrl, type ViewState } from "./viewState";
 
 /** The page a link would be copied from. Both functions take their input as an
  *  argument, so none of this needs a DOM. */
@@ -9,13 +9,13 @@ const page = { origin: "https://example.test", pathname: "/er/" };
 const noFlow = { workflow: null, step: 0 };
 describe("readViewState", () => {
   it("is all defaults for an empty query", () => {
-    expect(readViewState("")).toEqual({ selected: null, hidden: [], viewport: null, ...noFlow });
+    expect(readViewState("")).toEqual({ selected: null, hidden: new Set<string>(), viewport: null, ...noFlow });
   });
 
   it("reads the selected table and the hidden list", () => {
     expect(readViewState("?table=public.users&hide=a,b")).toEqual({
       selected: "public.users",
-      hidden: ["a", "b"],
+      hidden: new Set(["a", "b"]),
       viewport: null,
       ...noFlow,
     });
@@ -23,7 +23,7 @@ describe("readViewState", () => {
 
   /** `"".split(",")` is `[""]`, so the filter is what keeps `?hide=` empty. */
   it("reads an empty hide parameter as nothing hidden", () => {
-    expect(readViewState("?hide=").hidden).toEqual([]);
+    expect(readViewState("?hide=").hidden.size).toBe(0);
   });
 
   it("reads a viewport", () => {
@@ -48,12 +48,12 @@ describe("viewStateUrl", () => {
    * table selected, nothing hidden — stays short enough to paste in a message.
    */
   it("omits the defaults", () => {
-    const url = viewStateUrl({ selected: null, hidden: [], viewport: null, ...noFlow }, page);
+    const url = viewStateUrl({ selected: null, hidden: new Set<string>(), viewport: null, ...noFlow }, page);
     expect(new URL(url).search).toBe("");
   });
 
   it("round trips through readViewState", () => {
-    const state = { selected: "public.users", hidden: ["a", "b"], viewport: null, ...noFlow };
+    const state = { selected: "public.users", hidden: new Set(["a", "b"]), viewport: null, ...noFlow };
     const url = viewStateUrl(state, page);
     expect(readViewState(new URL(url).search)).toEqual(state);
   });
@@ -66,7 +66,7 @@ describe("viewStateUrl", () => {
   it("round trips a viewport too", () => {
     const state = {
       selected: "public.orders",
-      hidden: [],
+      hidden: new Set<string>(),
       viewport: { x: 120, y: -40, zoom: 0.85 },
       ...noFlow,
     };
@@ -76,7 +76,7 @@ describe("viewStateUrl", () => {
   /** Rounded so a drifting float does not make every link unique. */
   it("rounds a viewport to whole pixels and three digits of zoom", () => {
     const url = viewStateUrl(
-      { selected: null, hidden: [], viewport: { x: 10.4, y: -20.6, zoom: 1.23456 }, ...noFlow },
+      { selected: null, hidden: new Set<string>(), viewport: { x: 10.4, y: -20.6, zoom: 1.23456 }, ...noFlow },
       page,
     );
     expect(new URL(url).searchParams.get("at")).toBe("10,-21,1.235");
@@ -84,7 +84,7 @@ describe("viewStateUrl", () => {
 
   /** A link into a playback opens on the same step, counted from 1 as shown. */
   it("round trips a workflow and its step", () => {
-    const state = { selected: null, hidden: [], viewport: null, workflow: "checkout", step: 2 };
+    const state = { selected: null, hidden: new Set<string>(), viewport: null, workflow: "checkout", step: 2 };
     const url = viewStateUrl(state, page);
     expect(new URL(url).searchParams.get("step")).toBe("3");
     expect(readViewState(new URL(url).search)).toEqual(state);
@@ -114,6 +114,40 @@ describe("forTables", () => {
   });
 
   it("drops hidden names the schema does not have", () => {
-    expect(forTables(readViewState("?hide=ghost,orders"), tables).hidden).toEqual(["orders"]);
+    expect([...forTables(readViewState("?hide=ghost,orders"), tables).hidden]).toEqual(["orders"]);
+  });
+});
+
+describe("viewReducer", () => {
+  const start: ViewState = readViewState("?flow=checkout&step=3&hide=a");
+
+  it("rewinds a workflow when one starts, and stops with null", () => {
+    expect(viewReducer(start, { type: "play", workflow: "refund" })).toMatchObject({
+      workflow: "refund",
+      step: 0,
+    });
+    expect(viewReducer(start, { type: "play", workflow: null }).workflow).toBeNull();
+  });
+
+  it("toggles one table, and hides or shows many at once", () => {
+    expect([...viewReducer(start, { type: "toggleHidden", table: "a" }).hidden]).toEqual([]);
+    expect([...viewReducer(start, { type: "toggleHidden", table: "b" }).hidden]).toEqual(["a", "b"]);
+    const all = viewReducer(start, { type: "setHidden", tables: ["b", "c"], hidden: true });
+    expect([...all.hidden]).toEqual(["a", "b", "c"]);
+    expect([...viewReducer(all, { type: "setHidden", tables: ["a", "c"], hidden: false }).hidden]).toEqual([
+      "b",
+    ]);
+  });
+
+  it("leaves the state it was given alone", () => {
+    viewReducer(start, { type: "toggleHidden", table: "a" });
+    expect([...start.hidden]).toEqual(["a"]);
+  });
+});
+
+describe("initialFit", () => {
+  it("frames a named table, and leaves everything else to React Flow", () => {
+    expect(initialFit(readViewState("?table=users"))?.nodes).toEqual([{ id: "users" }]);
+    expect(initialFit(readViewState(""))).toBeUndefined();
   });
 });
