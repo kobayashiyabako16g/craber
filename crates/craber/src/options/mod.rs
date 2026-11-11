@@ -27,9 +27,9 @@ use anyhow::{Result, bail};
 use craber_core::Dialect;
 use craber_export::Format;
 
-use crate::cli::{BuildArgs, ExportArgs, ServeArgs};
+use crate::cli::{BuildArgs, ExportArgs, ScopeArgs, ServeArgs, SourceArgs, WorkflowArgs};
 use crate::config::{self, Config};
-use crate::options::precedence::{pick, pick_flows, pick_source};
+use crate::options::precedence::{pick, pick_source};
 
 /// `serve`'s port when neither the flag nor the config names one.
 const DEFAULT_PORT: u16 = 4300;
@@ -58,18 +58,21 @@ pub(crate) struct Input {
     pub flows: Vec<PathBuf>,
 }
 
+#[derive(Debug)]
 pub(crate) struct ExportOptions {
     pub input: Input,
     pub format: Format,
     pub output: Option<PathBuf>,
 }
 
+#[derive(Debug)]
 pub(crate) struct BuildOptions {
     pub input: Input,
     pub output: PathBuf,
     pub base_path: Option<String>,
 }
 
+#[derive(Debug)]
 pub(crate) struct ServeOptions {
     pub input: Input,
     pub port: u16,
@@ -87,10 +90,7 @@ impl ExportArgs {
             // would be indistinguishable from the user asking for json, and the
             // config could never win.
             format: self.format.or(config.export.format).unwrap_or_default(),
-            output: self
-                .output
-                .clone()
-                .or_else(|| config.export.output.as_ref().map(|p| p.resolve(config))),
+            output: self.output.clone().or_else(|| config.export.output.clone()),
         })
     }
 }
@@ -108,11 +108,7 @@ impl BuildArgs {
         // Before the source, so that an invocation missing both is told about
         // the output directory first — the one `build` cannot do anything
         // without, whatever it ends up drawing.
-        let Some(output) = self
-            .output
-            .clone()
-            .or_else(|| config.build.output.as_ref().map(|p| p.resolve(config)))
-        else {
+        let Some(output) = self.output.clone().or_else(|| config.build.output.clone()) else {
             bail!(
                 "no output directory: pass --output, or set `output` under [build] in {}",
                 config::DEFAULT_FILENAME
@@ -142,18 +138,19 @@ impl ServeArgs {
         // Before the source is required to exist: `--watch --dsn` is wrong for
         // a reason of its own, and saying "no schema source" to an invocation
         // that named one would be a worse answer.
-        let watched = match (self.watch, pick_source(&self.source, config)) {
+        let source = pick_source(&self.source, config);
+        let watch = match (self.watch, &source) {
             (false, _) => None,
-            (true, Some(Source::File(path))) => Some(path),
+            (true, Some(Source::File(path))) => Some(path.clone()),
             (true, _) => {
                 bail!("--watch needs --file: there is nothing to watch for a live connection")
             }
         };
 
         let options = ServeOptions {
-            input: Input::resolve(&self.source, &self.scope, &self.workflows, config)?,
+            input: Input::from_source(source, &self.scope, &self.workflows, config)?,
             port: self.port.or(config.serve.port).unwrap_or(DEFAULT_PORT),
-            watch: watched,
+            watch,
         };
         // As for `build`: nothing to serve without a frontend, and saying so
         // should not cost a database round trip.
@@ -164,25 +161,36 @@ impl ServeArgs {
 
 impl Input {
     fn resolve(
-        source: &crate::cli::Source,
-        scope: &crate::cli::Scope,
-        workflows: &crate::cli::Workflows,
+        source: &SourceArgs,
+        scope: &ScopeArgs,
+        workflows: &WorkflowArgs,
         config: &Config,
     ) -> Result<Self> {
-        let Some(source) = pick_source(source, config) else {
+        Self::from_source(pick_source(source, config), scope, workflows, config)
+    }
+
+    /// [`resolve`](Self::resolve) for a source already picked, so that `serve`
+    /// can look at it first without picking twice.
+    fn from_source(
+        source: Option<Source>,
+        scope: &ScopeArgs,
+        workflows: &WorkflowArgs,
+        config: &Config,
+    ) -> Result<Self> {
+        let Some(source) = source else {
             bail!(
                 "no schema source: pass --file or --dsn, or set one in {}",
                 config::DEFAULT_FILENAME
             )
         };
-        let dialect = dialect::of(&source, scope, config)?;
+        let dialect = dialect::of(&source, scope.dialect.or(config.dialect))?;
         Ok(Self {
             source,
             dialect,
-            include: pick(&scope.include, &config.include).to_vec(),
-            exclude: pick(&scope.exclude, &config.exclude).to_vec(),
+            include: pick(&scope.include, &config.include),
+            exclude: pick(&scope.exclude, &config.exclude),
             depth: scope.depth.or(config.depth),
-            flows: pick_flows(workflows, config),
+            flows: pick(&workflows.files, &config.flows),
         })
     }
 }

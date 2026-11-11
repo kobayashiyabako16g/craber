@@ -5,11 +5,7 @@
 //! Scalars need no help: `flag.or(config.x)` already means this, and the
 //! `resolve` functions spell it inline.
 
-use std::path::PathBuf;
-
-use craber_core::Dialect;
-
-use crate::cli;
+use crate::cli::SourceArgs;
 use crate::config::Config;
 use crate::options::Source;
 
@@ -19,40 +15,20 @@ use crate::options::Source;
 /// rather than merging with it: falling back per field would mean that
 /// `craber export --dsn ...`, in a repository whose `craber.toml` names a
 /// `file`, quietly exported the file instead of connecting.
-pub(super) fn pick_source(source: &cli::Source, config: &Config) -> Option<Source> {
-    match (source.file.as_deref(), source.dsn.as_deref()) {
-        (Some(file), _) => Some(Source::File(file.to_path_buf())),
-        (None, Some(dsn)) => Some(Source::Dsn(dsn.to_owned())),
+pub(super) fn pick_source(source: &SourceArgs, config: &Config) -> Option<Source> {
+    match (&source.file, &source.dsn) {
+        (Some(file), _) => Some(Source::File(file.clone())),
+        (None, Some(dsn)) => Some(Source::Dsn(dsn.clone())),
         (None, None) => config
             .file
-            .as_ref()
-            .map(|path| Source::File(path.resolve(config)))
-            .or_else(|| config.dsn.as_deref().map(|dsn| Source::Dsn(dsn.to_owned()))),
+            .clone()
+            .map(Source::File)
+            .or_else(|| config.dsn.clone().map(Source::Dsn)),
     }
 }
 
-/// CLI values win outright when present; the config file is not merged into
-/// them, so `--exclude` on the command line replaces the file's list rather
-/// than adding to it.
-pub(super) fn pick<'a>(cli: &'a [String], config: &'a [String]) -> &'a [String] {
-    if cli.is_empty() { config } else { cli }
-}
-
-/// The workflows to read: `--flow` replaces the config's `flows` outright, as
-/// the scope flags replace its lists.
-pub(super) fn pick_flows(cli: &cli::Workflows, config: &Config) -> Vec<PathBuf> {
-    if cli.files.is_empty() {
-        config
-            .flows
-            .iter()
-            .map(|path| path.resolve(config))
-            .collect()
-    } else {
-        cli.files.clone()
-    }
-}
-
-/// The dialect asked for, by either route.
-pub(super) fn asked(scope: &cli::Scope, config: &Config) -> Option<Dialect> {
-    scope.dialect.or(config.dialect)
+/// A list from the command line replaces the config file's outright rather
+/// than adding to it, so `--exclude` or `--flow` means exactly what it says.
+pub(super) fn pick<T: Clone>(cli: &[T], config: &[T]) -> Vec<T> {
+    if cli.is_empty() { config } else { cli }.to_vec()
 }

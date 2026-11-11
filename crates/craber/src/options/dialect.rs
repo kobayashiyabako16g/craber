@@ -11,13 +11,11 @@
 use anyhow::{Result, anyhow, bail};
 use craber_core::Dialect;
 
-use crate::cli;
-use crate::config::Config;
-use crate::options::{Source, precedence};
+use crate::options::Source;
 
-/// The dialect to read `source` in.
-pub(super) fn of(source: &Source, scope: &cli::Scope, config: &Config) -> Result<Dialect> {
-    let asked = precedence::asked(scope, config);
+/// The dialect to read `source` in, given the one the flag or the config file
+/// `asked` for.
+pub(super) fn of(source: &Source, asked: Option<Dialect>) -> Result<Dialect> {
     match source {
         // A file always has an answer: the extension, or the default.
         Source::File(path) => {

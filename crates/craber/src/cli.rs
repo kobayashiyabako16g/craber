@@ -49,11 +49,11 @@ pub(crate) enum Command {
 #[derive(Debug, Args)]
 pub(crate) struct ServeArgs {
     #[command(flatten)]
-    pub source: Source,
+    pub source: SourceArgs,
     #[command(flatten)]
-    pub scope: Scope,
+    pub scope: ScopeArgs,
     #[command(flatten)]
-    pub workflows: Workflows,
+    pub workflows: WorkflowArgs,
     /// Port to listen on. Defaults to 4300.
     #[arg(long)]
     pub port: Option<u16>,
@@ -65,11 +65,11 @@ pub(crate) struct ServeArgs {
 #[derive(Debug, Args)]
 pub(crate) struct BuildArgs {
     #[command(flatten)]
-    pub source: Source,
+    pub source: SourceArgs,
     #[command(flatten)]
-    pub scope: Scope,
+    pub scope: ScopeArgs,
     #[command(flatten)]
-    pub workflows: Workflows,
+    pub workflows: WorkflowArgs,
     /// Output directory, or the HTML file when --single-file is set.
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
@@ -84,11 +84,11 @@ pub(crate) struct BuildArgs {
 #[derive(Debug, Args)]
 pub(crate) struct ExportArgs {
     #[command(flatten)]
-    pub source: Source,
+    pub source: SourceArgs,
     #[command(flatten)]
-    pub scope: Scope,
+    pub scope: ScopeArgs,
     #[command(flatten)]
-    pub workflows: Workflows,
+    pub workflows: WorkflowArgs,
     /// Output format. Defaults to json.
     #[arg(long, value_enum, ignore_case = true)]
     pub format: Option<Format>,
@@ -110,7 +110,7 @@ pub(crate) struct DiffArgs {
 /// invocation that has no source anywhere.
 #[derive(Debug, Clone, Args)]
 #[group(required = false, multiple = false)]
-pub(crate) struct Source {
+pub(crate) struct SourceArgs {
     /// Read DDL from a .sql file.
     #[arg(short, long, value_name = "PATH")]
     pub file: Option<PathBuf>,
@@ -125,7 +125,7 @@ pub(crate) struct Source {
 
 /// DML to play back over the diagram, step by step.
 #[derive(Debug, Clone, Args)]
-pub(crate) struct Workflows {
+pub(crate) struct WorkflowArgs {
     /// Read a workflow — SELECT/INSERT/UPDATE/DELETE, one step per statement —
     /// from a .sql file, or every .sql file under a directory. Repeatable; each
     /// file is one workflow.
@@ -135,7 +135,7 @@ pub(crate) struct Workflows {
 
 /// Which part of the schema to draw.
 #[derive(Debug, Clone, Args)]
-pub(crate) struct Scope {
+pub(crate) struct ScopeArgs {
     /// SQL dialect. Inferred from the filename or the DSN when omitted.
     #[arg(long, value_name = "postgres|mysql|sqlite")]
     pub dialect: Option<Dialect>,

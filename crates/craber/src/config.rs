@@ -22,7 +22,7 @@ pub(crate) const DEFAULT_FILENAME: &str = "craber.toml";
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) struct Config {
-    pub file: Option<ConfigPath>,
+    pub file: Option<PathBuf>,
     pub dsn: Option<String>,
     #[serde(default, deserialize_with = "parsed")]
     pub dialect: Option<Dialect>,
@@ -33,7 +33,7 @@ pub(crate) struct Config {
     pub depth: Option<usize>,
     /// Workflow files and directories, as `--flow` takes them.
     #[serde(default)]
-    pub flows: Vec<ConfigPath>,
+    pub flows: Vec<PathBuf>,
 
     #[serde(default)]
     pub build: Build,
@@ -41,18 +41,13 @@ pub(crate) struct Config {
     pub serve: Serve,
     #[serde(default)]
     pub export: Export,
-
-    /// The directory the file was found in, which is what relative paths inside
-    /// it are resolved against. Not a key — [`Config::load`] fills it in.
-    #[serde(skip)]
-    dir: PathBuf,
 }
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) struct Build {
     /// Output directory.
-    pub output: Option<ConfigPath>,
+    pub output: Option<PathBuf>,
     /// URL prefix `craber build` writes the asset references against.
     pub base_path: Option<String>,
 }
@@ -69,35 +64,7 @@ pub(crate) struct Export {
     #[serde(default, deserialize_with = "parsed")]
     pub format: Option<Format>,
     /// Output file. Absent means stdout, the same as omitting `-o`.
-    pub output: Option<ConfigPath>,
-}
-
-/// A path read out of `craber.toml`.
-///
-/// A newtype rather than a bare `PathBuf` because a relative path in the config
-/// file is resolved against the file's own directory, not the working
-/// directory — and skipping that step produces no error, just a path quietly
-/// pointing somewhere else. [`resolve`](Self::resolve) is the only way to get
-/// the path out, so the rule travels with the value instead of having to be
-/// remembered at each of the three places one is read.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(transparent)]
-pub(crate) struct ConfigPath(PathBuf);
-
-impl ConfigPath {
-    /// The path as the file meant it: absolute as written, or relative to the
-    /// directory `craber.toml` was found in.
-    ///
-    /// Against the file rather than the working directory so that `file =
-    /// "db/schema.sql"` means the same thing however deep in the repository the
-    /// command is run from.
-    pub(crate) fn resolve(&self, config: &Config) -> PathBuf {
-        if self.0.is_absolute() {
-            self.0.clone()
-        } else {
-            config.dir.join(&self.0)
-        }
-    }
+    pub output: Option<PathBuf>,
 }
 
 impl Config {
@@ -115,12 +82,7 @@ impl Config {
             Some(path) => path.to_path_buf(),
             None => match discover(&cwd) {
                 Some(found) => found,
-                None => {
-                    return Ok(Self {
-                        dir: cwd,
-                        ..Self::default()
-                    });
-                }
+                None => return Ok(Self::default()),
             },
         };
 
@@ -130,15 +92,38 @@ impl Config {
             Self::parse(&text).with_context(|| format!("parsing config {}", path.display()))?;
 
         // `parent` is empty for a bare `craber.toml`, which means "here".
-        config.dir = match path.parent() {
+        let dir = match path.parent() {
             Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
             _ => cwd,
         };
+        config.anchor(&dir);
         Ok(config)
     }
 }
 
 impl Config {
+    /// Resolve every relative path in the file against `dir`, the directory
+    /// the file was found in.
+    ///
+    /// Against the file rather than the working directory so that `file =
+    /// "db/schema.sql"` means the same thing however deep in the repository
+    /// the command is run from. Done once, here, because skipping it produces
+    /// no error — just a path quietly pointing somewhere else — and every path
+    /// a caller can reach has been through it.
+    fn anchor(&mut self, dir: &Path) {
+        let paths = self
+            .file
+            .iter_mut()
+            .chain(&mut self.flows)
+            .chain(&mut self.build.output)
+            .chain(&mut self.export.output);
+        for path in paths {
+            if path.is_relative() {
+                *path = dir.join(&*path);
+            }
+        }
+    }
+
     /// The file's contents, checked for what TOML alone cannot say.
     ///
     /// Both `file` and `dsn` is refused rather than letting one silently win:
