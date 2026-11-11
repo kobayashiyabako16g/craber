@@ -32,8 +32,8 @@ $ git restore web/public/schema.json
 The frontend fetches `schema.json`, checks `schemaVersion` against the version
 it was built to read, and hands React Flow one node per table and one edge per
 foreign key. It never computes a layout: `x`/`y` come from `craber-layout` and
-nodes are not draggable, which is what keeps the browser view and the (still to
-come) `--format svg` export showing the same picture.
+nodes are not draggable, so every viewer of the same `schema.json` sees the
+same picture.
 
 Node contents are read straight from the IR — key columns marked from `pk`, FK
 columns from `fks`, types and nullability from `columns`.

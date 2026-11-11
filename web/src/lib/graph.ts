@@ -43,9 +43,7 @@ export type Relation = Edge<{
  *
  * Both come from the schema, not from the picture: a unique foreign key means
  * at most one row at the referencing end, and a nullable one means the row it
- * points at may not be there. `craber-render`'s `End::referencing` /
- * `End::referenced` decide the same thing for an exported SVG, and the two have
- * to agree or one schema is two different diagrams.
+ * points at may not be there.
  */
 export function endKinds(fk: ForeignKey): { source: EndKind; target: EndKind } {
   return {

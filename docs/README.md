@@ -17,7 +17,7 @@ crates/
   craber-parser     SQL DDL → IR, via sqlparser-rs
   craber-introspect A live database → IR, via sqlx
   craber-layout     IR → table positions (Sugiyama-style layered layout)
-  craber-render     IR + positions → SVG
+  craber-export     The formats `export --format` names
   craber-site       The static site: the web bundle + one schema.json
   craber            The `craber` CLI
 web/              React + React Flow frontend
@@ -25,19 +25,19 @@ fixtures/         Schemas used by the tests
 examples/         Runnable walkthroughs of what CrabER does today
 ```
 
-`craber-export` and `craber-wasm` arrive with the milestones that need them.
+`craber-wasm` arrives with the milestone that needs it.
 [CONTRIBUTING.md](../CONTRIBUTING.md) has the per-crate responsibilities and the
 two invariants that are easy to break by accident.
 
 ## `schema.json` is the contract
 
-Every output — static site, `serve`, single-file HTML, SVG, Mermaid — is
+Every output — static site, `serve`, single-file HTML, Mermaid — is
 rendered from the same `schema.json`, with table coordinates already baked in by
 `craber-layout`. The frontend receives positions and draws them; it never runs a
 layout of its own. Each table carries one position per detail level, because a
-node showing only its name is shorter than one showing every column. That is
-what lets `export --format svg` work with no browser in the loop, and what keeps
-the CLI and the web view showing the same picture.
+node showing only its name is shorter than one showing every column. The
+diagram itself is drawn in one place only, the browser, so there is no second
+renderer to disagree with it.
 
 The TypeScript types in `web/src/types` are generated from the Rust IR by
 `ts-rs`, so the two cannot drift apart. Change `crates/craber-core/src/ir.rs`,
@@ -56,7 +56,7 @@ Reads a PostgreSQL, MySQL or SQLite schema — including the scaffolding a real
 dump wraps it in, like the `ALTER TABLE ... ADD CONSTRAINT` / `CREATE INDEX` /
 `COMMENT ON` tail of a `pg_dump` and the `KEY` lines of a `mysqldump` — narrows
 the result with `--include` / `--exclude` / `--depth`, lays the tables out, and
-writes either `schema.json` or a finished SVG. Anything CrabER cannot read yet
+writes `schema.json`. Anything CrabER cannot read yet
 is reported on stderr and skipped, so a single unsupported statement never costs
 you the whole diagram.
 
@@ -199,7 +199,6 @@ Enter the dev shell (Nix + direnv), then:
 $ just             # list the tasks
 $ just check       # fmt, clippy and tests — what CI runs
 $ just demo        # export the fixture schema as JSON
-$ just svg         # export the fixture schema as an SVG you can open
 $ just example     # export an examples/ schema as JSON
 $ just web-dev     # Vite dev server against web/public/schema.json
 $ just site        # build the static site into dist/, then `just site-serve`

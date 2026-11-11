@@ -1,9 +1,9 @@
 //! The frontend sources generated from the Rust definitions.
 //!
 //! Colours, node sizes and the wire version are defined once, in Rust, because
-//! the binary has to render with no web assets in reach. The browser needs the
-//! same numbers, so they are written out rather than restated, and CI fails if
-//! what is checked in has gone stale.
+//! the layout has to size nodes with no web assets in reach. The browser needs
+//! the same numbers, so they are written out rather than restated, and CI fails
+//! if what is checked in has gone stale.
 //!
 //! # Why generating is a test
 //!
@@ -31,8 +31,8 @@ use crate::theme::{Chrome, Theme};
 /// `web/src/generated/tokens.css` — the `:root` block the web app imports.
 ///
 /// Only the dark theme is emitted: the stylesheet has no light mode yet, and
-/// adding one should be a second `:root` block written from [`Theme::light`]
-/// rather than a rewrite (see the note at the top of `web/src/theme.css`).
+/// adding one should be a second `:root` block rather than a rewrite (see the
+/// note at the top of `web/src/theme.css`).
 pub(crate) fn tokens_css() -> String {
     let theme = Theme::dark();
     let chrome = Chrome::dark();

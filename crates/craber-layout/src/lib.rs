@@ -1,10 +1,9 @@
 //! Diagram layout: turning a [`Schema`] into coordinates.
 //!
-//! Layout runs in Rust rather than in the browser on purpose. `craber export
-//! --format svg` and `craber build --single-file` have to produce a finished
-//! picture with no browser in the loop, so the algorithm has to live inside the
-//! binary. The upside is that the CLI, the static site and the WASM demo all
-//! draw byte-identical diagrams, and the frontend never re-lays-out on load.
+//! Layout runs in Rust rather than in the browser on purpose: positions are
+//! part of `schema.json`, so every consumer of it — the static site, `serve`,
+//! the WASM demo — draws the same diagram, and the frontend never re-lays-out
+//! on load.
 //!
 //! [`SugiyamaLayout`] is the one CrabER draws with. [`GridLayout`] is the
 //! placeholder it replaced, kept because "is the clever layout actually better

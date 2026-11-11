@@ -31,10 +31,6 @@ sqlite   = ["craber-introspect/sqlite"]
 craber-core   = { workspace = true }
 craber-parser = { workspace = true }
 craber-layout = { workspace = true }
-# No `craber-render`: the binary asks craber-export for bytes in a format and
-# does not know which crate produced them. `--format svg` reaches the renderer
-# through there.
-#
 # `clap` so `Format` keeps spelling its own values in `--help`; the feature
 # exists because nothing else needs an argument parser to encode a diagram.
 craber-export = { workspace = true, features = ["clap"] }

@@ -21,15 +21,7 @@ function fk(over: Partial<ForeignKey> = {}): ForeignKey {
   };
 }
 
-/**
- * `endKinds` is the TypeScript half of a rule that also exists in Rust, as
- * `End::referencing` / `End::referenced` in `crates/craber-render/src/edge.rs`.
- * The two have to agree or one schema is two different diagrams — the worst
- * failure a diagramming tool has, because it is a wrong picture rather than an
- * error.
- *
- * These cases are the four the Rust side enumerates.
- */
+/** Every combination of the two facts `endKinds` reads. */
 describe("endKinds", () => {
   it("draws many at the referencing end of a many-to-one", () => {
     expect(endKinds(fk()).source).toBe("zero-many");

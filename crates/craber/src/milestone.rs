@@ -8,7 +8,7 @@
 //! sentence whichever unbuilt thing they asked for, and that the roadmap is
 //! quoted from one place when it moves.
 //!
-//! Formats are not here: `--format png` is refused by
+//! Formats are not here: `--format mermaid` is refused by
 //! [`craber_export::Error::Unsupported`], because which formats exist is that
 //! crate's to know.
 

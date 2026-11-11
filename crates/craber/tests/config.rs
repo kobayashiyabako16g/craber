@@ -209,12 +209,12 @@ fn scope_keys_still_reach_the_filter() {
 fn the_export_section_sets_the_format() {
     let dir = project(
         "export-format",
-        "file = \"tiny.sql\"\n\n[export]\nformat = \"svg\"\n",
+        "file = \"tiny.sql\"\n\n[export]\nformat = \"flows\"\n",
     );
     let output = craber_in(&dir, &["export"]);
     assert_success(&output, "craber export");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.starts_with("<svg"), "{stdout:.60}");
+    assert!(stdout.contains("\"flowsVersion\""), "{stdout:.60}");
 }
 
 /// ...and the flag still beats it. `--format` carries no clap default for this
@@ -224,7 +224,7 @@ fn the_export_section_sets_the_format() {
 fn the_format_flag_beats_the_export_section() {
     let dir = project(
         "format-flag",
-        "file = \"tiny.sql\"\n\n[export]\nformat = \"svg\"\n",
+        "file = \"tiny.sql\"\n\n[export]\nformat = \"flows\"\n",
     );
     let schema = craber_json_in(&dir, &["export", "--format", "json"]);
     assert!(

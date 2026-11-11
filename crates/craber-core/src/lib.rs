@@ -1,6 +1,6 @@
 //! The CrabER schema IR.
 //!
-//! Every CrabER output — the static site, `serve`, the single-file HTML, SVG,
+//! Every CrabER output — the static site, `serve`, the single-file HTML,
 //! Mermaid, DBML — is rendered from the [`Schema`] defined here, serialized as
 //! `schema.json`. That makes these types a public wire format rather than an
 //! internal convenience: see [`SCHEMA_VERSION`].

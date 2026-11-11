@@ -528,7 +528,6 @@ version = "0.2.1"
 dependencies = [
  "clap",
  "craber-core",
- "craber-render",
  "serde",
  "serde_json",
  "thiserror",
@@ -561,15 +560,6 @@ version = "0.2.1"
 dependencies = [
  "craber-core",
  "sqlparser",
-]
-
-[[package]]
-name = "craber-render"
-version = "0.2.1"
-dependencies = [
- "craber-core",
- "craber-layout",
- "insta",
 ]
 
 [[package]]

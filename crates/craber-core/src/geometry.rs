@@ -5,10 +5,9 @@
 //! off; a wrong size is a diagram whose tables overlap, because the layout
 //! reserved a box the browser then drew something bigger into.
 //!
-//! This lives in `craber-core` rather than in `craber-layout` because both the
-//! layout and the SVG renderer need it, and they must agree to the pixel. It is
-//! also what lets `craber-render` stay independent of `craber-layout` — the
-//! renderer needs node extents, not an algorithm.
+//! This lives in `craber-core` rather than in `craber-layout` because the
+//! stylesheet is generated from the same numbers (`codegen`), and the layout
+//! and the browser must agree to the pixel.
 
 use crate::ir::{Column, Detail, Table};
 
@@ -93,8 +92,8 @@ pub fn node_size(table: &Table, detail: Detail) -> (f32, f32) {
 
 /// The column rows a node draws at this detail level.
 ///
-/// The layout, the SVG renderer and `web/src/components/TableNode/TableNode.tsx` all have to agree on
-/// this, so the rule lives in one place and both Rust callers share it.
+/// The layout and `web/src/components/TableNode/TableNode.tsx` have to agree
+/// on this, so the rule lives in one place.
 #[must_use]
 pub fn visible_columns(table: &Table, detail: Detail) -> Vec<&Column> {
     match detail {

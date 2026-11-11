@@ -36,7 +36,7 @@ synthesised to look like a multi-tenant SaaS. It has the shape that makes layout
 hard — hub tables almost everything points at, long chains, join tables, several
 namespaces, and reference tables with no relationships at all. `crates/craber/
 tests/scale.rs` holds it to the measurable half of "is this readable"; the other
-half is `just svg fixtures/wide.sql` and your own eyes.
+half is `just ui fixtures/wide.sql` and your own eyes.
 
 `dump.mysql.sql` and `dump.sqlite.sql` are the non-Postgres pair, and they are
 shaped like what the tools actually emit rather than like DDL anyone would

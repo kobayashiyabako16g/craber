@@ -1,14 +1,8 @@
 //! Colours — the single definition every CrabER surface draws from.
 //!
-//! These values used to live twice: once here for the SVG renderer, and once as
-//! custom properties in `web/src/theme.css`. Nothing checked that the two
-//! agreed, and they had already drifted — the FK glyph was one colour in the
-//! browser and another in an exported SVG. So the definition lives here, and
-//! `web/src/generated/tokens.css` is written from it by a test, the same way
-//! `web/src/types` is written from the IR by ts-rs.
-//!
-//! Keeping the values in Rust rather than reading the stylesheet is deliberate:
-//! the binary has to render with no web assets in reach.
+//! The definition lives here and `web/src/generated/tokens.css` is written
+//! from it by a test, the same way `web/src/types` is written from the IR by
+//! ts-rs, so the stylesheet never states a colour of its own.
 //!
 //! Node sizes are next door in [`geometry`](crate::geometry); the code that
 //! writes the stylesheet is in `codegen`, next door.
@@ -44,12 +38,10 @@ macro_rules! palette {
 }
 
 palette! {
-    /// The palette an SVG is drawn with — the colours the renderer actually puts
-    /// on the canvas.
+    /// The colours a diagram is made of.
     ///
-    /// Tokens the renderer has no use for (hover states, button text) live in
-    /// [`Chrome`] instead, so that this type stays an honest list of what a
-    /// diagram is made of.
+    /// Interface tokens (hover states, button text) live in [`Chrome`] instead,
+    /// so that this type stays an honest list of what a diagram is made of.
     Theme {
         background => "--craber-bg",
         grid => "--craber-grid",
@@ -85,27 +77,6 @@ impl Theme {
             edge: "#5b6474",
             font: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
             font_mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
-        }
-    }
-
-    /// A light palette, for embedding a diagram in a README that is read on a
-    /// white page. The web UI has no light mode yet; a file on disk has no say
-    /// in what it is pasted into, so it needs one sooner.
-    #[must_use]
-    pub const fn light() -> Self {
-        Self {
-            background: "#ffffff",
-            grid: "#e8eaee",
-            surface: "#ffffff",
-            surface_raised: "#f4f5f7",
-            border: "#d3d7de",
-            text: "#1b1e24",
-            text_muted: "#6b7280",
-            accent: "#d4471f",
-            glyph_fk: "#9a6528",
-            edge: "#98a1b0",
-            font: Self::dark().font,
-            font_mono: Self::dark().font_mono,
         }
     }
 }

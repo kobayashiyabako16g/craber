@@ -2,8 +2,12 @@
 //!
 //! This crate is the dispatch that `--format` selects, and the one place a new
 //! output format has to be taught about. It is deliberately the only crate that
-//! knows the whole set: `craber-render` knows SVG and nothing else, the binary
-//! knows where to put the bytes and nothing about how they were produced.
+//! knows the whole set: the binary knows where to put the bytes and nothing
+//! about how they were produced.
+//!
+//! There is no image format. The diagram is drawn in one place, the browser
+//! (`craber serve` / `craber build`); a second renderer here drew a different
+//! picture of the same schema.
 //!
 //! Everything here takes a schema that has already been laid out. Positions are
 //! read, never computed — layout runs in `craber-layout` — so a schema that
@@ -29,7 +33,7 @@ pub enum Error {
     #[error("`--format {format}` is not implemented yet ({how})")]
     Unsupported {
         format: Format,
-        /// What is missing and when it is due, e.g. "resvg, M3".
+        /// What is missing and when it is due, e.g. "M3".
         how: &'static str,
     },
 }
@@ -38,19 +42,10 @@ pub enum Error {
 ///
 /// `flows` is read only by [`Format::Flows`]; every other format is a drawing
 /// of the schema alone.
-///
-/// Returns text because every format CrabER writes today is text. PNG is the
-/// one that will not be, and it is unimplemented — when it lands, this gains a
-/// bytes-returning sibling rather than having PNG smuggled through a `String`.
 pub fn encode(schema: &Schema, flows: &Flows, format: Format) -> Result<String, Error> {
     match format {
         Format::Json => Ok(serde_json::to_string_pretty(schema)?),
-        Format::Svg => Ok(craber_render::to_svg(schema)),
         Format::Flows => Ok(serde_json::to_string_pretty(flows)?),
-        Format::Png => Err(Error::Unsupported {
-            format,
-            how: "resvg, M3; export SVG and convert it",
-        }),
         Format::Mermaid | Format::Dbml => Err(Error::Unsupported { format, how: "M3" }),
     }
 }
@@ -67,12 +62,6 @@ mod tests {
     }
 
     #[test]
-    fn svg_is_a_document() {
-        let encoded = encode(&Schema::new("shop"), &Flows::default(), Format::Svg).expect("svg");
-        assert!(encoded.starts_with("<svg"), "{encoded}");
-    }
-
-    #[test]
     fn flows_is_the_workflows() {
         let encoded =
             encode(&Schema::new("shop"), &Flows::default(), Format::Flows).expect("flows");
@@ -84,7 +73,7 @@ mod tests {
     /// `mermaid`.
     #[test]
     fn an_unsupported_format_is_named_as_the_cli_spells_it() {
-        for format in [Format::Png, Format::Mermaid, Format::Dbml] {
+        for format in [Format::Mermaid, Format::Dbml] {
             let error = encode(&Schema::new("shop"), &Flows::default(), format).unwrap_err();
             assert!(matches!(error, Error::Unsupported { .. }));
             let message = error.to_string();

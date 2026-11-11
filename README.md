@@ -14,7 +14,7 @@
 </p>
 
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
-connection — the layout algorithm, SVG output, the interactive UI and the static
+connection — the layout algorithm, the interactive UI and the static
 site all work. Expect breaking changes between releases.
 
 ## Supported databases
@@ -65,7 +65,7 @@ $ brew install kobayashiyabako16g/tap/craber
 ### With Nix
 
 ```console
-$ nix run github:kobayashiyabako16g/craber -- export --file schema.sql --format svg -o er.svg
+$ nix run github:kobayashiyabako16g/craber -- serve --file schema.sql
 $ nix profile install github:kobayashiyabako16g/craber
 ```
 
@@ -152,11 +152,10 @@ $ craber build --file schema.sql -o dist/
 Deploys as-is — relative asset URLs, so the same directory works at `/` and
 under GitHub Pages' `/<repo>/`.
 
-Export an image or the intermediate JSON:
+Export the intermediate JSON — the laid-out schema every view is drawn from:
 
 ```console
-$ craber export --file schema.sql --format svg -o er.svg
-$ craber export --file schema.sql --format json
+$ craber export --file schema.sql --format json -o schema.json
 ```
 
 Read a running database instead of a file — every command takes `--dsn`, and the
@@ -173,7 +172,7 @@ and argv is visible to every process on the machine.
 Narrow a noisy dump down to the part you care about:
 
 ```console
-$ craber export --file pg_dump.sql --exclude 'audit_*' --include orders --depth 1 --format svg -o er.svg
+$ craber export --file pg_dump.sql --exclude 'audit_*' --include orders --depth 1 -o schema.json
 ```
 
 Anything CrabER cannot parse yet is reported on stderr and skipped, so one
@@ -355,8 +354,8 @@ base-path = "/myrepo/"  # URL prefix, e.g. for a GitHub Pages project site
 port = 4300
 
 [export]
-format = "svg"          # json / svg / …
-output = "er.svg"       # stdout when omitted
+format = "json"         # json / flows / …
+output = "schema.json"  # stdout when omitted
 ```
 
 They are sectioned rather than shared so that a key one command needs cannot
@@ -391,11 +390,11 @@ rejected rather than ignored, so a typo says so.
 | `output` | `[build]`, `[export]` | directory for `build`, file for `export` |
 | `base-path` | `[build]` | URL prefix for the published assets |
 | `port` | `[serve]` | port to listen on |
-| `format` | `[export]` | `json` / `svg` / … |
+| `format` | `[export]` | `json` / `flows` / … |
 
 ## Not implemented yet
 
-`build --single-file`, `diff`, and the `png` / `mermaid` / `dbml` export
+`build --single-file`, `diff`, and the `mermaid` / `dbml` export
 formats. Those commands name the milestone they are scheduled for rather than
 failing obscurely.
 

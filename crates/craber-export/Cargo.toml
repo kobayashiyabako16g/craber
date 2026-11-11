@@ -1,6 +1,6 @@
 [package]
 name         = "craber-export"
-description  = "Diagram output formats for CrabER: JSON, SVG, Mermaid, DBML, PNG"
+description  = "Diagram output formats for CrabER: JSON, Mermaid, DBML"
 version.workspace      = true
 edition.workspace      = true
 rust-version.workspace = true
@@ -23,7 +23,6 @@ clap    = ["dep:clap"]
 
 [dependencies]
 craber-core   = { workspace = true }
-craber-render = { workspace = true }
 
 serde      = { workspace = true }
 serde_json = { workspace = true }

@@ -49,19 +49,21 @@ fn depth_narrows_the_export_to_a_neighbourhood() {
     assert_eq!(names, ["users", "user_profiles", "orders"]);
 }
 
+/// The diagram is drawn by the browser only; an image format would be a second
+/// renderer drawing a different picture of the same schema.
 #[test]
-fn exports_the_fixture_as_svg() {
-    let output = craber(&[
-        "export",
-        "--file",
-        fixture("tiny.sql").to_str().unwrap(),
-        "--format",
-        "svg",
-    ]);
-    assert_success(&output, "craber export");
-    let svg = String::from_utf8(output.stdout).expect("UTF-8");
-    assert!(svg.starts_with("<svg"));
-    assert_eq!(svg.matches("<g id=").count(), 6, "one group per table");
+fn image_formats_are_not_offered() {
+    for format in ["svg", "png"] {
+        let output = craber(&[
+            "export",
+            "--file",
+            fixture("tiny.sql").to_str().unwrap(),
+            "--format",
+            format,
+        ]);
+        assert!(!output.status.success(), "--format {format} should fail");
+        assert!(output.stdout.is_empty(), "nothing should reach stdout");
+    }
 }
 
 /// A format that is declared but not built yet has to fail loudly. Writing an
@@ -69,7 +71,7 @@ fn exports_the_fixture_as_svg() {
 /// the error.
 #[test]
 fn unimplemented_formats_say_so_instead_of_writing_nothing() {
-    for format in ["png", "mermaid", "dbml"] {
+    for format in ["mermaid", "dbml"] {
         let output = craber(&[
             "export",
             "--file",

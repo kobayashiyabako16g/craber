@@ -48,10 +48,6 @@ check-all: check web-build web-test
 demo file="fixtures/tiny.sql":
     cargo run -p craber -- export --file {{file}} --format json
 
-# Render a schema to SVG, the quickest way to eyeball the layout
-svg file="fixtures/tiny.sql" out="er.svg":
-    cargo run -p craber -- export --file {{file}} --format svg -o {{out}}
-
 # Run one of the examples in examples/ (see examples/README.md)
 example file="examples/01-quickstart/blog.sql":
     cargo run -p craber -- export --file {{file}} --format json

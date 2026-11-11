@@ -34,8 +34,8 @@ clean file even when part of the input was skipped.
 
 **Positions are already in the file.** Every table has a `"position"`, assigned
 by `craber-layout` before anything is written. The frontend draws those
-coordinates and never runs a layout of its own — that is what lets the CLI and
-the web view agree, and what will let `--format svg` work with no browser.
+coordinates and never runs a layout of its own, so every view of the file shows
+the same picture.
 
 ## Writing to a file
 

@@ -34,7 +34,6 @@ $ just web-build   # typecheck and build the frontend
 | `craber-parser` | SQL DDL → IR |
 | `craber-introspect` | A live database → IR, via sqlx |
 | `craber-layout` | IR → table positions |
-| `craber-render` | IR + positions → SVG, with no browser in the loop |
 | `craber-export` | The formats `--format` names, and the dispatch between them |
 | `craber-site` | The static site `build` writes and `serve` hands out |
 | `craber` | The CLI |
@@ -62,9 +61,8 @@ one hand-written file; it is a barrel over the generated ones.)
 `tsc --noEmit` and `pnpm test` (`just web-test`). The tests cover the modules
 that have no React in them — `lib/graph.ts`, `lib/anchors.ts`,
 `lib/schema.ts`, `lib/sql.ts`, `lib/viewState.ts` — and in particular the rules that are
-stated once on each side of the language boundary: `endKinds` has to agree with
-`End::referencing` in `crates/craber-render/src/edge.rs`, and `resolveRef` with
-`SchemaIndex::resolve`. A disagreement there is not an error, it is one schema
+stated once on each side of the language boundary: `resolveRef` has to agree
+with `SchemaIndex::resolve`. A disagreement there is not an error, it is one schema
 drawn as two different diagrams.
 
 Components are not unit-tested. Looking at the diagram in a browser is what

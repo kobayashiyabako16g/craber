@@ -136,20 +136,3 @@ fn the_diagram_stays_roughly_square() {
         "diagram is {width:.0} x {height:.0}, an aspect ratio of {aspect:.1}:1"
     );
 }
-
-#[test]
-fn a_hundred_tables_render_to_svg() {
-    let wide = fixture("wide.sql");
-    let output = craber(&[
-        "export",
-        "--file",
-        wide.to_str().unwrap(),
-        "--format",
-        "svg",
-    ]);
-    assert_success(&output, "rendering fixtures/wide.sql as SVG");
-
-    let svg = String::from_utf8(output.stdout).expect("UTF-8");
-    assert_eq!(svg.matches("<g id=").count(), 100, "one group per table");
-    assert!(svg.trim_end().ends_with("</svg>"));
-}

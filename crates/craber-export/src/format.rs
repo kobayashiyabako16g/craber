@@ -25,8 +25,6 @@ pub enum Format {
     // the default: it is the format that cannot be wrong about the schema.
     #[default]
     Json,
-    Svg,
-    Png,
     Mermaid,
     Dbml,
     /// The workflows given with `--flow`, as `flows.json`. Not a drawing of the
@@ -36,14 +34,7 @@ pub enum Format {
 
 impl Format {
     /// Every format, in the order `--help` lists them.
-    pub const ALL: [Self; 6] = [
-        Self::Json,
-        Self::Svg,
-        Self::Png,
-        Self::Mermaid,
-        Self::Dbml,
-        Self::Flows,
-    ];
+    pub const ALL: [Self; 4] = [Self::Json, Self::Mermaid, Self::Dbml, Self::Flows];
 
     /// The spelling the CLI and `craber.toml` both accept.
     ///
@@ -52,8 +43,6 @@ impl Format {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Json => "json",
-            Self::Svg => "svg",
-            Self::Png => "png",
             Self::Mermaid => "mermaid",
             Self::Dbml => "dbml",
             Self::Flows => "flows",
@@ -111,7 +100,7 @@ mod tests {
     /// `--dialect` accepts `POSTGRES`; `--format` should not be stricter.
     #[test]
     fn parsing_ignores_case() {
-        assert_eq!("SVG".parse::<Format>().unwrap(), Format::Svg);
+        assert_eq!("JSON".parse::<Format>().unwrap(), Format::Json);
     }
 
     #[test]

@@ -17,7 +17,7 @@ assignees: ''
 <!-- The command you ran, plus the smallest SQL that triggers the problem. -->
 
 ```console
-$ craber export --file schema.sql --format svg -o er.svg
+$ craber export --file schema.sql
 ```
 
 ```sql
