@@ -1,11 +1,9 @@
 //! `SchemaIndex::resolve` against `cases/resolve.json`.
 //!
 //! The web app resolves references itself (`resolveRef` in `web/src/lib/schema.ts`)
-//! to decide which edges to draw, and the two used to agree only by a comment
-//! asking them to. They disagreed: a qualified reference that missed fell back
-//! to a bare-name match in the browser and not here, so the viewer drew an edge
-//! the SVG did not. Both test suites now read this one table of cases, so the
-//! rule is written once and a divergence fails a test on whichever side moved.
+//! to decide which edges to draw, while `--depth` and the parser resolve them
+//! here. Both test suites read this one table of cases, so the rule is written
+//! once and a divergence fails a test on whichever side moved.
 
 use craber_core::{Schema, SchemaIndex, Table, TableRef};
 use serde::Deserialize;

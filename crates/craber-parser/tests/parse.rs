@@ -113,6 +113,19 @@ fn reads_foreign_keys_added_by_alter_table() {
     assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
 }
 
+/// An `ALTER TABLE` finds its table by the rule a `REFERENCES` does
+/// (`SchemaIndex::resolve`): `audit.users` is not `public.users`, however
+/// unambiguous the bare name is.
+#[test]
+fn alter_table_does_not_amend_a_table_in_another_schema() {
+    let outcome = postgres(
+        "CREATE TABLE public.users (id bigint PRIMARY KEY);
+         ALTER TABLE audit.users ADD COLUMN note text;",
+    );
+    let users = outcome.value.table("users").unwrap();
+    assert_eq!(users.columns.len(), 1);
+}
+
 /// Cardinality is derived from uniqueness, so it has to be computed after the
 /// second pass — the PRIMARY KEY that makes this one-to-one arrives late.
 #[test]

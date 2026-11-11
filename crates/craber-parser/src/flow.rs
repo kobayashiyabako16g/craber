@@ -27,7 +27,7 @@ use sqlparser::ast::{
 };
 
 use crate::comments::Comments;
-use crate::translate::{name_parts, split_object_name};
+use crate::names::{name_parts, object_ref};
 
 /// Read each statement of `statements` as one step of a workflow called `name`,
 /// described by the script's `comments`.
@@ -285,7 +285,9 @@ impl StepBuilder {
                     SelectItemQualifiedWildcardKind::ObjectName(name),
                     _,
                 ) => {
-                    if let Some(table) = scope.names.get(&split_object_name(name).1).cloned() {
+                    if let Some(table) =
+                        scope.names.get(&object_ref(name).qualified_name()).cloned()
+                    {
                         self.touch(&table, Access::Read);
                     }
                 }
@@ -321,16 +323,12 @@ impl StepBuilder {
     fn relation(&mut self, relation: &TableFactor, scope: &mut Scope, access: Access) {
         match relation {
             TableFactor::Table { name, alias, .. } => {
-                let (schema, table) = split_object_name(name);
+                let table = object_ref(name);
                 let alias = alias.as_ref().map(|a| a.name.value.as_str());
-                if schema.is_none() && scope.ctes.contains(&table) {
+                if table.schema.is_none() && scope.ctes.contains(&table.name) {
                     // A CTE's own reads were recorded where it was defined.
                     return;
                 }
-                let table = TableRef {
-                    schema,
-                    name: table,
-                };
                 scope.bind(&table, alias);
                 self.touch(&table, access);
             }
@@ -423,11 +421,7 @@ impl StepBuilder {
         let TableObject::TableName(name) = &insert.table else {
             return;
         };
-        let (schema, table) = split_object_name(name);
-        let table = TableRef {
-            schema,
-            name: table,
-        };
+        let table = object_ref(name);
         self.touch(&table, Access::Write);
         let columns: Vec<ColumnRef> = insert
             .columns
@@ -539,8 +533,7 @@ impl StepBuilder {
         } else {
             self.from(from, &mut scope, Access::Read);
             for name in &delete.tables {
-                let (_, table) = split_object_name(name);
-                if let Some(table) = scope.names.get(&table).cloned() {
+                if let Some(table) = scope.names.get(&object_ref(name).qualified_name()).cloned() {
                     self.touch(&table, Access::Delete);
                 }
             }

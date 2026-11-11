@@ -38,16 +38,19 @@ export function tableIndex(tables: Table[]): ReadonlyMap<string, Table> {
 /**
  * The table a reference points at, or null when it is missing or ambiguous.
  *
- * A qualified reference matches its qualified name exactly or not at all. An
- * unqualified one matches by bare name, but only when exactly one table in the
- * whole schema has that name. This is `SchemaIndex::resolve` on the Rust side,
- * and it is the rule that decides whether an edge gets drawn at all — both are
- * held to `crates/craber-core/tests/cases/resolve.json`.
+ * A qualified reference matches its qualified name, and failing that the
+ * unqualified table of that name: an unqualified table lives in whatever the
+ * default schema is. A table in another named schema never matches. An
+ * unqualified reference matches by bare name, but only when exactly one table
+ * in the whole schema has that name. This is `SchemaIndex::resolve` on the
+ * Rust side, and it is the rule that decides whether an edge gets drawn at
+ * all — both are held to `crates/craber-core/tests/cases/resolve.json`.
  */
 export function resolveRef(ref: TableRef, known: ReadonlyMap<string, Table>): string | null {
   if (ref.schema) {
     const qualified = `${ref.schema}.${ref.name}`;
-    return known.has(qualified) ? qualified : null;
+    if (known.has(qualified)) return qualified;
+    return known.has(ref.name) ? ref.name : null;
   }
   const matches = [...known].filter(([, table]) => table.name === ref.name);
   return matches.length === 1 ? (matches[0]?.[0] ?? null) : null;

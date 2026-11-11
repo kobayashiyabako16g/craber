@@ -22,34 +22,47 @@ pub struct Edge {
 /// Name lookup over a [`Schema`].
 ///
 /// DDL files reference tables inconsistently — sometimes `public.users`,
-/// sometimes bare `users` — so an unqualified reference resolves by bare name,
-/// but only when that name is unambiguous across schemas.
+/// sometimes bare `users` — so:
+///
+/// - a qualified reference matches that exact table, and failing that the one
+///   *unqualified* table of that name: an unqualified table lives in whatever
+///   the default schema is, which may well be the one named. A table in a
+///   different named schema is a different table, and never matches;
+/// - an unqualified reference matches by bare name, but only when that name is
+///   unambiguous across schemas.
+///
+/// `web/src/lib/schema.ts`'s `resolveRef` is the same rule, and both are held
+/// to `tests/cases/resolve.json`. Every lookup in CrabER goes through here —
+/// the parser's `ALTER TABLE` included — so a reference and an amendment never
+/// disagree about which table a name means.
 pub struct SchemaIndex {
-    qualified: HashMap<String, usize>,
+    exact: HashMap<TableRef, Vec<usize>>,
     bare: HashMap<String, Vec<usize>>,
 }
 
 impl SchemaIndex {
     pub fn build(schema: &Schema) -> Self {
-        let mut qualified = HashMap::new();
+        let mut exact: HashMap<TableRef, Vec<usize>> = HashMap::new();
         let mut bare: HashMap<String, Vec<usize>> = HashMap::new();
         for (i, table) in schema.tables.iter().enumerate() {
-            qualified.insert(table.qualified_name(), i);
+            exact.entry(table.to_ref()).or_default().push(i);
             bare.entry(table.name.clone()).or_default().push(i);
         }
-        Self { qualified, bare }
+        Self { exact, bare }
     }
 
     /// Resolve a reference, or `None` if the target is missing or ambiguous.
     pub fn resolve(&self, target: &TableRef) -> Option<TableId> {
-        if target.schema.is_some() {
-            return self
-                .qualified
-                .get(&target.qualified_name())
-                .copied()
-                .map(TableId);
-        }
-        match self.bare.get(&target.name)?.as_slice() {
+        let target = target.normalized();
+        let candidates = if target.schema.is_some() {
+            match self.exact.get(&target) {
+                Some(candidates) => candidates,
+                None => self.exact.get(&TableRef::new(target.name))?,
+            }
+        } else {
+            self.bare.get(&target.name)?
+        };
+        match candidates.as_slice() {
             [only] => Some(TableId(*only)),
             _ => None,
         }

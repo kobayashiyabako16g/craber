@@ -9,9 +9,10 @@
 mod comments;
 mod dialect;
 mod flow;
+mod names;
 mod translate;
 
-use craber_core::{Diagnostic, Outcome, Schema, Workflow};
+use craber_core::{Diagnostic, Outcome, Schema, SchemaIndex, Workflow};
 use sqlparser::parser::Parser;
 
 use crate::dialect::sqlparser_dialect;
@@ -41,8 +42,9 @@ pub fn parse(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Sc
     for statement in &statements {
         translate::define(statement, dialect, &mut outcome);
     }
+    let index = SchemaIndex::build(&outcome.value);
     for statement in &statements {
-        translate::amend(statement, &mut outcome);
+        translate::amend(statement, &index, &mut outcome);
     }
 
     let diagnostics = craber_core::normalize::annotate_relationships(&mut outcome.value);

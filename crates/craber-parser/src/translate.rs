@@ -8,7 +8,8 @@
 //! translator would resolve those against a schema that is still half-empty.
 
 use craber_core::{
-    Action, Column, Diagnostic, EnumType, ForeignKey, Outcome, Schema, Table, TableIndex, TableRef,
+    Action, Column, Diagnostic, EnumType, ForeignKey, Outcome, Schema, SchemaIndex, Table,
+    TableIndex,
 };
 use sqlparser::ast::{
     AlterTableOperation, ColumnDef, ColumnOption, CommentObject, CreateIndex, CreateTable,
@@ -17,6 +18,7 @@ use sqlparser::ast::{
 };
 
 use crate::dialect::Dialect;
+use crate::names::{name_parts, object_ref, parts_ref};
 
 /// First pass: statements that bring a table or a type into existence.
 pub(crate) fn define(statement: &Statement, dialect: Dialect, outcome: &mut Outcome<Schema>) {
@@ -31,10 +33,10 @@ pub(crate) fn define(statement: &Statement, dialect: Dialect, outcome: &mut Outc
             name,
             representation: Some(UserDefinedTypeRepresentation::Enum { labels }),
         } => {
-            let (schema, name) = split_object_name(name);
+            let name = object_ref(name);
             outcome.value.enums.push(EnumType {
-                schema,
-                name,
+                schema: name.schema,
+                name: name.name,
                 values: labels.iter().map(|l| l.value.clone()).collect(),
             });
         }
@@ -43,16 +45,22 @@ pub(crate) fn define(statement: &Statement, dialect: Dialect, outcome: &mut Outc
 }
 
 /// Second pass: statements that modify a table defined by the first pass.
-pub(crate) fn amend(statement: &Statement, outcome: &mut Outcome<Schema>) {
+///
+/// `index` is built once between the passes: this pass never adds a table, and
+/// finding the one to amend through it means an `ALTER TABLE` and a
+/// `REFERENCES` can never disagree about which table a name means.
+pub(crate) fn amend(statement: &Statement, index: &SchemaIndex, outcome: &mut Outcome<Schema>) {
     match statement {
-        Statement::AlterTable(alter) => alter_table(&alter.name, &alter.operations, outcome),
-        Statement::CreateIndex(create) => create_index(create, outcome),
+        Statement::AlterTable(alter) => {
+            alter_table(&alter.name, &alter.operations, index, outcome);
+        }
+        Statement::CreateIndex(create) => create_index(create, index, outcome),
         Statement::Comment {
             object_type,
             object_name,
             comment: Some(text),
             ..
-        } => comment(*object_type, object_name, text, outcome),
+        } => comment(*object_type, object_name, text, index, outcome),
         // Everything else (grants, functions, extensions, transaction control)
         // has no representation on an ER diagram. Skipping it is not news.
         _ => {}
@@ -60,9 +68,9 @@ pub(crate) fn amend(statement: &Statement, outcome: &mut Outcome<Schema>) {
 }
 
 fn create_table(create: &CreateTable, outcome: &mut Outcome<Schema>) -> Table {
-    let (schema, name) = split_object_name(&create.name);
-    let mut table = Table::new(name);
-    table.schema = schema;
+    let name = object_ref(&create.name);
+    let mut table = Table::new(name.name);
+    table.schema = name.schema;
     table.comment = create
         .comment
         .as_ref()
@@ -86,16 +94,17 @@ fn create_table(create: &CreateTable, outcome: &mut Outcome<Schema>) -> Table {
 fn alter_table(
     name: &ObjectName,
     operations: &[AlterTableOperation],
+    index: &SchemaIndex,
     outcome: &mut Outcome<Schema>,
 ) {
-    let Some(index) = find_table(&outcome.value, &split_object_name(name)) else {
+    let Some(id) = index.resolve(&object_ref(name)) else {
         // A dump can legitimately alter something CrabER never turned into a
         // node — a view, a partition, a table filtered out upstream.
         return;
     };
 
     for operation in operations {
-        let table = &mut outcome.value.tables[index];
+        let table = &mut outcome.value.tables[id.0];
         let context = table.qualified_name();
         let diagnostic = match operation {
             AlterTableOperation::AddConstraint { constraint, .. } => {
@@ -135,8 +144,8 @@ fn alter_table(
     }
 }
 
-fn create_index(create: &CreateIndex, outcome: &mut Outcome<Schema>) {
-    let Some(index) = find_table(&outcome.value, &split_object_name(&create.table_name)) else {
+fn create_index(create: &CreateIndex, index: &SchemaIndex, outcome: &mut Outcome<Schema>) {
+    let Some(id) = index.resolve(&object_ref(&create.table_name)) else {
         return;
     };
     let columns = index_columns(&create.columns);
@@ -144,8 +153,8 @@ fn create_index(create: &CreateIndex, outcome: &mut Outcome<Schema>) {
         // A purely expression-based index has no column to hang off a node.
         return;
     }
-    outcome.value.tables[index].indexes.push(TableIndex {
-        name: create.name.as_ref().map(|n| split_object_name(n).1),
+    outcome.value.tables[id.0].indexes.push(TableIndex {
+        name: create.name.as_ref().map(|n| object_ref(n).name),
         columns,
         // A partial index constrains only the rows its predicate matches, so
         // the tuple is not unique — the same reading introspection gives it.
@@ -157,13 +166,14 @@ fn comment(
     object_type: CommentObject,
     object_name: &ObjectName,
     text: &str,
+    index: &SchemaIndex,
     outcome: &mut Outcome<Schema>,
 ) {
     let parts = name_parts(object_name);
     match object_type {
         CommentObject::Table => {
-            if let Some(index) = find_table(&outcome.value, &split_parts(&parts)) {
-                outcome.value.tables[index].comment = Some(text.to_string());
+            if let Some(id) = index.resolve(&parts_ref(&parts)) {
+                outcome.value.tables[id.0].comment = Some(text.to_string());
             }
         }
         CommentObject::Column => {
@@ -171,10 +181,10 @@ fn comment(
             let Some((column, rest)) = parts.split_last() else {
                 return;
             };
-            let Some(index) = find_table(&outcome.value, &split_parts(rest)) else {
+            let Some(id) = index.resolve(&parts_ref(rest)) else {
                 return;
             };
-            if let Some(column) = outcome.value.tables[index]
+            if let Some(column) = outcome.value.tables[id.0]
                 .columns
                 .iter_mut()
                 .find(|c| &c.name == column)
@@ -281,10 +291,9 @@ fn add_constraint(table: &mut Table, constraint: &TableConstraint) -> Option<Dia
 }
 
 fn foreign_key(fk: &ForeignKeyConstraint) -> ForeignKey {
-    let (schema, name) = split_object_name(&fk.foreign_table);
     let mut foreign_key = ForeignKey::declared(
         fk.columns.iter().map(|i| i.value.clone()).collect(),
-        TableRef { schema, name },
+        object_ref(&fk.foreign_table),
         fk.referred_columns
             .iter()
             .map(|i| i.value.clone())
@@ -304,32 +313,6 @@ fn action(action: Option<&ReferentialAction>) -> Action {
         Some(ReferentialAction::SetDefault) => Action::SetDefault,
         Some(ReferentialAction::NoAction) | None => Action::NoAction,
     }
-}
-
-/// Locate a table for a second-pass statement to amend.
-///
-/// A qualified name matches exactly. An unqualified one matches by bare name,
-/// but only when that is unambiguous — the same rule
-/// [`SchemaIndex::resolve`](craber_core::SchemaIndex::resolve) uses for foreign
-/// keys, so a reference and an `ALTER TABLE` never disagree about which table
-/// they mean.
-fn find_table(schema: &Schema, (qualifier, name): &(Option<String>, String)) -> Option<usize> {
-    if qualifier.is_some()
-        && let Some(index) = schema
-            .tables
-            .iter()
-            .position(|t| &t.schema == qualifier && &t.name == name)
-    {
-        return Some(index);
-    }
-    let mut matches = schema
-        .tables
-        .iter()
-        .enumerate()
-        .filter(|(_, t)| &t.name == name)
-        .map(|(i, _)| i);
-    let first = matches.next()?;
-    matches.next().is_none().then_some(first)
 }
 
 /// MySQL puts `COMMENT='...'` among the trailing table options rather than in
@@ -357,28 +340,6 @@ fn option_comment(options: &CreateTableOptions) -> Option<String> {
 /// typeless two-column node in the middle of the diagram.
 fn is_internal(name: &str, dialect: Dialect) -> bool {
     dialect == Dialect::Sqlite && name.to_ascii_lowercase().starts_with("sqlite_")
-}
-
-pub(crate) fn name_parts(name: &ObjectName) -> Vec<String> {
-    name.0
-        .iter()
-        .filter_map(|p| p.as_ident())
-        .map(|i| i.value.clone())
-        .collect()
-}
-
-/// `schema.table` → `(Some("schema"), "table")`. Longer paths (`db.schema.table`)
-/// keep only the last two parts, which is what the diagram namespaces by.
-pub(crate) fn split_object_name(name: &ObjectName) -> (Option<String>, String) {
-    split_parts(&name_parts(name))
-}
-
-fn split_parts(parts: &[String]) -> (Option<String>, String) {
-    match parts {
-        [] => (None, String::new()),
-        [only] => (None, only.clone()),
-        [.., schema, table] => (Some(schema.clone()), table.clone()),
-    }
 }
 
 /// Index/key columns, dropping anything that is not a plain column reference

@@ -91,17 +91,16 @@ impl Table {
 
     /// `schema.name` when namespaced, otherwise just `name`.
     pub fn qualified_name(&self) -> String {
-        match &self.schema {
-            Some(schema) => format!("{schema}.{}", self.name),
-            None => self.name.clone(),
-        }
+        qualified_name(self.schema.as_deref(), &self.name)
     }
 
-    pub fn as_ref(&self) -> TableRef {
+    /// A reference to this table.
+    pub fn to_ref(&self) -> TableRef {
         TableRef {
             schema: self.schema.clone(),
             name: self.name.clone(),
         }
+        .normalized()
     }
 
     pub fn column(&self, name: &str) -> Option<&Column> {
@@ -188,11 +187,28 @@ impl TableRef {
         }
     }
 
+    /// `schema.name` when namespaced, otherwise just `name`.
     pub fn qualified_name(&self) -> String {
-        match &self.schema {
-            Some(schema) => format!("{schema}.{}", self.name),
-            None => self.name.clone(),
+        qualified_name(self.schema.as_deref(), &self.name)
+    }
+
+    /// The same reference with an empty schema read as no schema, the way the
+    /// web app's `qualifiedName` reads it.
+    #[must_use]
+    pub fn normalized(&self) -> Self {
+        Self {
+            schema: self.schema.clone().filter(|schema| !schema.is_empty()),
+            name: self.name.clone(),
         }
+    }
+}
+
+/// `schema.name`, or `name` when there is no schema — or an empty one, which
+/// names no namespace either.
+fn qualified_name(schema: Option<&str>, name: &str) -> String {
+    match schema {
+        Some(schema) if !schema.is_empty() => format!("{schema}.{name}"),
+        _ => name.to_owned(),
     }
 }
 

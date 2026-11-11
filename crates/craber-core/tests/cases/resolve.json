@@ -6,16 +6,22 @@
     "expect": "audit.users"
   },
   {
-    "case": "a qualified reference that misses does not fall back to the bare name",
+    "case": "a qualified reference never falls back to a table in another schema",
     "tables": [{ "schema": "public", "name": "users" }],
     "ref": { "schema": "audit", "name": "users" },
     "expect": null
   },
   {
-    "case": "a qualified reference does not match an unqualified table",
+    "case": "a qualified reference that misses falls back to the one unqualified table of that name",
     "tables": [{ "name": "users" }],
     "ref": { "schema": "public", "name": "users" },
-    "expect": null
+    "expect": "users"
+  },
+  {
+    "case": "a qualified reference prefers its exact table over an unqualified one",
+    "tables": [{ "name": "users" }, { "schema": "public", "name": "users" }],
+    "ref": { "schema": "public", "name": "users" },
+    "expect": "public.users"
   },
   {
     "case": "an unqualified reference resolves to the only table of that name",
@@ -50,6 +56,18 @@
   {
     "case": "a name that merely ends with the reference is not a match",
     "tables": [{ "name": "power_users" }],
+    "ref": { "name": "users" },
+    "expect": null
+  },
+  {
+    "case": "an empty schema is no schema",
+    "tables": [{ "schema": "", "name": "users" }],
+    "ref": { "name": "users" },
+    "expect": "users"
+  },
+  {
+    "case": "names are case-sensitive",
+    "tables": [{ "name": "Users" }],
     "ref": { "name": "users" },
     "expect": null
   }
