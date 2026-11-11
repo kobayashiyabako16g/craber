@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { loadSchema } from "@/lib/schema";
+import { loadSchema } from "@/lib/load";
 import type { Schema } from "@/types";
 
 /**

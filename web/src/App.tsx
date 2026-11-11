@@ -2,7 +2,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { useState } from "react";
 
 import { Diagram } from "@/components/Diagram/Diagram";
-import { useFlows } from "@/hooks/useFlows";
+import { useWorkflows } from "@/hooks/useWorkflows";
 import { useSchema } from "@/hooks/useSchema";
 import { forTables, readViewState, type ViewState } from "@/lib/viewState";
 
@@ -15,7 +15,7 @@ import { forTables, readViewState, type ViewState } from "@/lib/viewState";
  */
 export function App() {
   const { schema, error } = useSchema();
-  const workflows = useFlows();
+  const workflows = useWorkflows();
   // Read once, on the first render: the URL goes on to follow the view, so
   // re-reading it later would mean reacting to CrabER's own writes.
   const [initial] = useState<ViewState>(() => readViewState());

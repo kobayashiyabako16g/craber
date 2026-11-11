@@ -20,7 +20,7 @@ import { STUB_LENGTH } from "@/lib/handles";
 import { CardinalityMarkers } from "@/components/Markers/Markers";
 import { RelationEdge } from "@/components/RelationEdge/RelationEdge";
 import { anchorEdges, type Box } from "@/lib/anchors";
-import { stepLit } from "@/lib/flow";
+import { stepLit } from "@/lib/workflow";
 import {
   anchorColumns,
   bakedNodes,
@@ -60,7 +60,7 @@ export function Diagram({
   initial: ViewState;
 }) {
   const tables = useMemo(() => schema.tables ?? [], [schema]);
-  const flow = useReactFlow<TableNodeType>();
+  const reactFlow = useReactFlow<TableNodeType>();
   const { zoom } = useViewport();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -91,8 +91,8 @@ export function Diagram({
     toggleHidden,
     setAllHidden,
     recordViewport,
-    playing: playingName,
-    playFlow,
+    playingName,
+    playWorkflow,
     step,
     setStep,
   } = useViewSync(initial);
@@ -139,7 +139,7 @@ export function Diagram({
     if (!played) return;
     const ids = [...played.access.keys()].filter((id) => !hidden.has(id));
     if (ids.length === 0) return;
-    void flow.fitView({
+    void reactFlow.fitView({
       nodes: ids.map((id) => ({ id })),
       duration: 400,
       maxZoom: 1.2,
@@ -147,7 +147,7 @@ export function Diagram({
     });
     // `hidden` is left out on purpose: hiding a table mid-playback should not
     // move the canvas.
-  }, [played, flow]);
+  }, [played, reactFlow]);
 
   const renderedNodes = useMemo(
     () =>
@@ -249,9 +249,9 @@ export function Diagram({
   const moveCanvas = useCallback(
     async (move: () => Promise<boolean>) => {
       await move();
-      recordViewport(flow.getViewport());
+      recordViewport(reactFlow.getViewport());
     },
-    [flow, recordViewport],
+    [reactFlow, recordViewport],
   );
 
   // The whole schema, not what happens to be on screen: a hidden table is
@@ -275,7 +275,7 @@ export function Diagram({
         workflows={workflows}
         current={playing?.name ?? null}
         onPick={(name) => {
-          playFlow(name);
+          playWorkflow(name);
           setPickerOpen(false);
         }}
         onClose={() => setPickerOpen(false)}
@@ -329,9 +329,9 @@ export function Diagram({
           </ReactFlow>
           <Toolbar
             zoom={zoom}
-            onZoomIn={() => void moveCanvas(() => flow.zoomIn({ duration: 150 }))}
-            onZoomOut={() => void moveCanvas(() => flow.zoomOut({ duration: 150 }))}
-            onFitView={() => void moveCanvas(() => flow.fitView({ duration: 300 }))}
+            onZoomIn={() => void moveCanvas(() => reactFlow.zoomIn({ duration: 150 }))}
+            onZoomOut={() => void moveCanvas(() => reactFlow.zoomOut({ duration: 150 }))}
+            onFitView={() => void moveCanvas(() => reactFlow.fitView({ duration: 300 }))}
             onTidyUp={tidyUp}
           />
           {playing && (
@@ -339,7 +339,7 @@ export function Diagram({
               workflow={playing}
               step={Math.min(step, Math.max(playing.steps.length - 1, 0))}
               onStep={setStep}
-              onStop={() => playFlow(null)}
+              onStop={() => playWorkflow(null)}
             />
           )}
         </div>

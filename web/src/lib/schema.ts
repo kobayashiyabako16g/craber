@@ -1,30 +1,4 @@
-import { SCHEMA_FILE, SCHEMA_VERSION } from "@/generated/metrics";
-import type { Schema, Table, TableRef } from "@/types";
-
-/**
- * The `schema.json` shape this build reads, generated from
- * `crates/craber-core/src/ir/` — it used to be written out by hand here, with
- * only a comment asking the two to agree.
- *
- * The site and the binary that produced `schema.json` are versioned
- * independently — a diagram published months ago is still served by whatever
- * bundle is deployed today — so the reader checks rather than assumes.
- */
-export { SCHEMA_VERSION };
-
-export async function loadSchema(url = SCHEMA_FILE): Promise<Schema> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`could not load ${url}: ${response.status} ${response.statusText}`);
-  }
-  const schema = (await response.json()) as Schema;
-  if (schema.schemaVersion !== SCHEMA_VERSION) {
-    throw new Error(
-      `schema.json is version ${schema.schemaVersion}, this build reads version ${SCHEMA_VERSION}`,
-    );
-  }
-  return schema;
-}
+import type { Table, TableRef } from "@/types";
 
 export function qualifiedName(table: Table | TableRef): string {
   return table.schema ? `${table.schema}.${table.name}` : table.name;

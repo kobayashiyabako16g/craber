@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL, stepTarget } from "@/lib/flow";
+import { ACCESS_CLASS, KIND_ACCESS, KIND_LABEL, stepTarget } from "@/lib/workflow";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

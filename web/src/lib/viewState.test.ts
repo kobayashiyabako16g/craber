@@ -6,7 +6,7 @@ import { forTables, readViewState, viewStateUrl } from "./viewState";
  *  argument, so none of this needs a DOM. */
 const page = { origin: "https://example.test", pathname: "/er/" };
 /** No workflow playing — what every link without `?flow=` reads as. */
-const noFlow = { flow: null, step: 0 };
+const noFlow = { workflow: null, step: 0 };
 describe("readViewState", () => {
   it("is all defaults for an empty query", () => {
     expect(readViewState("")).toEqual({ selected: null, hidden: [], viewport: null, ...noFlow });
@@ -84,7 +84,7 @@ describe("viewStateUrl", () => {
 
   /** A link into a playback opens on the same step, counted from 1 as shown. */
   it("round trips a workflow and its step", () => {
-    const state = { selected: null, hidden: [], viewport: null, flow: "checkout", step: 2 };
+    const state = { selected: null, hidden: [], viewport: null, workflow: "checkout", step: 2 };
     const url = viewStateUrl(state, page);
     expect(new URL(url).searchParams.get("step")).toBe("3");
     expect(readViewState(new URL(url).search)).toEqual(state);

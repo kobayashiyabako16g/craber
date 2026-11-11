@@ -5,7 +5,7 @@ import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 /**
  * A step's SQL → coloured tokens, for the expanded step bar.
  *
- * No React, like `flow.ts`. Shiki with only the SQL grammar and the JavaScript
+ * No React, like `workflow.ts`. Shiki with only the SQL grammar and the JavaScript
  * regex engine, so there is no WASM to fetch and the highlighter can be built
  * synchronously. It is still the biggest thing the page loads, so the step bar
  * imports this module the first time it is expanded rather than up front.

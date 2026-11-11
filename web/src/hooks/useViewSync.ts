@@ -37,23 +37,23 @@ export function initialFit(initial: ViewState): FitViewOptions | undefined {
  * are exactly what a shared link has to carry.
  */
 export function useViewSync(initial: ViewState) {
-  const flow = useReactFlow<TableNodeType>();
+  const reactFlow = useReactFlow<TableNodeType>();
   const [selected, setSelected] = useState<string | null>(initial.selected);
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set(initial.hidden));
   const [viewport, setViewport] = useState<Viewport | null>(initial.viewport);
-  const [playing, setPlaying] = useState<string | null>(initial.flow);
+  const [playingName, setPlayingName] = useState<string | null>(initial.workflow);
   const [step, setStep] = useState(initial.step);
 
   // The address bar follows the view, so a reload — or a link pasted straight
   // out of it — lands where the reader was.
   useEffect(() => {
-    const url = viewStateUrl({ selected, hidden: [...hidden], viewport, flow: playing, step });
+    const url = viewStateUrl({ selected, hidden: [...hidden], viewport, workflow: playingName, step });
     window.history.replaceState(null, "", url);
-  }, [selected, hidden, viewport, playing, step]);
+  }, [selected, hidden, viewport, playingName, step]);
 
   /** Start a workflow from its first step, or stop playing one with null. */
-  const playFlow = useCallback((name: string | null) => {
-    setPlaying(name);
+  const playWorkflow = useCallback((name: string | null) => {
+    setPlayingName(name);
     setStep(0);
   }, []);
 
@@ -62,9 +62,9 @@ export function useViewSync(initial: ViewState) {
   const focusTable = useCallback(
     (id: string) => {
       setSelected(id);
-      void flow.fitView({ nodes: [{ id }], duration: 400, ...FIT_ONE });
+      void reactFlow.fitView({ nodes: [{ id }], duration: 400, ...FIT_ONE });
     },
-    [flow],
+    [reactFlow],
   );
 
   const toggleHidden = useCallback((id: string) => {
@@ -94,8 +94,8 @@ export function useViewSync(initial: ViewState) {
     toggleHidden,
     setAllHidden,
     recordViewport: setViewport,
-    playing,
-    playFlow,
+    playingName,
+    playWorkflow,
     step,
     setStep,
   };

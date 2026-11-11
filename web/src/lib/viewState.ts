@@ -20,8 +20,8 @@ export type ViewState = {
   hidden: string[];
   /** Absent when the link carries no viewport, which means "fit the diagram". */
   viewport: Viewport | null;
-  /** Name of the workflow being played back, if any. */
-  flow: string | null;
+  /** Name of the workflow being played back, if any. `?flow=` in the URL. */
+  workflow: string | null;
   /** Index of its current step, from 0. `?step=` counts from 1, as the step
    *  bar does. */
   step: number;
@@ -33,7 +33,7 @@ export function readViewState(search: string = window.location.search): ViewStat
     selected: params.get("table"),
     hidden: (params.get("hide") ?? "").split(",").filter(Boolean),
     viewport: asViewport(params.get("at")),
-    flow: params.get("flow"),
+    workflow: params.get("flow"),
     step: asStep(params.get("step")),
   };
 }
@@ -73,8 +73,8 @@ export function viewStateUrl(
     const { x, y, zoom } = state.viewport;
     params.set("at", [round(x), round(y), round(zoom, 3)].join(","));
   }
-  if (state.flow) {
-    params.set("flow", state.flow);
+  if (state.workflow) {
+    params.set("flow", state.workflow);
     params.set("step", String(state.step + 1));
   }
   const query = params.toString();

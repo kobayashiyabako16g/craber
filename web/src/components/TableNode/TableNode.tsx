@@ -2,7 +2,7 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
 import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
-import { ACCESS_CLASS, valueLabel } from "@/lib/flow";
+import { ACCESS_CLASS, valueLabel } from "@/lib/workflow";
 import { handleId } from "@/lib/handles";
 import { CommentIcon, TableIcon } from "@/components/icons/icons";
 import { foreignKeyColumns, primaryKeyColumns } from "@/lib/schema";
