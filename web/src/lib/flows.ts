@@ -1,4 +1,4 @@
-import { FLOWS_VERSION } from "@/generated/metrics";
+import { FLOWS_FILE, FLOWS_VERSION } from "@/generated/metrics";
 import type { Flows, Workflow } from "@/types";
 
 /**
@@ -10,7 +10,7 @@ import type { Flows, Workflow } from "@/types";
  * those still draws the diagram, so each comes back as an empty list — the
  * reason goes to the console, where someone expecting workflows will look.
  */
-export async function loadFlows(url = "flows.json"): Promise<Workflow[]> {
+export async function loadFlows(url = FLOWS_FILE): Promise<Workflow[]> {
   try {
     const response = await fetch(url);
     if (!response.ok) return [];

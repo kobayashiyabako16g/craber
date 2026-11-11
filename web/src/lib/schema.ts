@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION } from "@/generated/metrics";
+import { SCHEMA_FILE, SCHEMA_VERSION } from "@/generated/metrics";
 import type { Schema, Table, TableRef } from "@/types";
 
 /**
@@ -12,7 +12,7 @@ import type { Schema, Table, TableRef } from "@/types";
  */
 export { SCHEMA_VERSION };
 
-export async function loadSchema(url = "schema.json"): Promise<Schema> {
+export async function loadSchema(url = SCHEMA_FILE): Promise<Schema> {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`could not load ${url}: ${response.status} ${response.statusText}`);

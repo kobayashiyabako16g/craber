@@ -25,14 +25,14 @@ pub use diagnostic::{Diagnostic, Outcome, Severity};
 pub use dialect::{Dialect, UnknownDialect};
 pub use filter::{Filter, FilterError};
 pub use flow::{
-    Access, ColumnRef, ColumnValue, FLOWS_VERSION, Flows, Join, Step, StepKind, Touch, ValueKind,
-    Workflow,
+    Access, ColumnRef, ColumnValue, FLOWS_FILE, FLOWS_VERSION, Flows, Join, Step, StepKind, Touch,
+    ValueKind, Workflow,
 };
 pub use geometry::{metrics, node_size, visible_columns};
 pub use index::{Edge, SchemaIndex, TableId};
 pub use ir::{
-    Action, Cardinality, Column, Detail, EnumType, ForeignKey, Position, Positions, SCHEMA_VERSION,
-    Schema, Table, TableIndex, TableRef,
+    Action, Cardinality, Column, Detail, EnumType, ForeignKey, Position, Positions, SCHEMA_FILE,
+    SCHEMA_VERSION, Schema, Table, TableIndex, TableRef,
 };
 pub use normalize::annotate_relationships;
 pub use theme::{Chrome, Theme};

@@ -19,6 +19,9 @@ use crate::ir::TableRef;
 /// Bumped whenever `flows.json` changes shape incompatibly.
 pub const FLOWS_VERSION: u32 = 1;
 
+/// The name a site serves the workflows under, and the web app fetches.
+pub const FLOWS_FILE: &str = "flows.json";
+
 /// Every workflow given to one run. The root of `flows.json`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]

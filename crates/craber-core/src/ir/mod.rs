@@ -11,6 +11,6 @@ pub mod schema;
 
 pub use crate::ir::layout::{Detail, Position, Positions};
 pub use crate::ir::schema::{
-    Action, Cardinality, Column, EnumType, ForeignKey, SCHEMA_VERSION, Schema, Table, TableIndex,
-    TableRef,
+    Action, Cardinality, Column, EnumType, ForeignKey, SCHEMA_FILE, SCHEMA_VERSION, Schema, Table,
+    TableIndex, TableRef,
 };

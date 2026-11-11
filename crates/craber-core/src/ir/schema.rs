@@ -15,6 +15,9 @@ use crate::ir::Positions;
 /// reader needs a way to reject a file it does not understand.
 pub const SCHEMA_VERSION: u32 = 2;
 
+/// The name a site serves the schema under, and the web app fetches.
+pub const SCHEMA_FILE: &str = "schema.json";
+
 /// A whole database, normalized. The root of `schema.json`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]

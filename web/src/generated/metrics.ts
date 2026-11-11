@@ -6,3 +6,9 @@ export const SCHEMA_VERSION = 2;
 
 /** The `flows.json` shape this build reads. See `FLOWS_VERSION` in flow.rs. */
 export const FLOWS_VERSION = 1;
+
+/** Where a site serves the schema. See `SCHEMA_FILE` in ir/schema.rs. */
+export const SCHEMA_FILE = "schema.json";
+
+/** Where a site serves the workflows. See `FLOWS_FILE` in flow.rs. */
+export const FLOWS_FILE = "flows.json";

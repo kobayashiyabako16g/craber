@@ -20,7 +20,7 @@
 use std::borrow::Cow;
 use std::path::{Component, Path, PathBuf};
 
-use craber_core::{Flows, Schema};
+use craber_core::{FLOWS_FILE, Flows, SCHEMA_FILE, Schema};
 
 include!(concat!(env!("OUT_DIR"), "/bundle.rs"));
 
@@ -33,6 +33,12 @@ include!(concat!(env!("OUT_DIR"), "/bundle.rs"));
 /// Only files this list names are ever deleted: anything else in the directory
 /// belongs to somebody else.
 const MANIFEST: &str = ".craber-build.json";
+
+/// The page, which `craber serve` also answers `/` with.
+pub const INDEX_FILE: &str = "index.html";
+
+/// Cache headers for a static host; written by [`write()`] only.
+const SERVE_FILE: &str = "serve.json";
 
 /// Cache policy for the hosts that read this file (`serve`, Vercel and the
 /// like). Asset filenames carry a content hash and never change meaning, so
@@ -132,7 +138,7 @@ pub fn files(
     let mut files = Vec::with_capacity(FILES.len() + 2);
     for (name, bytes) in FILES {
         let contents = match (*name, std::str::from_utf8(bytes)) {
-            ("index.html", Ok(html)) => {
+            (INDEX_FILE, Ok(html)) => {
                 Cow::Owned(index_html(html, &schema.name, base_path).into_bytes())
             }
             _ => Cow::Borrowed(*bytes),
@@ -147,13 +153,13 @@ pub fn files(
     // every visitor downloads, and nobody reads this copy by hand — `craber
     // export --format json` is there for that.
     files.push(SiteFile {
-        path: PathBuf::from("schema.json"),
+        path: PathBuf::from(SCHEMA_FILE),
         contents: Cow::Owned(serde_json::to_vec(schema)?),
     });
     // Written even when empty, so the page can tell "no workflows" from a
     // site built before workflows existed by the version, not by a 404.
     files.push(SiteFile {
-        path: PathBuf::from("flows.json"),
+        path: PathBuf::from(FLOWS_FILE),
         contents: Cow::Owned(serde_json::to_vec(flows)?),
     });
 
@@ -180,7 +186,7 @@ pub fn write(
     }
     written.push(write_file(
         out_dir,
-        Path::new("serve.json"),
+        Path::new(SERVE_FILE),
         SERVE_JSON.as_bytes(),
     )?);
 
