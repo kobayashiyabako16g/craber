@@ -1,29 +1,16 @@
-import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Fragment } from "react";
 
 import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
 import { ACCESS_CLASS, valueLabel } from "@/lib/workflow";
-import { handleId } from "@/lib/handles";
+import { handleId } from "@/lib/edgeGeometry";
+import type { TableNodeType } from "@/lib/graph";
 import { CommentIcon, TableIcon } from "@/components/icons/icons";
 import { foreignKeyColumns, primaryKeyColumns } from "@/lib/schema";
-import type { Access, ColumnValue, Table } from "@/types";
+import type { ColumnValue } from "@/types";
 
 import "./TableNode.css";
 
-export type TableNodeData = {
-  table: Table;
-  /** Column names an edge attaches to — see `anchorColumns` in `lib/graph.ts`. */
-  anchors: ReadonlySet<string>;
-  /** Rows joined by a relationship of the selected or hovered table. */
-  litColumns?: ReadonlySet<string>;
-  /** This table is the selected or hovered one, or one relationship away. */
-  related?: boolean;
-  /** What the workflow step being played does to this table. */
-  access?: Access;
-  /** Per column, the values that step writes or filters by. */
-  values?: ReadonlyMap<string, readonly ColumnValue[]>;
-};
-export type TableNodeType = Node<TableNodeData, "table">;
 
 /**
  * One table on the canvas, with every column it has.

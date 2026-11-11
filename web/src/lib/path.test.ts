@@ -1,7 +1,7 @@
 import { Position } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
 
-import { STUB_LENGTH } from "./handles";
+import { STUB_LENGTH } from "./edgeGeometry";
 import { relationPath } from "./path";
 
 /** One SVG path command: its letter, and the numbers after it. */

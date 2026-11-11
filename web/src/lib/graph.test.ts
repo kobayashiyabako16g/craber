@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import type { ForeignKey, Table } from "@/types";
-import { cardinalityLabel, endKinds, litRelations, toEdges } from "./graph";
+import {
+  anchorColumns,
+  cardinalityLabel,
+  endCounts,
+  endKinds,
+  litRelations,
+  neighbourhood,
+  relationshipsOf,
+  toEdges,
+} from "./graph";
 
 /**
  * A declared key, with the two facts that decide how it is drawn left at the
@@ -52,14 +61,13 @@ describe("endKinds", () => {
 
 describe("cardinalityLabel", () => {
   it("reads a many-to-one from whichever end is asking", () => {
-    expect(cardinalityLabel(fk(), "from")).toBe("n:1");
-    expect(cardinalityLabel(fk(), "to")).toBe("1:n");
+    expect(cardinalityLabel("manyToOne", "from")).toBe("n:1");
+    expect(cardinalityLabel("manyToOne", "to")).toBe("1:n");
   });
 
   it("reads the same from both ends of a one-to-one", () => {
-    const one = fk({ cardinality: "oneToOne" });
-    expect(cardinalityLabel(one, "from")).toBe("1:1");
-    expect(cardinalityLabel(one, "to")).toBe("1:1");
+    expect(cardinalityLabel("oneToOne", "from")).toBe("1:1");
+    expect(cardinalityLabel("oneToOne", "to")).toBe("1:1");
   });
 });
 
@@ -75,9 +83,38 @@ describe("toEdges", () => {
     return relation;
   }
 
-  it("labels a line with its cardinality read from the referencing end", () => {
-    expect(edge().data?.cardinality).toBe("n:1");
-    expect(edge({ cardinality: "oneToOne" }).data?.cardinality).toBe("1:1");
+  it("carries the key's cardinality and whether it was inferred", () => {
+    expect(edge().data?.cardinality).toBe("manyToOne");
+    expect(edge({ cardinality: "oneToOne" }).data?.cardinality).toBe("oneToOne");
+    expect(edge({ inferred: true }).data?.inferred).toBe(true);
+    expect(edge({ inferred: true }).className).toBe("craber-edge-inferred");
+  });
+
+  it("is keyed by table and key index, joining the rows the key names", () => {
+    const relation = edge();
+    expect(relation.id).toBe("orders:0");
+    expect([relation.data?.sourceColumn, relation.data?.targetColumn]).toEqual(["user_id", "id"]);
+  });
+
+  it("lands on the referenced primary key when the key names no column", () => {
+    expect(edge({ refColumns: [] }).data?.targetColumn).toBe("id");
+  });
+
+  it("attaches to the node's middle when a column is not one the node draws", () => {
+    expect(edge({ columns: ["ghost"] }).data?.sourceColumn).toBe("");
+  });
+
+  it("skips a key whose table is not in the schema", () => {
+    const tables = [{ name: "orders", columns: [], fks: [fk({ refTable: { name: "ghost" } })] }];
+    expect(toEdges(tables as unknown as Table[], 0)).toEqual([]);
+  });
+
+  it("routes a self-reference orthogonally, and everything else as a curve", () => {
+    const tables = [{ name: "users", columns: [{ name: "id" }, { name: "user_id" }], pk: ["id"], fks: [fk()] }];
+    const [loop] = toEdges(tables as unknown as Table[], 30);
+    expect(loop?.type).toBe("smoothstep");
+    expect(loop?.pathOptions).toEqual({ offset: 30 });
+    expect(edge().type).toBe("relation");
   });
 });
 
@@ -109,5 +146,41 @@ describe("litRelations", () => {
     const lit = litRelations(edges, ["orders", "sessions"]);
     expect([...lit.edges].sort()).toEqual(["orders:0", "sessions:0"]);
     expect(lit.tables.has("products")).toBe(false);
+  });
+});
+
+describe("relationships, read off the edges", () => {
+  /** users ← orders, users ← users (a self-reference), products alone. */
+  const tables = [
+    { name: "users", columns: [{ name: "id" }, { name: "user_id" }], pk: ["id"], fks: [fk()] },
+    { name: "orders", columns: [{ name: "user_id" }], fks: [fk()] },
+    { name: "products", columns: [{ name: "id" }], pk: ["id"] },
+  ] as unknown as Table[];
+  const edges = toEdges(tables, 0);
+
+  it("anchors only the rows a drawn relationship joins", () => {
+    const anchors = anchorColumns(tables, edges);
+    expect([...(anchors.get("users") ?? [])].sort()).toEqual(["id", "user_id"]);
+    expect([...(anchors.get("orders") ?? [])]).toEqual(["user_id"]);
+    expect(anchors.get("products")?.size).toBe(0);
+  });
+
+  it("lists a table's keys and the keys pointing at it, the self-reference once", () => {
+    const listed = relationshipsOf("users", edges);
+    expect(listed.map((r) => [r.other, r.from, r.to, r.cardinality])).toEqual([
+      ["users", "users.user_id", "users.id", "n:1"],
+      ["orders", "orders.user_id", "users.id", "1:n"],
+    ]);
+    expect(new Set(listed.map((r) => r.id)).size).toBe(listed.length);
+  });
+
+  it("takes a table and its neighbours as the neighbourhood", () => {
+    expect([...(neighbourhood(edges, "orders") ?? [])].sort()).toEqual(["orders", "users"]);
+    expect(neighbourhood(edges, null)).toBeNull();
+  });
+
+  it("counts rows from the referencing end", () => {
+    expect(endCounts("manyToOne")).toEqual(["n", "1"]);
+    expect(endCounts("oneToOne")).toEqual(["1", "1"]);
   });
 });

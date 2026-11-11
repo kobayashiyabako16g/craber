@@ -1,6 +1,6 @@
 import { Position, getBezierPath } from "@xyflow/react";
 
-import { STUB_LENGTH } from "./handles";
+import { STUB_LENGTH } from "./edgeGeometry";
 
 /**
  * The line one relationship is drawn as: a straight run out of each node, then

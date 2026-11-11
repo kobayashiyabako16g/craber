@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReactFlow, type FitViewOptions } from "@xyflow/react";
 
-import type { TableNodeType } from "@/components/TableNode/TableNode";
+import type { TableNodeType } from "@/lib/graph";
 import { viewStateUrl, type ViewState, type Viewport } from "@/lib/viewState";
 
 /** How a link that names a table frames it: close, but not nose-to-the-glass. */

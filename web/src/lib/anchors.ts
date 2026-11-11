@@ -1,4 +1,4 @@
-import { STUB_LENGTH, handleId, type Sides } from "./handles";
+import { STUB_LENGTH, handleId, type Sides } from "./edgeGeometry";
 import type { Relation } from "./graph";
 
 /**

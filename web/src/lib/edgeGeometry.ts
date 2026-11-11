@@ -1,11 +1,15 @@
+import type { EndKind } from "./graph";
+
 /**
- * What a node's handles and the edges attaching to them have to agree on.
+ * What a line's ends, the handles they attach to and the notation drawn on
+ * them have to agree on.
  *
- * React Flow joins an edge to a handle by id, so the string `TableNode` renders
- * and the string `anchors.ts` asks for have to be the same string. It is built
- * here so that neither side writes the format out.
+ * React Flow joins an edge to a handle, and a line to its marker, by id — so
+ * the string a component renders and the string an edge asks for have to be
+ * the same string. Each is built here so that neither side writes the format
+ * out, along with the lengths the notation and the line's straight run share.
  *
- * In `lib/` rather than beside the component because `anchors.ts` is pure
+ * In `lib/` rather than beside a component because `anchors.ts` is pure
  * geometry and used to reach into `TableNode.tsx` for this — which made the
  * geometry, and anything testing it, depend on React.
  */
@@ -20,6 +24,14 @@ export function handleId(role: "s" | "t", side: Side, column: string): string {
 
 /** Which side each end of one edge attaches to. */
 export type Sides = { source: Side; target: Side };
+
+/**
+ * The marker drawing `kind` on a line that meets a node's `side` face — the
+ * id `Markers.tsx` defines and an edge's `markerStart`/`markerEnd` names.
+ */
+export function markerId(kind: EndKind, side: Side): string {
+  return `craber-${kind}-${side}`;
+}
 
 /**
  * How far the crow's-foot notation reaches along the line from the face it

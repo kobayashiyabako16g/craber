@@ -1,7 +1,7 @@
 import { BaseEdge, Position, type EdgeProps } from "@xyflow/react";
 
-import type { Relation } from "@/lib/graph";
-import { MARKER_LENGTH } from "@/lib/handles";
+import { endCounts, type Relation } from "@/lib/graph";
+import { MARKER_LENGTH } from "@/lib/edgeGeometry";
 import { relationPath } from "@/lib/path";
 
 /**
@@ -28,7 +28,7 @@ export function RelationEdge({
   markerEnd,
   interactionWidth,
 }: EdgeProps<Relation>) {
-  const { curvature } = (pathOptions ?? {}) as { curvature?: number };
+  const curvature = pathOptions && "curvature" in pathOptions ? pathOptions.curvature : undefined;
   const [path] = relationPath({
     sourceX,
     sourceY,
@@ -44,7 +44,7 @@ export function RelationEdge({
   // `n:1` read from the referencing end: `n` belongs at the source, `1` at
   // the target. Only on a lit line — on every line at once, the numbers would
   // be a second, illegible diagram over the first.
-  const [sourceCount, targetCount] = data?.lit ? data.cardinality.split(":") : [];
+  const [sourceCount, targetCount] = data?.lit ? endCounts(data.cardinality) : [];
   return (
     <>
       <BaseEdge

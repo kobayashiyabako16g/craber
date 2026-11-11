@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { anchorEdges, type Box } from "./anchors";
 import type { Relation } from "./graph";
-import { STUB_LENGTH } from "./handles";
+import { STUB_LENGTH } from "./edgeGeometry";
 
 const NODE_WIDTH = 260;
 

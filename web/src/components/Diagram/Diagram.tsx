@@ -12,11 +12,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { StepBar } from "@/components/StepBar/StepBar";
 import { TableDetails } from "@/components/TableDetails/TableDetails";
-import { TableNode, type TableNodeType } from "@/components/TableNode/TableNode";
+import { TableNode } from "@/components/TableNode/TableNode";
 import { Toolbar } from "@/components/Toolbar/Toolbar";
 import { TopBar } from "@/components/TopBar/TopBar";
 import { WorkflowPicker } from "@/components/WorkflowPicker/WorkflowPicker";
-import { STUB_LENGTH } from "@/lib/handles";
+import { STUB_LENGTH } from "@/lib/edgeGeometry";
 import { CardinalityMarkers } from "@/components/Markers/Markers";
 import { RelationEdge } from "@/components/RelationEdge/RelationEdge";
 import { anchorEdges, type Box } from "@/lib/anchors";
@@ -27,6 +27,7 @@ import {
   litRelations,
   neighbourhood,
   toEdges,
+  type TableNodeType,
 } from "@/lib/graph";
 import { download } from "@/lib/download";
 import { initialFit, useViewSync } from "@/hooks/useViewSync";
@@ -64,9 +65,11 @@ export function Diagram({
   const { zoom } = useViewport();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Every relationship, read once from the foreign keys.
+  const relations = useMemo(() => toEdges(tables, STUB_LENGTH), [tables]);
   // Which columns an edge can land on. Fixed by the schema, so the nodes can
   // carry it and only the anchored rows pay for handles.
-  const anchored = useMemo(() => anchorColumns(tables), [tables]);
+  const anchored = useMemo(() => anchorColumns(tables, relations), [tables, relations]);
 
   // Positions live in React Flow's state so a table can be nudged out of the
   // way; `Tidy up` puts them back. Nothing here computes a layout — the
@@ -98,7 +101,6 @@ export function Diagram({
   } = useViewSync(initial);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const relations = useMemo(() => toEdges(tables, STUB_LENGTH), [tables]);
   const selectedTable = useMemo(
     () => tables.find((table) => qualifiedName(table) === selected) ?? null,
     [tables, selected],
@@ -346,7 +348,7 @@ export function Diagram({
         {selectedTable && (
           <TableDetails
             table={selectedTable}
-            tables={tables}
+            relations={relations}
             onSelect={focusTable}
             onClose={() => setSelected(null)}
           />

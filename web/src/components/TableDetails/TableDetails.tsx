@@ -1,29 +1,17 @@
 import { useMemo } from "react";
 
 import { ColumnGlyph } from "@/components/ColumnGlyph/ColumnGlyph";
-import { cardinalityLabel } from "@/lib/graph";
+import { relationshipsOf, type Relation } from "@/lib/graph";
 import { CloseIcon, LinkIcon, TableIcon } from "@/components/icons/icons";
-import { foreignKeyColumns, primaryKeyColumns, qualifiedName, resolveRef, tableIndex, uniqueColumns } from "@/lib/schema";
-import type { Column, Table, TableRef } from "@/types";
+import { foreignKeyColumns, primaryKeyColumns, qualifiedName, uniqueColumns } from "@/lib/schema";
+import type { Column, Table } from "@/types";
 
 import "./TableDetails.css";
 
-/** One relationship, seen from the table the panel is describing. */
-type Relationship = {
-  /** The table at the other end. */
-  other: string;
-  /** `orders.user_id`, from this table's side. */
-  from: string;
-  /** `users.id`, at the other end. */
-  to: string;
-  /** `n:1` or `1:1`, written from this table's side. */
-  cardinality: string;
-  inferred: boolean;
-};
-
 type TableDetailsProps = {
   table: Table;
-  tables: Table[];
+  /** Every relationship on the canvas; the panel lists this table's. */
+  relations: Relation[];
   onSelect: (id: string) => void;
   onClose: () => void;
 };
@@ -36,11 +24,14 @@ type TableDetailsProps = {
  * the exact columns each relationship joins — would turn every node into a wall
  * of text, so it lives here, for the one table the reader asked about.
  */
-export function TableDetails({ table, tables, onSelect, onClose }: TableDetailsProps) {
+export function TableDetails({ table, relations, onSelect, onClose }: TableDetailsProps) {
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const unique = uniqueColumns(table);
-  const relationships = useMemo(() => relationshipsOf(table, tables), [table, tables]);
+  const relationships = useMemo(
+    () => relationshipsOf(qualifiedName(table), relations),
+    [table, relations],
+  );
 
   return (
     <aside className="craber-details">
@@ -95,7 +86,7 @@ export function TableDetails({ table, tables, onSelect, onClose }: TableDetailsP
               <button
                 type="button"
                 className="craber-details-relation"
-                key={`${relationship.from}->${relationship.to}`}
+                key={relationship.id}
                 onClick={() => onSelect(relationship.other)}
                 title={`Go to ${relationship.other}`}
               >
@@ -177,47 +168,4 @@ function Fact({
       </dd>
     </div>
   );
-}
-
-/**
- * Both directions: the foreign keys this table declares, and the ones other
- * tables point back at it with. A reader asking about `users` wants to know
- * what refers to it at least as much as what it refers to.
- */
-function relationshipsOf(table: Table, tables: Table[]): Relationship[] {
-  const id = qualifiedName(table);
-  const byId = tableIndex(tables);
-  const relationships: Relationship[] = [];
-
-  const join = (owner: Table, columns: string[], ref: TableRef, refColumns: string[]) => ({
-    from: `${owner.name}.${columns[0] ?? "?"}`,
-    to: `${ref.name}.${refColumns[0] ?? "?"}`,
-  });
-
-  for (const fk of table.fks ?? []) {
-    const other = resolveRef(fk.refTable, byId);
-    if (!other) continue;
-    relationships.push({
-      other,
-      ...join(table, fk.columns, fk.refTable, fk.refColumns),
-      cardinality: cardinalityLabel(fk, "from"),
-      inferred: fk.inferred,
-    });
-  }
-
-  for (const source of tables) {
-    if (qualifiedName(source) === id) continue;
-    for (const fk of source.fks ?? []) {
-      if (resolveRef(fk.refTable, byId) !== id) continue;
-      relationships.push({
-        other: qualifiedName(source),
-        ...join(source, fk.columns, { schema: table.schema, name: table.name }, fk.refColumns),
-        // Read from this table's side, so the "one" end is this one.
-        cardinality: cardinalityLabel(fk, "to"),
-        inferred: fk.inferred,
-      });
-    }
-  }
-
-  return relationships;
 }

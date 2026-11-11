@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 
 import type { EndKind } from "@/lib/graph";
-import { MARKER_LENGTH } from "@/lib/handles";
+import { MARKER_LENGTH, markerId } from "@/lib/edgeGeometry";
 
 import "./Markers.css";
 
@@ -114,12 +114,12 @@ export function CardinalityMarkers() {
           <Fragment key={kind}>
             {/* On a node's right face the glyph runs off to the right, so it is
                 drawn as `EndShape` has it and anchored at x=0. */}
-            <marker {...MARKER_BOX} id={`craber-${kind}-right`} refX={0}>
+            <marker {...MARKER_BOX} id={markerId(kind, "right")} refX={0}>
               <EndShape kind={kind} stroke={stroke} />
             </marker>
             {/* On a left face it runs the other way: mirrored, and anchored at
                 the far end of the box so the box lies to the left of the node. */}
-            <marker {...MARKER_BOX} id={`craber-${kind}-left`} refX={MARKER_LENGTH}>
+            <marker {...MARKER_BOX} id={markerId(kind, "left")} refX={MARKER_LENGTH}>
               <g transform={`translate(${MARKER_LENGTH} 0) scale(-1 1)`}>
                 <EndShape kind={kind} stroke={stroke} />
               </g>

@@ -1,8 +1,7 @@
-import type { Edge } from "@xyflow/react";
+import type { Edge, Node } from "@xyflow/react";
 
 import { qualifiedName, resolveRef, tableIndex } from "./schema";
-import type { TableNodeType } from "@/components/TableNode/TableNode";
-import type { ForeignKey, Table } from "@/types";
+import type { Access, Cardinality, ColumnValue, ForeignKey, Table } from "@/types";
 
 /**
  * Schema IR → what React Flow draws.
@@ -10,7 +9,29 @@ import type { ForeignKey, Table } from "@/types";
  * No React and no geometry. Which side of a node an edge attaches to depends on
  * where the tables currently are and is decided per render in `anchors.ts`;
  * everything here is a fact about the schema, so it is computed once.
+ *
+ * The foreign keys are walked once, by `toEdges`. Everything else that is
+ * about relationships — which rows get handles, what the details panel lists —
+ * is read off the `Relation`s it returns, so the canvas and the panel cannot
+ * disagree about what a key joins.
  */
+
+/** What a table node carries. Defined here, not beside the component, so the
+ *  code that builds nodes does not depend on the one that draws them. */
+export type TableNodeData = {
+  table: Table;
+  /** Column names an edge attaches to — see `anchorColumns`. */
+  anchors: ReadonlySet<string>;
+  /** Rows joined by a relationship of the selected or hovered table. */
+  litColumns?: ReadonlySet<string>;
+  /** This table is the selected or hovered one, or one relationship away. */
+  related?: boolean;
+  /** What the workflow step being played does to this table. */
+  access?: Access;
+  /** Per column, the values that step writes or filters by. */
+  values?: ReadonlyMap<string, readonly ColumnValue[]>;
+};
+export type TableNodeType = Node<TableNodeData, "table">;
 
 /**
  * The crow's-foot ends CrabER can derive from DDL.
@@ -26,9 +47,9 @@ export type Relation = Edge<{
   targetEnd: EndKind;
   sourceColumn: string;
   targetColumn: string;
-  /** Read from the referencing end, as the details panel reads it; a lit
-   *  line shows its two halves at its two ends. */
-  cardinality: string;
+  cardinality: Cardinality;
+  /** Read from naming rather than from a constraint; drawn dashed. */
+  inferred: boolean;
   /** Set per render while one of its tables is selected or pointed at. */
   lit?: boolean;
 }> & {
@@ -53,14 +74,22 @@ export function endKinds(fk: ForeignKey): { source: EndKind; target: EndKind } {
 }
 
 /**
+ * The row count at each end of a relationship: the referencing end first.
+ * Many rows point at one, unless the key is unique.
+ */
+export function endCounts(cardinality: Cardinality): [source: string, target: string] {
+  return cardinality === "oneToOne" ? ["1", "1"] : ["n", "1"];
+}
+
+/**
  * The same relationship as a label, read from one end of it.
  *
  * `from` is the table that holds the foreign key looking out; `to` is the table
  * it points at looking back.
  */
-export function cardinalityLabel(fk: ForeignKey, side: "from" | "to"): string {
-  if (fk.cardinality === "oneToOne") return "1:1";
-  return side === "from" ? "n:1" : "1:n";
+export function cardinalityLabel(cardinality: Cardinality, side: "from" | "to"): string {
+  const [source, target] = endCounts(cardinality);
+  return side === "from" ? `${source}:${target}` : `${target}:${source}`;
 }
 
 /** Nodes at the coordinates `craber-layout` assigned, before any dragging. */
@@ -89,25 +118,19 @@ const EMPTY_ANCHORS: ReadonlySet<string> = new Set();
  * columns, and the columns it points at in the other table.
  *
  * Only these get handles. A table of forty columns with one foreign key needs
- * two anchors, not eighty.
+ * two anchors, not eighty. A relationship whose column the node does not draw
+ * attaches to the node's middle instead, so it adds nothing here.
  */
-export function anchorColumns(tables: Table[]): Map<string, ReadonlySet<string>> {
-  const byId = tableIndex(tables);
+export function anchorColumns(
+  tables: Table[],
+  relations: Relation[],
+): Map<string, ReadonlySet<string>> {
   const anchors = new Map<string, Set<string>>(
     tables.map((table) => [qualifiedName(table), new Set<string>()]),
   );
-  const add = (tableId: string, column: string | undefined) => {
-    if (!columnOf(byId.get(tableId), column)) return;
-    anchors.get(tableId)?.add(column as string);
-  };
-
-  for (const table of tables) {
-    const id = qualifiedName(table);
-    for (const fk of table.fks ?? []) {
-      const targetId = resolveRef(fk.refTable, byId);
-      add(id, fk.columns[0]);
-      if (targetId) add(targetId, referencedColumn(fk.refColumns, byId.get(targetId)));
-    }
+  for (const { source, target, data } of relations) {
+    if (data?.sourceColumn) anchors.get(source)?.add(data.sourceColumn);
+    if (data?.targetColumn) anchors.get(target)?.add(data.targetColumn);
   }
   return anchors;
 }
@@ -117,15 +140,20 @@ function columnOf(table: Table | undefined, column: string | undefined): string 
   return column && table?.columns?.some((c) => c.name === column) ? column : "";
 }
 
-/** The column an edge lands on in the referenced table. */
+/**
+ * The column an edge lands on in the referenced table: the one the key names,
+ * or the primary key's when it names none. `craber-core` fills that in, so the
+ * fallback is for a `schema.json` written before it did.
+ */
 function referencedColumn(refColumns: string[] | undefined, target: Table | undefined) {
   return refColumns?.[0] ?? target?.pk?.[0];
 }
 
 /**
- * Schema IR → React Flow edges. No layout happens here, and no geometry: which
- * side of each node an edge attaches to is decided per render from where the
- * tables currently are, by `facingSides`.
+ * Schema IR → React Flow edges, one per foreign key whose target resolves.
+ *
+ * An edge's id is `<table>:<index of the key>`, which `workflow.ts` and the
+ * details panel rely on to refer back to it.
  */
 export function toEdges(tables: Table[], stubLength: number): Relation[] {
   const byId = tableIndex(tables);
@@ -163,7 +191,8 @@ export function toEdges(tables: Table[], stubLength: number): Relation[] {
             byId.get(targetId),
             referencedColumn(fk.refColumns, byId.get(targetId)),
           ),
-          cardinality: cardinalityLabel(fk, "from"),
+          cardinality: fk.cardinality,
+          inferred: fk.inferred,
         },
         // A bezier, held straight out of each node for the length of the
         // notation first: see `relationPath`, which is what `relation` draws.
@@ -244,4 +273,54 @@ export function litRelations(edges: Relation[], tables: (string | null)[]): Lit 
     light(edge.target, edge.data?.targetColumn);
   }
   return lit;
+}
+
+/** One relationship, seen from a table the details panel is describing. */
+export type Relationship = {
+  /** The edge it is drawn as, which also keys it. */
+  id: string;
+  /** The table at the other end. */
+  other: string;
+  /** The referencing column, `orders.user_id`, whichever end this table is. */
+  from: string;
+  /** The column it points at, `users.id`. */
+  to: string;
+  /** `n:1` or `1:1`, written from this table's side. */
+  cardinality: string;
+  inferred: boolean;
+};
+
+/**
+ * Both directions: the foreign keys `table` declares, and the ones other
+ * tables point back at it with. A reader asking about `users` wants to know
+ * what refers to it at least as much as what it refers to.
+ *
+ * Read off the same relations the canvas draws, so the panel names the rows
+ * the line actually joins.
+ */
+export function relationshipsOf(table: string, relations: Relation[]): Relationship[] {
+  const end = (id: string, column: string | undefined) => `${id}.${column || "?"}`;
+  const outgoing = relations
+    .filter((edge) => edge.source === table)
+    .map((edge) => ({
+      id: edge.id,
+      other: edge.target,
+      from: end(edge.source, edge.data?.sourceColumn),
+      to: end(edge.target, edge.data?.targetColumn),
+      cardinality: cardinalityLabel(edge.data?.cardinality ?? "manyToOne", "from"),
+      inferred: edge.data?.inferred ?? false,
+    }));
+  // A self-reference is listed once, as the key this table declares.
+  const incoming = relations
+    .filter((edge) => edge.target === table && edge.source !== table)
+    .map((edge) => ({
+      id: edge.id,
+      other: edge.source,
+      from: end(edge.source, edge.data?.sourceColumn),
+      to: end(edge.target, edge.data?.targetColumn),
+      // Read from this table's side, so the "one" end is this one.
+      cardinality: cardinalityLabel(edge.data?.cardinality ?? "manyToOne", "to"),
+      inferred: edge.data?.inferred ?? false,
+    }));
+  return [...outgoing, ...incoming];
 }
