@@ -66,6 +66,19 @@ fn image_formats_are_not_offered() {
     }
 }
 
+/// `--dialect POSTGRES` works, so `--format JSON` has to as well.
+#[test]
+fn the_format_flag_ignores_case() {
+    let output = craber(&[
+        "export",
+        "--file",
+        fixture("tiny.sql").to_str().unwrap(),
+        "--format",
+        "JSON",
+    ]);
+    assert_success(&output, "craber export --format JSON");
+}
+
 /// A format that is declared but not built yet has to fail loudly. Writing an
 /// empty file, or silently falling back to another format, would be worse than
 /// the error.

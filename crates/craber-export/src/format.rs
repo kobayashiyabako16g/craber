@@ -1,10 +1,10 @@
 //! The formats `craber export --format` names.
 //!
-//! [`Format`] follows [`Dialect`](craber_core::Dialect) rather than deriving
-//! clap's `ValueEnum` unconditionally: it is a domain type that happens to be
-//! spellable on a command line, not a command-line type. `FromStr` and
-//! `Display` are always available, and the `clap` feature adds `ValueEnum` for
-//! the binary.
+//! [`Format`] follows [`Dialect`](craber_core::Dialect): it is a domain type
+//! that happens to be spellable on a command line, not a command-line type.
+//! Every spelling of it — `Display`, `FromStr`, `craber.toml` and, with the
+//! `clap` feature, `--format` — comes from [`Format::as_str`], so there is one
+//! list of names and one case-insensitive parser.
 //!
 //! That split is what lets `craber.toml` be deserialized without the config
 //! module depending on the CLI module — the direction the dependency used to
@@ -13,13 +13,9 @@
 use std::fmt;
 use std::str::FromStr;
 
-use serde::Deserialize;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
-#[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
-#[cfg_attr(feature = "clap", value(rename_all = "lower"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Format {
     // `Json` is the IR itself, which every other format is derived from, and so
     // the default: it is the format that cannot be wrong about the schema.
@@ -47,6 +43,20 @@ impl Format {
             Self::Dbml => "dbml",
             Self::Flows => "flows",
         }
+    }
+}
+
+/// Written out rather than derived: the derive spells each variant itself, and
+/// it and [`Format::as_str`] were two lists of names that could disagree. The
+/// argument opts into `ignore_case`, which is what `FromStr` does too.
+#[cfg(feature = "clap")]
+impl clap::ValueEnum for Format {
+    fn value_variants<'a>() -> &'a [Self] {
+        &Self::ALL
+    }
+
+    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+        Some(clap::builder::PossibleValue::new(self.as_str()))
     }
 }
 

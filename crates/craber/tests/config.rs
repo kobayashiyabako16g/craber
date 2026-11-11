@@ -217,6 +217,18 @@ fn the_export_section_sets_the_format() {
     assert!(stdout.contains("\"flowsVersion\""), "{stdout:.60}");
 }
 
+/// The file takes the spellings the flag does, case included.
+#[test]
+fn the_export_format_key_ignores_case() {
+    let dir = project(
+        "export-format-case",
+        "file = \"tiny.sql\"\n\n[export]\nformat = \"Flows\"\n",
+    );
+    let output = craber_in(&dir, &["export"]);
+    assert_success(&output, "craber export");
+    assert!(String::from_utf8_lossy(&output.stdout).contains("\"flowsVersion\""));
+}
+
 /// ...and the flag still beats it. `--format` carries no clap default for this
 /// reason: a default would be indistinguishable from the user asking for json,
 /// and the config could never win.

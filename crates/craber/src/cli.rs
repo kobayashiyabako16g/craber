@@ -35,7 +35,7 @@ pub enum Command {
     /// Write a static site that can be deployed as-is.
     Build(BuildArgs),
 
-    /// Export the diagram as an image or a text format.
+    /// Export the laid-out schema, or a text format derived from it.
     Export(ExportArgs),
 
     /// Report what changed between two schemas.
@@ -90,7 +90,7 @@ pub struct ExportArgs {
     #[command(flatten)]
     pub workflows: Workflows,
     /// Output format. Defaults to json.
-    #[arg(long, value_enum)]
+    #[arg(long, value_enum, ignore_case = true)]
     pub format: Option<Format>,
     /// Output file. Writes to stdout when omitted.
     #[arg(short, long, value_name = "PATH")]

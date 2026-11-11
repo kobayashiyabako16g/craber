@@ -24,7 +24,7 @@ pub const DEFAULT_FILENAME: &str = "craber.toml";
 pub struct Config {
     pub file: Option<ConfigPath>,
     pub dsn: Option<String>,
-    #[serde(default, deserialize_with = "dialect")]
+    #[serde(default, deserialize_with = "parsed")]
     pub dialect: Option<Dialect>,
     #[serde(default)]
     pub include: Vec<String>,
@@ -66,6 +66,7 @@ pub struct Serve {
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct Export {
+    #[serde(default, deserialize_with = "parsed")]
     pub format: Option<Format>,
     /// Output file. Absent means stdout, the same as omitting `-o`.
     pub output: Option<ConfigPath>,
@@ -144,14 +145,19 @@ fn discover(from: &Path) -> Option<PathBuf> {
         .find(|candidate| candidate.is_file())
 }
 
-/// Deserialize `dialect` through [`Dialect`]'s `FromStr`.
+/// Deserialize a value through its `FromStr`, the parser its flag uses.
 ///
-/// Not a `Deserialize` derive on `Dialect` itself: `FromStr` also accepts
-/// `postgresql`, `pg`, `mariadb` and `sqlite3`, and a derive would quietly make
-/// the config file reject spellings `--dialect` takes. Parsing here also means
-/// a bad dialect is reported when the file is read rather than at whichever of
-/// the two use sites happens to be reached first.
-fn dialect<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<Dialect>, D::Error> {
+/// Not a `Deserialize` derive on [`Dialect`] or [`Format`]: their `FromStr`
+/// ignores case and accepts aliases (`postgresql`, `pg`, `mariadb`, `sqlite3`),
+/// and a derive would quietly make the config file reject spellings the
+/// command line takes. Parsing here also means a bad value is reported when
+/// the file is read rather than at whichever use site is reached first.
+fn parsed<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
+{
     let Some(name) = Option::<String>::deserialize(deserializer)? else {
         return Ok(None);
     };
