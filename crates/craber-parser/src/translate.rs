@@ -147,7 +147,9 @@ fn create_index(create: &CreateIndex, outcome: &mut Outcome<Schema>) {
     outcome.value.tables[index].indexes.push(TableIndex {
         name: create.name.as_ref().map(|n| split_object_name(n).1),
         columns,
-        unique: create.unique,
+        // A partial index constrains only the rows its predicate matches, so
+        // the tuple is not unique — the same reading introspection gives it.
+        unique: create.unique && create.predicate.is_none(),
     });
 }
 

@@ -280,6 +280,21 @@ fn mysql_add_key_after_the_fact_is_the_same_index() {
     assert_eq!(posts.indexes[0].columns, ["slug"]);
 }
 
+/// A partial unique index constrains only the rows its `WHERE` matches, so the
+/// tuple is not unique. Introspection already reads it that way; a file has to
+/// agree, or the same schema draws a different relationship end.
+#[test]
+fn a_partial_unique_index_is_not_uniqueness() {
+    let outcome = postgres(
+        "CREATE TABLE users (id bigint PRIMARY KEY);
+         CREATE TABLE posts (id bigint PRIMARY KEY, user_id bigint REFERENCES users (id), live boolean);
+         CREATE UNIQUE INDEX posts_live_user ON posts (user_id) WHERE live;",
+    );
+    let posts = outcome.value.table("posts").unwrap();
+    assert!(!posts.indexes[0].unique);
+    assert_eq!(posts.fks[0].cardinality, Cardinality::ManyToOne);
+}
+
 /// A non-unique index must not be mistaken for uniqueness, or every FK through
 /// an indexed column would come out one-to-one.
 #[test]
