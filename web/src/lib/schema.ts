@@ -4,9 +4,21 @@ export function qualifiedName(table: Table | TableRef): string {
   return table.schema ? `${table.schema}.${table.name}` : table.name;
 }
 
-/** Every table by its qualified name, which is also its node id on the canvas. */
+/**
+ * Every table by its qualified name, which is also its node id on the canvas.
+ *
+ * One table per name, the first: `craber-core`'s `normalize` drops a later
+ * definition of the same table before `schema.json` is written, and this keeps
+ * the same one if a hand-edited file has both — which is what lets `resolveRef`
+ * look names up in a map and still agree with `SchemaIndex::resolve`.
+ */
 export function tableIndex(tables: Table[]): ReadonlyMap<string, Table> {
-  return new Map(tables.map((table) => [qualifiedName(table), table]));
+  const byId = new Map<string, Table>();
+  for (const table of tables) {
+    const id = qualifiedName(table);
+    if (!byId.has(id)) byId.set(id, table);
+  }
+  return byId;
 }
 
 /**

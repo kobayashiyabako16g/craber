@@ -315,6 +315,60 @@ fn a_reference_without_columns_means_the_primary_key() {
     assert_eq!(outcome.diagnostics[0].severity, Severity::Warning);
 }
 
+/// A key that names no columns can only be given its target's primary key
+/// when there is one of the right width. Otherwise it is skipped with a
+/// warning, never left with an empty or mismatched column list.
+#[test]
+fn a_reference_without_columns_is_skipped_when_no_key_pairs_with_it() {
+    let outcome = postgres(
+        "CREATE TABLE pairs (a int, b int, PRIMARY KEY (a, b));
+         CREATE TABLE c (x int REFERENCES pairs, y int REFERENCES gone);",
+    );
+    let c = outcome.value.table("c").unwrap();
+    assert!(c.fks.is_empty(), "{:?}", c.fks);
+    let messages: Vec<&str> = outcome
+        .diagnostics
+        .iter()
+        .map(|d| d.message.as_str())
+        .collect();
+    assert_eq!(messages.len(), 2, "{messages:?}");
+    assert!(
+        messages.iter().any(|m| m.contains("2 columns, not 1")),
+        "{messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m.contains("not in the schema")),
+        "{messages:?}"
+    );
+}
+
+/// The web app keys tables by qualified name and would see one of two
+/// same-named tables, while `SchemaIndex` would see both and call every
+/// reference to them ambiguous. Keeping the first is what makes them agree.
+#[test]
+fn a_table_defined_twice_keeps_its_first_definition() {
+    let outcome = postgres(
+        "CREATE TABLE users (id bigint PRIMARY KEY);
+         CREATE TABLE users (id bigint PRIMARY KEY, email text);
+         CREATE TABLE orders (user_id bigint REFERENCES public.users (id));",
+    );
+    let users: Vec<_> = outcome
+        .value
+        .tables
+        .iter()
+        .filter(|t| t.name == "users")
+        .collect();
+    assert_eq!(users.len(), 1);
+    assert_eq!(users[0].columns.len(), 1, "the first definition wins");
+    assert_eq!(outcome.diagnostics.len(), 1, "{:?}", outcome.diagnostics);
+    let index = craber_core::SchemaIndex::build(&outcome.value);
+    assert_eq!(
+        index.edges(&outcome.value).len(),
+        1,
+        "the reference resolves"
+    );
+}
+
 /// A partial unique index constrains only the rows its `WHERE` matches, so the
 /// tuple is not unique. Introspection already reads it that way; a file has to
 /// agree, or the same schema draws a different relationship end.

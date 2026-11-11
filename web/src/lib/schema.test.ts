@@ -77,3 +77,14 @@ describe("key columns", () => {
     expect([...uniqueColumns(table("users"))]).toEqual([]);
   });
 });
+
+describe("tableIndex", () => {
+  /** The rule `normalize` applies on the Rust side, so a reference resolves to
+   *  the same table in both. */
+  it("keeps the first of two tables with one name", () => {
+    const first = { ...table("users"), comment: "first" };
+    const known = tableIndex([first, table("users")]);
+    expect(known.size).toBe(1);
+    expect(known.get("users")).toBe(first);
+  });
+});
