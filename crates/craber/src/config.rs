@@ -126,14 +126,29 @@ impl Config {
 
         let text = std::fs::read_to_string(&path)
             .with_context(|| format!("reading config {}", path.display()))?;
-        let mut config: Self =
-            toml::from_str(&text).with_context(|| format!("parsing config {}", path.display()))?;
+        let mut config =
+            Self::parse(&text).with_context(|| format!("parsing config {}", path.display()))?;
 
         // `parent` is empty for a bare `craber.toml`, which means "here".
         config.dir = match path.parent() {
             Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
             _ => cwd,
         };
+        Ok(config)
+    }
+}
+
+impl Config {
+    /// The file's contents, checked for what TOML alone cannot say.
+    ///
+    /// Both `file` and `dsn` is refused rather than letting one silently win:
+    /// the file reads as if either could be the source, and whichever it is not
+    /// is a setting the user believes is in force.
+    fn parse(text: &str) -> Result<Self> {
+        let config: Self = toml::from_str(text)?;
+        if config.file.is_some() && config.dsn.is_some() {
+            anyhow::bail!("set `file` or `dsn`, not both");
+        }
         Ok(config)
     }
 }
@@ -162,4 +177,40 @@ where
         return Ok(None);
     };
     name.parse().map(Some).map_err(serde::de::Error::custom)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+
+    /// `docs/craber.toml.example` with every commented-out key switched on,
+    /// except `dsn`, which is the alternative to `file` rather than an addition.
+    /// It is the reference users copy from, so it has to be a file this parser
+    /// accepts — it once documented a top-level `base-path` that
+    /// `deny_unknown_fields` refuses.
+    #[test]
+    fn the_documented_example_parses_with_every_key_on() {
+        let example = include_str!("../../../docs/craber.toml.example");
+        let uncommented: String = example
+            .lines()
+            .map(|line| match line.strip_prefix("# ") {
+                Some(rest) if rest.contains(" = ") && !rest.starts_with("dsn") => rest,
+                _ => line,
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let config = Config::parse(&uncommented).expect("the example parses");
+        assert!(config.build.base_path.is_some(), "{uncommented}");
+        assert!(config.export.format.is_some());
+        assert!(config.serve.port.is_some());
+    }
+
+    #[test]
+    fn file_and_dsn_together_are_refused() {
+        let error = Config::parse("file = \"a.sql\"\ndsn = \"postgres://u:secret@h/db\"\n")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("not both"), "{error}");
+        assert!(!error.contains("secret"), "a DSN never goes in a message");
+    }
 }

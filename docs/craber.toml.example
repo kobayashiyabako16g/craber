@@ -31,6 +31,24 @@ exclude = ["schema_migrations", "ar_internal_metadata", "*_audit"]
 # the command line replaces this list rather than adding to it.
 # flows = ["db/flows/"]
 
+# Keys only one command reads live in that command's section, so that one
+# command's setting cannot change another's behaviour — a top-level `output`
+# would turn `craber export` from stdout into a file the moment this file
+# appeared.
+
+[build]
+# Directory the site is written to. Relative to this file.
+# output = "dist/"
 # URL prefix the generated site is served under, e.g. GitHub Pages project
-# sites live at /<repo>/. Used by `craber build`.
+# sites live at /<repo>/.
 # base-path = "/myrepo/"
+
+[serve]
+# Port to listen on. Defaults to 4300.
+# port = 4300
+
+[export]
+# json | mermaid | dbml | flows. Defaults to json.
+# format = "json"
+# File to write. Relative to this file; stdout when omitted.
+# output = "schema.json"
