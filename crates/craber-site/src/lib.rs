@@ -18,7 +18,7 @@
 //! ```
 
 use std::borrow::Cow;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use craber_core::{Flows, Schema};
 
@@ -211,7 +211,12 @@ fn prune(out_dir: &Path, written: &[PathBuf]) -> Result<(), Error> {
     let kept: std::collections::BTreeSet<&Path> = written.iter().map(PathBuf::as_path).collect();
     for name in previous {
         let relative = Path::new(&name);
-        if kept.contains(relative) || name.contains("..") || relative.is_absolute() {
+        // Only plain names below `out_dir`: a manifest is a file anyone could
+        // have edited, and `..` or a root would delete outside the site.
+        let inside = relative
+            .components()
+            .all(|component| matches!(component, Component::Normal(_)));
+        if kept.contains(relative) || !inside {
             continue;
         }
         let path = out_dir.join(relative);
@@ -266,7 +271,7 @@ fn retitle(html: &str, schema_name: &str) -> String {
     };
     let mut out = String::with_capacity(html.len() + schema_name.len());
     out.push_str(&html[..start]);
-    out.push_str(schema_name);
+    out.push_str(&escape_html(schema_name));
     out.push_str(" — CrabER");
     out.push_str(&html[start + length..]);
     out
@@ -281,7 +286,7 @@ fn with_base_path(html: &str, base_path: &str) -> String {
     let base = if trimmed.is_empty() {
         "/".to_owned()
     } else {
-        format!("/{trimmed}/")
+        format!("/{}/", escape_html(trimmed))
     };
     // Every root-relative reference the bundle emits, not just the hashed
     // assets: the favicon is copied to the site root as-is.
@@ -289,9 +294,61 @@ fn with_base_path(html: &str, base_path: &str) -> String {
         .replace("./favicon.svg", &format!("{base}favicon.svg"))
 }
 
+/// Text made safe to put in an HTML element or a quoted attribute.
+///
+/// The schema name is a file stem or a database name, and the base path is a
+/// flag: neither is markup, and a published page must not run one as such.
+fn escape_html(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_schema_name_is_text_not_markup() {
+        let html = index_html(INDEX, "a</title><script>x()</script>", None);
+        assert!(!html.contains("<script>x()"), "{html}");
+        assert!(html.contains("a&lt;/title&gt;&lt;script&gt;"), "{html}");
+    }
+
+    /// A dotted filename is a filename; only a `..` *component* leaves the site.
+    #[test]
+    fn prune_removes_dotted_names_but_never_leaves_the_directory() {
+        let root = std::env::temp_dir().join(format!("craber-prune-{}", std::process::id()));
+        let out = root.join("site");
+        std::fs::create_dir_all(&out).unwrap();
+        std::fs::write(out.join("a..b.js"), b"").unwrap();
+        std::fs::write(root.join("outside.txt"), b"").unwrap();
+        std::fs::write(
+            out.join(MANIFEST),
+            serde_json::to_vec(&["a..b.js", "../outside.txt"]).unwrap(),
+        )
+        .unwrap();
+
+        prune(&out, &[]).unwrap();
+        assert!(!out.join("a..b.js").exists());
+        assert!(root.join("outside.txt").exists());
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn the_base_path_cannot_close_its_attribute() {
+        let html = with_base_path(INDEX, r#"x" onload="y"#);
+        assert!(!html.contains(r#"" onload=""#), "{html}");
+    }
 
     const INDEX: &str = r#"<title>CrabER</title>
 <link rel="icon" href="./favicon.svg" />
