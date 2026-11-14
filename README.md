@@ -151,7 +151,9 @@ $ craber build --file schema.sql -o dist/
 ```
 
 Deploys as-is — relative asset URLs, so the same directory works at `/` and
-under GitHub Pages' `/<repo>/`.
+under GitHub Pages' `/<repo>/`. The site — and `craber serve` — also carries
+`llms.txt` and `schema.md`, so an AI agent given its URL can read the schema as
+text: every column, key, index and enum, without the diagram's coordinates.
 
 Export the intermediate JSON — the laid-out schema every view is drawn from:
 

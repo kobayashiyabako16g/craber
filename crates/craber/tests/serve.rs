@@ -194,3 +194,21 @@ fn a_missing_bundle_is_reported_rather_than_served_as_a_blank_page() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("web bundle"), "{stderr}");
 }
+
+/// The text versions are served with types an agent's fetch will read as text.
+#[test]
+fn the_schema_is_also_served_as_text_for_agents() {
+    if !bundle_or_skip() {
+        return;
+    }
+    let server = tiny();
+    for (path, content_type) in [("/llms.txt", "text/plain"), ("/schema.md", "text/markdown")] {
+        let response = get(server.port, path);
+        assert_eq!(response.status, 200, "{path} was not served");
+        assert!(
+            response.header("content-type").starts_with(content_type),
+            "{path} served as {:?}",
+            response.header("content-type")
+        );
+    }
+}

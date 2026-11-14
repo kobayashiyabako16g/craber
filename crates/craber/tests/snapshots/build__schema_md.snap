@@ -1,0 +1,84 @@
+---
+source: crates/craber/tests/build.rs
+expression: markdown
+---
+# tiny
+
+## public.users
+
+People who can sign in.
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| id | BIGINT | NO |  | PK |  |
+| email | TEXT | NO |  |  |  |
+| created_at | TIMESTAMPTZ | NO | now() |  |  |
+
+Indexes:
+- UNIQUE (email)
+
+## public.user_profiles
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| user_id | BIGINT | NO |  | PK, FK → public.users.id |  |
+| display_name | TEXT | NO |  |  |  |
+
+Foreign keys:
+- (user_id) → public.users(id), on delete CASCADE, one-to-one
+
+## public.coupons
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| id | BIGINT | NO |  | PK |  |
+| code | TEXT | NO |  |  |  |
+
+Indexes:
+- UNIQUE (code)
+
+## public.orders
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| id | BIGINT | NO |  | PK |  |
+| user_id | BIGINT | NO |  | FK → public.users.id |  |
+| coupon_id | BIGINT | YES |  | FK → public.coupons.id |  |
+| status | public.order_status | NO | 'pending' |  |  |
+| total | NUMERIC(12,2) | NO | 0 |  | Gross total, in the order currency. |
+
+Foreign keys:
+- (user_id) → public.users(id), on delete CASCADE, many-to-one
+- (coupon_id) → public.coupons(id), on delete SET NULL, many-to-one, optional
+
+Indexes:
+- (user_id) `orders_user_id_idx`
+
+## public.order_receipts
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| id | BIGINT | NO |  | PK |  |
+| order_id | BIGINT | YES |  | FK → public.orders.id |  |
+| issued_at | TIMESTAMPTZ | NO | now() |  |  |
+
+Foreign keys:
+- (order_id) → public.orders(id), one-to-one, optional
+
+Indexes:
+- UNIQUE (order_id)
+
+## public.order_items
+
+| column | type | null | default | key | comment |
+|---|---|---|---|---|---|
+| order_id | BIGINT | NO |  | PK, FK → public.orders.id |  |
+| product_id | BIGINT | NO |  | PK |  |
+| quantity | INTEGER | NO | 1 |  |  |
+
+Foreign keys:
+- (order_id) → public.orders(id), on delete CASCADE, many-to-one `order_items_order_id_fkey`
+
+## Enums
+
+- public.order_status: pending, paid, shipped
