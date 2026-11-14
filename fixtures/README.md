@@ -50,6 +50,15 @@ on purpose and so exercise none of that. What
 about ordinary dump syntax, once per index, which is how a warning that matters
 gets lost.
 
+`dump.pg.sql` is unedited `pg_dump --schema-only` output (pg_dump 17.11), where
+`tiny.sql` is only shaped like one. It carries what a real dump always has and
+sqlparser-rs does not read — the `\restrict` meta-command, `OWNER TO` on every
+object, `CREATE SEQUENCE` options, identity columns, `ATTACH PARTITION` — and
+holds CrabER to skipping those a statement at a time rather than failing the
+file. It still warns about a few of them; `crates/craber/tests/dialects.rs`
+pins which. To regenerate it, load a schema into `postgres:17-alpine` and run
+`pg_dump --schema-only -U postgres postgres`, keeping the header comment.
+
 ## Third-party schemas
 
 Real schemas are worth testing against too, but they are not committed here —

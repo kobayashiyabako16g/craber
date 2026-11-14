@@ -602,3 +602,72 @@ fn bigquery_descriptions_are_comments() {
         Some("where receipts go")
     );
 }
+
+#[test]
+fn a_statement_that_does_not_parse_is_skipped_not_fatal() {
+    // sqlparser-rs reads no `ALTER SEQUENCE ... OWNER TO`, and pg_dump writes
+    // one per sequence. It draws nothing, so losing it is not worth a warning.
+    let outcome = postgres(
+        "CREATE TABLE a (id int PRIMARY KEY);
+         ALTER SEQUENCE a_id_seq OWNER TO postgres;
+         CREATE TABLE b (id int PRIMARY KEY, a_id int REFERENCES a(id));",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    assert!(outcome.value.table("a").is_some());
+    assert_eq!(outcome.value.table("b").unwrap().fks.len(), 1);
+}
+
+#[test]
+fn a_skipped_statement_that_would_have_drawn_something_warns() {
+    let outcome = postgres(
+        "CREATE TABLE a (id int PRIMARY KEY);
+         CREATE UNLOGGED TABLE b (id int) NOT A REAL OPTION;
+         CREATE TABLE c (id int PRIMARY KEY);",
+    );
+    assert_eq!(outcome.diagnostics.len(), 1, "{:?}", outcome.diagnostics);
+    assert_eq!(outcome.diagnostics[0].severity, Severity::Warning);
+    assert!(
+        outcome.diagnostics[0]
+            .context
+            .as_deref()
+            .is_some_and(|c| c.starts_with("line 2: CREATE UNLOGGED TABLE b")),
+        "{:?}",
+        outcome.diagnostics[0]
+    );
+    // Half of `b` is not a table; what was around it still is.
+    assert!(outcome.value.table("b").is_none());
+    assert!(outcome.value.table("a").is_some());
+    assert!(outcome.value.table("c").is_some());
+}
+
+#[test]
+fn a_psql_meta_command_ends_at_its_line() {
+    // No `;` after `\restrict`: running on to the next one would take the table
+    // with it.
+    let outcome = postgres(
+        "\\restrict abc123\n\
+         CREATE TABLE a (id int PRIMARY KEY);\n\
+         \\unrestrict abc123\n",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    assert!(outcome.value.table("a").is_some());
+}
+
+#[test]
+fn a_semicolon_inside_a_function_body_does_not_end_the_statement() {
+    let outcome = postgres(
+        "CREATE FUNCTION f() RETURNS trigger LANGUAGE plpgsql AS $$
+         BEGIN NEW.x := 1; ALTER TABLE nope ADD COLUMN y int; RETURN NEW; END;
+         $$;
+         CREATE TABLE a (id int PRIMARY KEY);",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    assert_eq!(outcome.value.tables.len(), 1);
+}
+
+#[test]
+fn input_with_no_statement_that_parses_is_still_an_error() {
+    let outcome = postgres("this is not SQL at all;\nnor is this;");
+    assert!(outcome.has_errors(), "{:?}", outcome.diagnostics);
+    assert_eq!(outcome.value.tables, []);
+}
