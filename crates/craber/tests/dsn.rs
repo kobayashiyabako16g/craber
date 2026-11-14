@@ -67,6 +67,23 @@ fn a_scheme_nobody_recognises_asks_for_a_dialect() {
     assert!(stderr.contains("pass --dialect"), "{stderr}");
 }
 
+/// BigQuery is DDL-only, and saying so beats a connection error about a
+/// driver that does not exist.
+#[test]
+fn bigquery_over_a_connection_is_refused() {
+    let output = craber(&[
+        "export",
+        "--dsn",
+        "bigquery://secret-project/dataset",
+        "--dialect",
+        "bigquery",
+    ]);
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("can only be read from DDL"), "{stderr}");
+    assert!(!stderr.contains("secret-project"), "{stderr}");
+}
+
 /// The scheme is enough on its own — this gets as far as trying to connect,
 /// which is further than a dialect failure would.
 #[test]

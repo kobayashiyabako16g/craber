@@ -21,7 +21,15 @@ pub(super) fn of(source: &Source, asked: Option<Dialect>) -> Result<Dialect> {
         Source::File(path) => {
             Ok(asked.unwrap_or_else(|| Dialect::from_path(path).unwrap_or_default()))
         }
-        Source::Dsn(dsn) => for_dsn(asked, Dialect::from_dsn(dsn)),
+        Source::Dsn(dsn) => {
+            let dialect = for_dsn(asked, Dialect::from_dsn(dsn))?;
+            // Refused here rather than left to `craber-introspect`, so the
+            // message can say what to do instead.
+            if dialect == Dialect::BigQuery {
+                bail!("{dialect} can only be read from DDL; pass --file instead of --dsn");
+            }
+            Ok(dialect)
+        }
     }
 }
 
