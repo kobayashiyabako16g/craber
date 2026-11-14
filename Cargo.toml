@@ -68,7 +68,7 @@ ts-rs              = "12.0"
 insta              = { version = "1.49", features = ["json"] }
 # `blocking` is the synchronous runner. The codebase is synchronous, so the
 # introspection tests need no async runtime of their own.
-testcontainers         = { version = "0.27", features = ["blocking"] }
+testcontainers         = { version = "0.28", features = ["blocking"] }
 testcontainers-modules = { version = "0.15", features = ["postgres", "mysql", "blocking"] }
 
 [workspace.lints.rust]
