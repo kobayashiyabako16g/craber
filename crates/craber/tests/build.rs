@@ -55,6 +55,13 @@ fn writes_a_servable_directory() {
             .expect("valid JSON");
     assert_eq!(schema["name"], "tiny");
     assert_eq!(schema["schemaVersion"], 2);
+
+    // An agent handed the site's URL starts from llms.txt, which points at the
+    // schema as text.
+    let llms = std::fs::read_to_string(out.join("llms.txt")).expect("llms.txt");
+    assert!(llms.contains("](schema.md)"), "{llms}");
+    let markdown = std::fs::read_to_string(out.join("schema.md")).expect("schema.md");
+    insta::assert_snapshot!("schema_md", markdown);
     let tables = schema["tables"].as_array().expect("tables");
     assert_eq!(tables.len(), 6, "every table in fixtures/tiny.sql");
     // Coordinates are baked in by craber-layout — one set per detail level,

@@ -21,9 +21,9 @@ const SERVE_FILE: &str = "serve.json";
 
 /// Cache policy for the hosts that read this file (`serve`, Vercel and the
 /// like). Asset filenames carry a content hash and never change meaning, so
-/// they are immutable; `index.html` and `schema.json` keep their names across
-/// deploys and must not be served from cache, or a redeployed diagram shows the
-/// previous schema.
+/// they are immutable; `index.html`, `schema.json` and the Markdown beside it
+/// keep their names across deploys and must not be served from cache, or a
+/// redeployed diagram shows the previous schema.
 const SERVE_JSON: &str = include_str!("serve.json");
 
 /// Writes the deployable site into `out_dir`, creating it if needed.

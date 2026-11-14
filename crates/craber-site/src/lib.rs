@@ -1,8 +1,9 @@
 //! The static site `craber build` writes.
 //!
-//! A published diagram is the web bundle plus `schema.json` and `flows.json`:
-//! the bundle is the same for every schema and is embedded in the binary at
-//! compile time (see `build.rs`), while the two JSON files are produced per run. Nothing here knows
+//! A published diagram is the web bundle plus `schema.json` and `flows.json`,
+//! and a Markdown copy of the schema for AI agents: the bundle is the same for
+//! every schema and is embedded in the binary at compile time (see
+//! `build.rs`), while the rest is produced per run. Nothing here knows
 //! about SQL, and nothing in the frontend knows about this crate — the contract
 //! between them is the file layout below, `craber_core::SCHEMA_VERSION` and
 //! `craber_core::FLOWS_VERSION`.
@@ -14,11 +15,15 @@
 //!   assets/index-<hash>.css
 //!   schema.json              # IR + table coordinates
 //!   flows.json               # workflows from --flow; empty when none were given
+//!   llms.txt                 # index for AI agents, linking the two below
+//!   schema.md                # the schema as Markdown, without coordinates
 //!   serve.json               # cache headers for static hosts that read it
 //! ```
 
 mod dir;
 mod html;
+mod llms;
+mod markdown;
 
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -27,6 +32,7 @@ use craber_core::{FLOWS_FILE, Flows, SCHEMA_FILE, Schema};
 
 pub use crate::dir::write;
 use crate::html::index_html;
+use crate::llms::{LLMS_FILE, MARKDOWN_FILE, llms_txt};
 
 include!(concat!(env!("OUT_DIR"), "/bundle.rs"));
 
@@ -90,7 +96,7 @@ pub struct SiteFile {
 impl SiteFile {
     /// The `Content-Type` to serve this file with.
     ///
-    /// A site is made of five kinds of file, and `craber build` emits nothing
+    /// A site is made of seven kinds of file, and `craber build` emits nothing
     /// else, so anything unknown is a file the bundle gained without this list
     /// being updated — serving it as a download is the safe wrong answer rather
     /// than guessing.
@@ -101,6 +107,8 @@ impl SiteFile {
             Some("css") => "text/css; charset=utf-8",
             Some("svg") => "image/svg+xml",
             Some("json") => "application/json",
+            Some("md") => "text/markdown; charset=utf-8",
+            Some("txt") => "text/plain; charset=utf-8",
             _ => "application/octet-stream",
         }
     }
@@ -156,6 +164,16 @@ pub fn files(
         path: FLOWS_FILE.to_owned(),
         contents: Cow::Owned(serde_json::to_vec(flows)?),
     });
+    // A canvas is nothing an agent can read, so the site carries the schema as
+    // text too, and the `llms.txt` agents look for first to find it by.
+    files.push(SiteFile {
+        path: MARKDOWN_FILE.to_owned(),
+        contents: Cow::Owned(markdown::encode(schema).into_bytes()),
+    });
+    files.push(SiteFile {
+        path: LLMS_FILE.to_owned(),
+        contents: Cow::Owned(llms_txt(schema).into_bytes()),
+    });
 
     files.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(files)
@@ -177,6 +195,8 @@ mod tests {
         assert!(names.contains(&"index.html".to_owned()), "{names:?}");
         assert!(names.contains(&"schema.json".to_owned()), "{names:?}");
         assert!(names.contains(&"flows.json".to_owned()), "{names:?}");
+        assert!(names.contains(&"llms.txt".to_owned()), "{names:?}");
+        assert!(names.contains(&"schema.md".to_owned()), "{names:?}");
         assert!(
             !names
                 .iter()
