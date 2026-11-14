@@ -1,6 +1,6 @@
 # Agent Instructions
 
-CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (`craber serve`, `craber build`, JSON). One Rust binary with the React frontend compiled in. Pre-alpha.
+CrabER: SQL DDL (PostgreSQL, MySQL, SQLite, BigQuery) or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (`craber serve`, `craber build`, JSON). One Rust binary with the React frontend compiled in. Pre-alpha.
 
 - Write **CrabER** in prose, UI, docs and commit messages; machine-facing names (crate, command, `CRABER_` env vars, `craber.toml`) are lowercase `craber`.
 
@@ -36,6 +36,7 @@ CrabER: SQL DDL or a live DB (PostgreSQL, MySQL, SQLite) → ER diagram (`craber
 - CLI options resolve flag > env > `craber.toml` > default (`crates/craber/src/options/`).
 - Not-yet-implemented commands/formats name their milestone in `crates/craber/src/milestone.rs`.
 - `craber-introspect` is sync over a current-thread tokio runtime.
+- A new dialect is one `Spelling` in `crates/craber-core/src/dialect.rs` plus an arm in `crates/craber-parser/src/dialect.rs`; a DDL-only one (BigQuery) gets empty `schemes` and is refused for `--dsn` in `crates/craber/src/options/dialect.rs`.
 
 ## Key Conventions
 - `schema.json` is a public format: renaming/retyping a field in `crates/craber-core/src/ir/` needs a `SCHEMA_VERSION` bump and a note in the PR (`crates/craber-core/tests/wire_format.rs` snapshots it).
