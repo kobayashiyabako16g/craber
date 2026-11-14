@@ -63,6 +63,7 @@ pub(crate) fn amend(statement: &Statement, index: &SchemaIndex, outcome: &mut Ou
         } => comment(*object_type, object_name, text, index, outcome),
         // Everything else (grants, functions, extensions, transaction control)
         // has no representation on an ER diagram. Skipping it is not news.
+        // `statements::may_draw` draws the same line for one that did not parse.
         _ => {}
     }
 }

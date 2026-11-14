@@ -44,7 +44,9 @@ CrabER: SQL DDL (PostgreSQL, MySQL, SQLite, BigQuery) or a live DB (PostgreSQL, 
 - The diagram is drawn only by `web/`; there is no image export.
 - Cross-language rule must agree: `resolveRef` (`web/src/lib/schema.ts`) ↔ `SchemaIndex::resolve` (`crates/craber-core/src/index.rs`).
 - New resolution cases go in `crates/craber-core/tests/cases/resolve.json`, not one side's tests.
-- Unsupported SQL yields a warning `Diagnostic` and the statement is skipped; only error-severity diagnostics abort.
+- Unsupported SQL is skipped one statement at a time (`crates/craber-parser/src/statements.rs`), never the whole file; only error-severity diagnostics abort.
+- A skipped statement warns only if it could draw something; keep `statements::may_draw` in step with `translate::define`/`amend`.
+- Real-dump fixtures (`fixtures/dump.*.sql`) are asserted warning-free or with pinned warnings in `crates/craber/tests/dialects.rs`; never silence one by editing the fixture.
 - Never put a DSN in an error or log message.
 - The web bundle is fail-soft: run `just web-build` before `cargo build` (`just dist`/`just install` do this); only `just nix-build` proves the bundle is in the binary.
 - Frontend conventions live in `web/AGENTS.md`.
