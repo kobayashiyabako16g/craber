@@ -14,7 +14,7 @@
 file = "db/schema.sql"
 # dsn = "postgres://user@host/db"
 
-# postgres | mysql | sqlite. Inferred from the filename, or from a DSN's
+# postgres | mysql | sqlite | bigquery. Inferred from the filename, or from a DSN's
 # scheme, when omitted — so a `dsn` almost never needs this.
 dialect = "postgres"
 

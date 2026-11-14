@@ -1,16 +1,17 @@
 # 03 — Dialects
 
-CrabER reads PostgreSQL, MySQL and SQLite DDL. The dialect decides how the input
+CrabER reads PostgreSQL, MySQL, SQLite and BigQuery DDL. The dialect decides how the input
 is tokenized (backtick quoting, `AUTO_INCREMENT`, engine options), so getting it
 wrong usually means a parse error rather than a slightly-off diagram.
 
 ```console
 $ cargo run -p craber -- export --file examples/03-dialects/inventory.mysql.sql
 $ cargo run -p craber -- export --file examples/03-dialects/tasks.sqlite.sql
+$ cargo run -p craber -- export --file examples/03-dialects/analytics.bigquery.sql
 ```
 
-Neither command passes `--dialect`: it is inferred from the filename, which
-contains `mysql` / `sqlite`. Dumps are rarely named that conveniently, so be
+None of them passes `--dialect`: it is inferred from the filename, which
+contains `mysql` / `sqlite` / `bigquery`. Dumps are rarely named that conveniently, so be
 explicit when they are not:
 
 ```console
@@ -18,7 +19,7 @@ $ cargo run -p craber -- export --file dump.sql --dialect mysql
 ```
 
 Accepted spellings: `postgres` (`postgresql`, `pg`), `mysql` (`mariadb`),
-`sqlite` (`sqlite3`). PostgreSQL is the default when nothing is given and the
+`sqlite` (`sqlite3`), `bigquery` (`bq`). PostgreSQL is the default when nothing is given and the
 filename says nothing.
 
 ## What each file exercises
@@ -33,6 +34,14 @@ namespace, so the tables come out with no `"schema"` field.
 `tasks.sqlite.sql` — `INTEGER PRIMARY KEY` (the rowid alias), column-level
 `REFERENCES`, a self-reference on `tasks.parent_id`, and a `task_labels` join
 table.
+
+`analytics.bigquery.sql` — `project.dataset.table` names (the project is
+dropped; the dataset becomes the schema), `PRIMARY KEY … NOT ENFORCED` and
+`FOREIGN KEY … NOT ENFORCED` both inline and through `ALTER TABLE`,
+`ARRAY<…>` and `STRUCT<…>` columns, `PARTITION BY` / `CLUSTER BY`, and
+`OPTIONS(description = …)` read as table and column comments. BigQuery is
+DDL-only: there is no `--dsn` for it, so export the DDL first (for example
+`SELECT ddl FROM dataset.INFORMATION_SCHEMA.TABLES`).
 
 ## Real dumps
 

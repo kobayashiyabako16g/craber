@@ -14,7 +14,7 @@
 </p>
 
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
-connection — the layout algorithm, the interactive UI and the static
+connection — BigQuery from DDL, the layout algorithm, the interactive UI and the static
 site all work. Expect breaking changes between releases.
 
 ## Supported databases
@@ -25,9 +25,10 @@ site all work. Expect breaking changes between releases.
 | MySQL      | ✓                   | ✓ `mysql://`                    | `mysql`                |
 | MariaDB    | ✓ (as MySQL)        | ✓ `mariadb://` (as MySQL)       | `mariadb`              |
 | SQLite     | ✓                   | ✓ `sqlite://`, `sqlite:`, `file:` | `sqlite` (`sqlite3`) |
+| BigQuery   | ✓                   | —                               | `bigquery` (`bq`)      |
 
 `--dialect` can be left out: it is inferred from the DSN scheme, or from a
-filename containing `postgres`/`pg`, `mysql` or `sqlite`.
+filename containing `postgres`/`pg`, `mysql`, `sqlite` or `bigquery`.
 
 ## Install
 
@@ -295,7 +296,7 @@ Paths are resolved against **the config file**, not the working directory, so
 
 ### Dialect
 
-`dialect` is `postgres`, `mysql` or `sqlite` — the same spellings `--dialect`
+`dialect` is `postgres`, `mysql`, `sqlite` or `bigquery` — the same spellings `--dialect`
 takes. It is inferred from the filename, or from a DSN's scheme, when omitted,
 so a `dsn` almost never needs it.
 
@@ -383,7 +384,7 @@ rejected rather than ignored, so a typo says so.
 | Key | Where | What |
 |---|---|---|
 | `file` / `dsn` | top level | the schema source — one or the other |
-| `dialect` | top level | `postgres` / `mysql` / `sqlite` |
+| `dialect` | top level | `postgres` / `mysql` / `sqlite` / `bigquery` |
 | `include` / `exclude` | top level | table globs |
 | `depth` | top level | foreign-key hops to grow the selection by |
 | `flows` | top level | workflow files and directories |
