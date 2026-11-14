@@ -55,3 +55,21 @@ fn an_unknown_dialect_lists_every_known_one() {
         assert_eq!(dialect.to_string().parse::<Dialect>().unwrap(), dialect);
     }
 }
+
+#[test]
+fn bigquery_is_named_by_flag_and_filename() {
+    assert_eq!("bigquery".parse::<Dialect>().unwrap(), Dialect::BigQuery);
+    assert_eq!("bq".parse::<Dialect>().unwrap(), Dialect::BigQuery);
+    assert_eq!(
+        Dialect::from_path(Path::new("warehouse.bigquery.sql")),
+        Some(Dialect::BigQuery)
+    );
+}
+
+/// There is no live BigQuery support, so no scheme may select it — not even
+/// one spelled like its name.
+#[test]
+fn no_connection_string_selects_bigquery() {
+    assert_eq!(Dialect::from_dsn("bigquery://project/dataset"), None);
+    assert_eq!(Dialect::from_dsn("bq://project/dataset"), None);
+}

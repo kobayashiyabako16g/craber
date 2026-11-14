@@ -87,6 +87,11 @@ pub enum Error {
     #[error("this binary was built without {dialect} support")]
     NotCompiled { dialect: Dialect },
 
+    /// A dialect CrabER reads from DDL only. The CLI refuses these before it
+    /// gets here; this is for a caller of the library that did not.
+    #[error("{dialect} can only be read from DDL; there is no live connection support")]
+    NoLiveSupport { dialect: Dialect },
+
     #[error("could not start a runtime: {0}")]
     Runtime(#[source] std::io::Error),
 
@@ -120,6 +125,7 @@ async fn introspect_async(dsn: &str, dialect: Dialect) -> Result<Outcome<Schema>
         Dialect::MySql => mysql::introspect(dsn).await,
         #[cfg(feature = "sqlite")]
         Dialect::Sqlite => sqlite::introspect(dsn).await,
+        Dialect::BigQuery => Err(Error::NoLiveSupport { dialect }),
         #[cfg(not(all(feature = "postgres", feature = "mysql", feature = "sqlite")))]
         other => Err(Error::NotCompiled { dialect: other }),
     }

@@ -18,6 +18,9 @@ pub enum Dialect {
     Postgres,
     MySql,
     Sqlite,
+    /// DDL only: there is no sqlx driver for BigQuery, so no connection string
+    /// selects it and `craber-introspect` refuses it.
+    BigQuery,
 }
 
 /// Every way a dialect is spelled, in one place per dialect.
@@ -40,7 +43,7 @@ struct Spelling {
 
 impl Dialect {
     /// Every dialect, in the order error messages list them.
-    pub const ALL: [Self; 3] = [Self::Postgres, Self::MySql, Self::Sqlite];
+    pub const ALL: [Self; 4] = [Self::Postgres, Self::MySql, Self::Sqlite, Self::BigQuery];
 
     /// An exhaustive `match`, so a new variant does not compile until it is
     /// spelled.
@@ -64,6 +67,14 @@ impl Dialect {
                 schemes: &["sqlite", "sqlite3", "file"],
                 filename_hints: &["sqlite"],
             },
+            // `bq` is an alias but not a hint: two letters turn up inside too
+            // many filenames that have nothing to do with BigQuery.
+            Self::BigQuery => Spelling {
+                name: "bigquery",
+                aliases: &["bq"],
+                schemes: &[],
+                filename_hints: &["bigquery"],
+            },
         }
     }
 
@@ -73,7 +84,7 @@ impl Dialect {
     /// another dialect's name.
     pub fn from_path(path: &Path) -> Option<Self> {
         let name = path.file_name()?.to_str()?.to_ascii_lowercase();
-        [Self::MySql, Self::Sqlite, Self::Postgres]
+        [Self::MySql, Self::Sqlite, Self::BigQuery, Self::Postgres]
             .into_iter()
             .find(|dialect| {
                 dialect
@@ -111,7 +122,7 @@ impl Dialect {
     pub fn is_engine_table(self, name: &str) -> bool {
         match self {
             Self::Sqlite => name.to_ascii_lowercase().starts_with("sqlite_"),
-            Self::Postgres | Self::MySql => false,
+            Self::Postgres | Self::MySql | Self::BigQuery => false,
         }
     }
 }

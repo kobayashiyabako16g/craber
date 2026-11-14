@@ -13,5 +13,6 @@ pub(crate) fn sqlparser_dialect(dialect: Dialect) -> Box<dyn sqlparser::dialect:
         Dialect::Postgres => Box::new(sqlparser::dialect::PostgreSqlDialect {}),
         Dialect::MySql => Box::new(sqlparser::dialect::MySqlDialect {}),
         Dialect::Sqlite => Box::new(sqlparser::dialect::SQLiteDialect {}),
+        Dialect::BigQuery => Box::new(sqlparser::dialect::BigQueryDialect {}),
     }
 }
