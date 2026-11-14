@@ -514,3 +514,91 @@ fn sqlite_rowid_alias_and_inline_references() {
     // Nullable FK column: the line ends "zero or one" on the parent side.
     assert!(books.fks[0].optional);
 }
+
+fn bigquery(sql: &str) -> craber_core::Outcome<craber_core::Schema> {
+    parse(sql, Dialect::BigQuery, "test")
+}
+
+/// A project is not a namespace the diagram draws, so `project.dataset.table`
+/// keeps the last two parts, quoted as one identifier or not.
+#[test]
+fn bigquery_names_keep_dataset_and_table() {
+    let outcome = bigquery(
+        "CREATE TABLE `my-project.shop.users` (id INT64);
+         CREATE TABLE `my-project`.shop.orders (id INT64);",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    for name in ["users", "orders"] {
+        let table = outcome.value.table(name).unwrap();
+        assert_eq!(table.schema.as_deref(), Some("shop"), "{name}");
+    }
+}
+
+/// BigQuery keys are always `NOT ENFORCED`. They still describe the model, so
+/// they are drawn like any other key.
+#[test]
+fn bigquery_unenforced_keys_are_still_keys() {
+    let outcome = bigquery(
+        "CREATE TABLE shop.users (id INT64 PRIMARY KEY NOT ENFORCED);
+         CREATE TABLE shop.orders (
+             id INT64,
+             user_id INT64 REFERENCES shop.users (id) NOT ENFORCED,
+             PRIMARY KEY (id) NOT ENFORCED
+         );
+         CREATE TABLE shop.items (id INT64, order_id INT64);
+         ALTER TABLE shop.items ADD PRIMARY KEY (id) NOT ENFORCED;
+         ALTER TABLE shop.items ADD CONSTRAINT items_order_fk
+             FOREIGN KEY (order_id) REFERENCES shop.orders (id) NOT ENFORCED;",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+
+    assert_eq!(outcome.value.table("users").unwrap().pk, ["id"]);
+
+    let orders = outcome.value.table("orders").unwrap();
+    assert_eq!(orders.pk, ["id"]);
+    assert_eq!(orders.fks[0].columns, ["user_id"]);
+    assert_eq!(orders.fks[0].ref_table.qualified_name(), "shop.users");
+
+    let items = outcome.value.table("items").unwrap();
+    assert_eq!(items.pk, ["id"]);
+    assert_eq!(items.fks[0].name.as_deref(), Some("items_order_fk"));
+    assert_eq!(items.fks[0].ref_table.qualified_name(), "shop.orders");
+}
+
+#[test]
+fn bigquery_nested_types_are_shown_as_written() {
+    let outcome = bigquery(
+        "CREATE TABLE shop.events (
+             tags ARRAY<STRING>,
+             payload STRUCT<kind STRING, n INT64>
+         ) PARTITION BY DATE(_PARTITIONTIME) CLUSTER BY kind;",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    let events = outcome.value.table("events").unwrap();
+    assert_eq!(events.column("tags").unwrap().data_type, "ARRAY<STRING>");
+    assert_eq!(
+        events.column("payload").unwrap().data_type,
+        "STRUCT<kind STRING, n INT64>"
+    );
+}
+
+#[test]
+fn bigquery_descriptions_are_comments() {
+    let outcome = bigquery(
+        "CREATE TABLE shop.users (
+             id INT64 OPTIONS(description = 'surrogate key'),
+             email STRING OPTIONS(description = \"where receipts go\")
+         ) OPTIONS(description = 'One row per customer', labels = [('team', 'growth')]);",
+    );
+    assert!(outcome.diagnostics.is_empty(), "{:?}", outcome.diagnostics);
+    let users = outcome.value.table("users").unwrap();
+    assert_eq!(users.comment.as_deref(), Some("One row per customer"));
+    assert_eq!(
+        users.column("id").unwrap().comment.as_deref(),
+        Some("surrogate key")
+    );
+    assert_eq!(
+        users.column("email").unwrap().comment.as_deref(),
+        Some("where receipts go")
+    );
+}

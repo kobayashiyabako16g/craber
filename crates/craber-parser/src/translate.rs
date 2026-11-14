@@ -215,6 +215,11 @@ fn add_column(table: &mut Table, def: &ColumnDef) {
             ColumnOption::Null => column.nullable = true,
             ColumnOption::Default(expr) => column.default = Some(expr.to_string()),
             ColumnOption::Comment(comment) => column.comment = Some(comment.clone()),
+            ColumnOption::Options(options) => {
+                if let Some(description) = description(options) {
+                    column.comment = Some(description);
+                }
+            }
             ColumnOption::PrimaryKey(_) => {
                 // A column-level PRIMARY KEY implies NOT NULL even when the
                 // DDL does not spell it out.
@@ -329,7 +334,8 @@ fn action(action: Option<&ReferentialAction>) -> Action {
 
 /// MySQL puts `COMMENT='...'` among the trailing table options rather than in
 /// the `COMMENT` clause sqlparser exposes as `CreateTable::comment`, so a dump's
-/// table comments only arrive through here.
+/// table comments only arrive through here. BigQuery's `OPTIONS(description=...)`
+/// is its comment, and arrives the same way.
 fn option_comment(options: &CreateTableOptions) -> Option<String> {
     let options = match options {
         CreateTableOptions::With(options)
@@ -338,8 +344,23 @@ fn option_comment(options: &CreateTableOptions) -> Option<String> {
         | CreateTableOptions::TableProperties(options) => options.as_slice(),
         CreateTableOptions::None => &[],
     };
+    options
+        .iter()
+        .find_map(|option| match option {
+            SqlOption::Comment(comment) => Some(comment.to_string()),
+            _ => None,
+        })
+        .or_else(|| description(options))
+}
+
+/// BigQuery's `description = "..."`, on a table or a column. Anything but a
+/// string literal is not a comment anyone wrote, so it is ignored.
+fn description(options: &[SqlOption]) -> Option<String> {
     options.iter().find_map(|option| match option {
-        SqlOption::Comment(comment) => Some(comment.to_string()),
+        SqlOption::KeyValue {
+            key,
+            value: Expr::Value(value),
+        } if key.value.eq_ignore_ascii_case("description") => value.clone().into_string(),
         _ => None,
     })
 }
