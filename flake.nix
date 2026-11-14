@@ -219,15 +219,6 @@
               pkgs.libiconv
             ];
 
-          shellHook = ''
-            echo "CrabER development environment"
-            echo "Rust: $(rustc --version)"
-            echo "Cargo: $(cargo --version)"
-            echo "Node: $(node --version)"
-            echo "pnpm: $(pnpm --version)"
-            echo "TypeScript: $(tsc --version)"
-          '';
-
           # Environment variables
           RUST_BACKTRACE = "1";
           RUST_LOG = "info";
