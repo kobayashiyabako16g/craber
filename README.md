@@ -10,7 +10,7 @@
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/screenshot.png" alt="craber serve showing the shop example: a table list on the left, the orders table selected with its relationships highlighted, and its columns and related tables in the details panel on the right">
+  <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/screenshot.png" alt="craber serve showing the shop example: a table list on the left, the orders table selected with its relationships highlighted and a notation legend below, and on the right a details panel with Columns, Relations and DDL tabs, listing each column's key and NOT NULL badges and its comment">
 </p>
 
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
@@ -194,7 +194,7 @@ per access, with the columns and values it names and the relationships its
 joins run along. Nothing is executed; a step shows what the SQL says it
 touches.
 
-<p align="center"><a href="https://github.com/user-attachments/assets/da27b328-fd33-4457-aadc-0d3e39b4b5db">Playing back checkout.sql</a></p>
+<p align="center"><a href="https://github.com/user-attachments/assets/d2819f86-e63e-43d4-b943-0667e8017023">Playing back checkout.sql</a></p>
 
 ```sql
 -- checkout.sql
