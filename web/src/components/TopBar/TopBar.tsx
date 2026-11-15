@@ -10,6 +10,9 @@ type TopBarProps = {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onExportSql: () => void;
+  tableCount: number;
+  /** Relationships drawn — a key whose target is not in the schema is not one. */
+  relationCount: number;
   /** How many workflows were published; the button is left out at none. */
   workflowCount: number;
   onOpenWorkflows: () => void;
@@ -20,6 +23,8 @@ export function TopBar({
   sidebarOpen,
   onToggleSidebar,
   onExportSql,
+  tableCount,
+  relationCount,
   workflowCount,
   onOpenWorkflows,
 }: TopBarProps) {
@@ -52,6 +57,10 @@ export function TopBar({
 
       <div className="craber-topbar-spacer" />
 
+      <span className="craber-topbar-stats">
+        {counted(tableCount, "table")} · {counted(relationCount, "relation")}
+      </span>
+
       {workflowCount > 0 && (
         <button
           type="button"
@@ -79,4 +88,8 @@ export function TopBar({
       </button>
     </header>
   );
+}
+
+function counted(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }

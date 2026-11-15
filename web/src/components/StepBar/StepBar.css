@@ -10,8 +10,8 @@
   width: min(720px, calc(100% - 32px));
   background: var(--craber-surface);
   border: 1px solid var(--craber-border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
+  border-radius: 12px;
+  box-shadow: var(--craber-shadow);
   font-size: 12px;
 }
 
@@ -22,20 +22,9 @@
   padding: 6px 8px 6px 12px;
 }
 
-/* The whole statement, above the controls so they stay where they were.
-   The --craber-sql-* colours are what sqlHighlight.ts's Shiki theme refers
-   each token to; they stay clear of the read/write/delete colours, which mean
-   something else on this bar. */
+/* The whole statement, above the controls so they stay where they were. Its
+   colours are the --craber-sql-* ones in theme.css. */
 .craber-stepbar-statement {
-  --craber-sql-foreground: var(--craber-text);
-  --craber-sql-token-keyword: #c49bff;
-  --craber-sql-token-function: #66c6d8;
-  --craber-sql-token-string: #ef9f9f;
-  --craber-sql-token-string-expression: #ef9f9f;
-  --craber-sql-token-constant: #e7c787;
-  --craber-sql-token-comment: var(--craber-text-muted);
-  --craber-sql-token-punctuation: var(--craber-text-muted);
-
   max-height: min(40vh, 320px);
   overflow: auto;
   margin: 0;

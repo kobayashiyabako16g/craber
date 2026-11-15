@@ -5,22 +5,31 @@
   width: var(--craber-node-width);
   background: var(--craber-surface);
   border: 1px solid var(--craber-border);
-  border-radius: var(--craber-radius);
+  border-radius: 12px;
+  box-shadow: var(--craber-shadow);
   overflow: hidden;
   font-size: 12px;
-  transition: opacity 120ms ease-out;
+  transition:
+    opacity 180ms ease-out,
+    border-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+
+.craber-node:hover {
+  border-color: var(--craber-border-strong);
 }
 
 .craber-node.is-related {
-  border-color: var(--craber-highlight);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--craber-highlight) 45%, transparent);
+  border-color: color-mix(in srgb, var(--craber-highlight) 70%, var(--craber-border));
 }
 
+/* A ring rather than a glow: it marks the one table that was asked about
+   without smearing over the rows of the tables beside it. */
 .craber-node.is-selected {
   border-color: var(--craber-highlight);
   box-shadow:
-    0 0 0 1px var(--craber-highlight),
-    0 0 16px color-mix(in srgb, var(--craber-highlight) 55%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--craber-highlight) 24%, transparent),
+    var(--craber-shadow);
 }
 
 /* A workflow step's tables, in the colour of what the step does to them. The
@@ -42,16 +51,16 @@
 .craber-node.is-delete {
   border-color: var(--craber-node-lit);
   box-shadow:
-    0 0 0 1px var(--craber-node-lit),
-    0 0 16px color-mix(in srgb, var(--craber-node-lit) 50%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--craber-node-lit) 24%, transparent),
+    var(--craber-shadow);
 }
 
 .craber-node-header {
   height: var(--craber-node-header);
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 7px;
+  padding: 0 12px;
   background: var(--craber-surface-raised);
   font-weight: 600;
 }
@@ -82,8 +91,15 @@
   align-items: center;
   gap: 7px;
   height: var(--craber-node-row);
-  padding: 0 10px;
+  padding: 0 12px;
   font-family: var(--craber-font-mono);
+  transition: background 150ms;
+}
+
+/* A row the search box found. Under `is-lit` in the cascade: a row that is
+   both is shown as the relationship it joins. */
+.craber-node-column.is-match {
+  background: color-mix(in srgb, var(--craber-accent) 16%, transparent);
 }
 
 .craber-node-column.is-lit {

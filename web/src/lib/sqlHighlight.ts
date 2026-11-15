@@ -3,15 +3,15 @@ import { createCssVariablesTheme, createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
 /**
- * A step's SQL → coloured tokens, for the expanded step bar.
+ * SQL → coloured tokens, for the expanded step bar and the details panel.
  *
  * No React, like `workflow.ts`. Shiki with only the SQL grammar and the JavaScript
  * regex engine, so there is no WASM to fetch and the highlighter can be built
- * synchronously. It is still the biggest thing the page loads, so the step bar
- * imports this module the first time it is expanded rather than up front.
+ * synchronously. It is still the biggest thing the page loads, so both import
+ * this module the first time they show a statement rather than up front.
  *
  * The theme does not carry colours: each token's colour is a `var(--craber-sql-…)`
- * that `StepBar.css` defines, so the palette stays with the rest of the CSS.
+ * that `theme.css` defines, so the palette stays with the rest of the CSS.
  */
 
 export type SqlToken = { text: string; color: string };

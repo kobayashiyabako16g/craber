@@ -4,6 +4,7 @@ import type { Anchor } from "./anchors";
 import { cx } from "./cx";
 import { markerId, type Sides } from "./edgeGeometry";
 import type { Lit, Relation, TableNodeType } from "./graph";
+import type { SearchMatches } from "./search";
 import type { StepLit } from "./workflow";
 
 /**
@@ -29,6 +30,9 @@ export type Highlight =
       focus: ReadonlySet<string> | null;
       /** What the selected and the hovered table light. */
       lit: Lit;
+      /** What the search box found, or nothing while it is empty. With no
+       *  table selected, everything it did not find dims. */
+      matches?: SearchMatches | null;
     };
 
 /**
@@ -36,8 +40,10 @@ export type Highlight =
  *
  * Playback lights the step's tables in the colour of what it does to them, and
  * dims the rest. Otherwise a selection dims everything outside its
- * neighbourhood, and what the pointer lights stays readable inside it. `hidden`
- * wins over both. Only a node whose highlight changed gets new data, so a hover
+ * neighbourhood, and what the pointer lights stays readable inside it. A search
+ * marks the rows it found, and dims the tables it did not while nothing is
+ * selected: a selection is the more specific question. `hidden` wins over all
+ * of them. Only a node whose highlight changed gets new data, so a hover
  * does not re-render every node on the canvas.
  */
 export function decorateNodes(
@@ -64,17 +70,27 @@ export function decorateNodes(
         className: access ? undefined : "craber-canvas-dimmed",
       };
     }
-    const { selected, focus, lit } = highlight;
+    const { selected, focus, lit, matches } = highlight;
     const columns = lit.columns.get(node.id);
     const related = lit.tables.has(node.id);
+    const matchColumns = matches?.columns.get(node.id);
+    const outside = focus ? !focus.has(node.id) : !!matches && !matches.tables.has(node.id);
     return {
       ...node,
-      data: columns || related ? { ...node.data, litColumns: columns, related } : node.data,
+      data:
+        columns || related || matchColumns
+          ? { ...node.data, litColumns: columns, related, matchColumns }
+          : node.data,
       hidden: hidden.has(node.id),
       selected: node.id === selected,
-      className: focus && !focus.has(node.id) && !related ? "craber-canvas-dimmed" : undefined,
+      className: outside && !related ? "craber-canvas-dimmed" : undefined,
     };
   });
+}
+
+/** A line the search leaves behind: one of its tables was not found. */
+function unmatched(edge: Relation, matches: SearchMatches | null | undefined): boolean {
+  return !!matches && !(matches.tables.has(edge.source) && matches.tables.has(edge.target));
 }
 
 /** Before React Flow has measured the nodes there are no sides to face, and
@@ -85,7 +101,8 @@ const UNPLACED: Sides = { source: "right", target: "left" };
  * The edges as drawn under `highlight`, attached by `anchors`.
  *
  * A lit line is coloured and raised above the bundle it runs in; while
- * anything is selected or playing, every other line dims. A line to a hidden
+ * anything is selected or playing, every other line dims — as does, during a
+ * search, a line that leaves the tables it found. A line to a hidden
  * table is hidden with it.
  */
 export function decorateEdges(
@@ -101,7 +118,10 @@ export function decorateEdges(
       highlight.kind === "playback"
         ? highlight.step.edges.has(edge.id)
         : highlight.lit.edges.has(edge.id);
-    const dimmed = highlight.kind === "playback" ? !isLit : highlight.focus !== null;
+    const dimmed =
+      highlight.kind === "playback"
+        ? !isLit
+        : highlight.focus !== null || unmatched(edge, highlight.matches);
     return {
       ...edge,
       data: isLit && edge.data ? { ...edge.data, lit: true } : edge.data,

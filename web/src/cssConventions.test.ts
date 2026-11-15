@@ -28,6 +28,7 @@ const OWNERS: Record<string, string[]> = {
   "components/Sidebar/Sidebar.css": ["craber-sidebar"],
   "components/Diagram/Diagram.css": ["craber-canvas", "craber-edge"],
   "components/Toolbar/Toolbar.css": ["craber-toolbar"],
+  "components/Legend/Legend.css": ["craber-legend"],
   "components/TableNode/TableNode.css": ["craber-node"],
   "components/ColumnGlyph/ColumnGlyph.css": ["craber-glyph"],
   "components/TableDetails/TableDetails.css": ["craber-details"],

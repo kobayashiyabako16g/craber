@@ -6,21 +6,26 @@
 :root {
   color-scheme: dark;
 
-  --craber-bg: #16181d;
-  --craber-grid: #2a2e37;
-  --craber-surface: #1e2128;
-  --craber-surface-raised: #262a33;
-  --craber-border: #333844;
-  --craber-text: #e6e8ec;
-  --craber-text-muted: #8b93a3;
+  --craber-bg: #0a0c10;
+  --craber-grid: #1e2430;
+  --craber-surface: #141821;
+  --craber-surface-raised: #191e29;
+  --craber-border: #242a36;
+  --craber-text: #e7eaf0;
+  --craber-text-muted: #9aa3b3;
   --craber-accent: #e8542f;
   --craber-glyph-fk: #d99a5b;
-  --craber-edge: #5b6474;
+  --craber-edge: #4d576b;
   --craber-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --craber-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
   --craber-accent-dim: #8a3520;
   --craber-accent-text: #1a0d09;
-  --craber-surface-hover: #2d323d;
+  --craber-accent-soft: rgb(232 84 47 / 16%);
+  --craber-panel: #101319;
+  --craber-surface-hover: #1f2430;
+  --craber-border-strong: #3a4354;
+  --craber-glyph-unique: #5fd4b3;
+  --craber-code-bg: #0c0f14;
   --craber-highlight: #f0434f;
   --craber-flow-read: #4f9cf0;
   --craber-flow-write: #3fbf7f;

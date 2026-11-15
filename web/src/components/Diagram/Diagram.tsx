@@ -1,6 +1,7 @@
 import { Background, MiniMap, ReactFlow, useReactFlow, useViewport } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
 
+import { Legend } from "@/components/Legend/Legend";
 import { CardinalityMarkers } from "@/components/Markers/Markers";
 import { RelationEdge } from "@/components/RelationEdge/RelationEdge";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
@@ -16,6 +17,7 @@ import { useViewSync } from "@/hooks/useViewSync";
 import { download } from "@/lib/download";
 import { litRelations, neighbourhood, type TableNodeType } from "@/lib/graph";
 import { decorateEdges, decorateNodes, type Highlight } from "@/lib/highlight";
+import { matchTables } from "@/lib/search";
 import { schemaSql, sqlFileName } from "@/lib/sql";
 import { initialFit, type ViewState } from "@/lib/viewState";
 import type { Schema, Workflow } from "@/types";
@@ -49,6 +51,10 @@ export function Diagram({
   const { zoom } = useViewport();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Typed in the sidebar and held here, because the canvas answers it as well:
+  // the rows it finds are marked on their tables and the rest recede.
+  const [query, setQuery] = useState("");
+  const matches = useMemo(() => matchTables(tables, query), [tables, query]);
 
   const { known, relations, nodes, onNodesChange, tidyUp, anchors } = useDiagramGraph(tables);
   const { view, dispatch, focusTable } = useViewSync(initial);
@@ -74,7 +80,8 @@ export function Diagram({
 
   // A workflow being played back takes the canvas over from selection and
   // hover. Otherwise a selected table's neighbourhood stays lit and everything
-  // else dims, so its relationships are readable without hiding the rest.
+  // else dims, so its relationships are readable without hiding the rest; with
+  // nothing selected, a search dims what it did not find the same way.
   const highlight = useMemo<Highlight>(
     () =>
       played
@@ -84,8 +91,9 @@ export function Diagram({
             selected,
             focus: neighbourhood(relations, selected),
             lit: litRelations(relations, [selected, hoveredTable]),
+            matches,
           },
-    [played, relations, selected, hoveredTable],
+    [played, relations, selected, hoveredTable, matches],
   );
   const renderedNodes = useMemo(
     () => decorateNodes(nodes, highlight, hidden),
@@ -125,6 +133,8 @@ export function Diagram({
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
         onExportSql={exportSql}
+        tableCount={tables.length}
+        relationCount={relations.length}
         workflowCount={workflows.length}
         onOpenWorkflows={() => setPickerOpen(true)}
       />
@@ -144,6 +154,9 @@ export function Diagram({
             tables={tables}
             selected={selected}
             hidden={hidden}
+            query={query}
+            matches={matches}
+            onQuery={setQuery}
             onSelect={focusTable}
             onToggleHidden={(table) => dispatch({ type: "toggleHidden", table })}
             onSetAllHidden={(hide, tables) => dispatch({ type: "setHidden", tables, hidden: hide })}
@@ -185,6 +198,15 @@ export function Diagram({
             <Background color="var(--craber-grid)" gap={20} size={1.5} />
             <MiniMap pannable zoomable />
           </ReactFlow>
+          {matches && !played && (
+            <div className="craber-canvas-chip">
+              <span className="craber-canvas-chip-query">{query.trim()}</span> —{" "}
+              {matches.tables.size === 1 ? "1 table" : `${matches.tables.size} tables`}
+            </div>
+          )}
+          {/* The step bar takes the bottom of the canvas while a workflow plays,
+              and what it lights is not notation anyway. */}
+          {!playing && <Legend />}
           <Toolbar
             zoom={zoom}
             onZoomIn={() => void moveCanvas(() => reactFlow.zoomIn({ duration: 150 }))}

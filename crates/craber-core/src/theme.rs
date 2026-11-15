@@ -65,16 +65,16 @@ impl Theme {
     #[must_use]
     pub const fn dark() -> Self {
         Self {
-            background: "#16181d",
-            grid: "#2a2e37",
-            surface: "#1e2128",
-            surface_raised: "#262a33",
-            border: "#333844",
-            text: "#e6e8ec",
-            text_muted: "#8b93a3",
+            background: "#0a0c10",
+            grid: "#1e2430",
+            surface: "#141821",
+            surface_raised: "#191e29",
+            border: "#242a36",
+            text: "#e7eaf0",
+            text_muted: "#9aa3b3",
             accent: "#e8542f",
             glyph_fk: "#d99a5b",
-            edge: "#5b6474",
+            edge: "#4d576b",
             font: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
             font_mono: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
         }
@@ -97,7 +97,20 @@ palette! {
     Chrome {
         accent_dim => "--craber-accent-dim",
         accent_text => "--craber-accent-text",
+        /// A quiet wash of the accent: the ring round a focused field, the
+        /// selected row of a list.
+        accent_soft => "--craber-accent-soft",
+        /// What the interface around the canvas sits on — the bars and the
+        /// panels. A step darker than [`Theme::surface`], so a table never
+        /// reads as part of the chrome beside it.
+        panel => "--craber-panel",
         surface_hover => "--craber-surface-hover",
+        /// A border that has to be noticed: a table under the pointer.
+        border_strong => "--craber-border-strong",
+        /// The badge on a unique column or index.
+        glyph_unique => "--craber-glyph-unique",
+        /// Behind a block of SQL.
+        code_bg => "--craber-code-bg",
         highlight => "--craber-highlight",
         /// A table a workflow step reads from.
         flow_read => "--craber-flow-read",
@@ -114,7 +127,12 @@ impl Chrome {
         Self {
             accent_dim: "#8a3520",
             accent_text: "#1a0d09",
-            surface_hover: "#2d323d",
+            accent_soft: "rgb(232 84 47 / 16%)",
+            panel: "#101319",
+            surface_hover: "#1f2430",
+            border_strong: "#3a4354",
+            glyph_unique: "#5fd4b3",
+            code_bg: "#0c0f14",
             // Redder than the accent: the accent already marks every primary
             // key and the brand, so a lit relationship has to be told apart
             // from those at a glance.

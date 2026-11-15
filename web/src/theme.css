@@ -21,6 +21,25 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* What lifts a floating surface — a table, the toolbar — off the canvas.
+     Here rather than with the generated tokens: it is a composite, not a
+     colour, and nothing in Rust draws a shadow. */
+  --craber-shadow: 0 8px 28px rgb(0 0 0 / 38%);
+
+  /* What sqlHighlight.ts's Shiki theme refers each token to, wherever SQL is
+     shown. They stay clear of the read/write/delete colours, which mean
+     something else beside a workflow's statement. */
+  --craber-sql-foreground: var(--craber-text);
+  --craber-sql-token-keyword: #c49bff;
+  --craber-sql-token-function: #66c6d8;
+  --craber-sql-token-string: #ef9f9f;
+  --craber-sql-token-string-expression: #ef9f9f;
+  --craber-sql-token-constant: #e7c787;
+  --craber-sql-token-comment: var(--craber-text-muted);
+  --craber-sql-token-punctuation: var(--craber-text-muted);
+}
+
 html,
 body,
 #root {
@@ -41,6 +60,11 @@ button {
   background: none;
   border: 0;
   cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--craber-accent);
+  outline-offset: 2px;
 }
 
 .craber-app {
@@ -70,11 +94,12 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--craber-text-muted);
+  transition: background 150ms, color 150ms;
 }
 
 .craber-icon-button:hover {
@@ -100,10 +125,11 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 7px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
   color: var(--craber-text-muted);
   font-size: 11px;
+  transition: background 150ms, color 150ms;
 }
 
 .craber-ghost-button:hover {
@@ -125,9 +151,9 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: 30px;
   padding: 0 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--craber-accent);
   color: var(--craber-accent-text);
   font-weight: 600;

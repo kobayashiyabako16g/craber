@@ -24,6 +24,8 @@ export type TableNodeData = {
   anchors: ReadonlySet<string>;
   /** Rows joined by a relationship of the selected or hovered table. */
   litColumns?: ReadonlySet<string>;
+  /** Rows whose names the search box found. */
+  matchColumns?: ReadonlySet<string>;
   /** This table is the selected or hovered one, or one relationship away. */
   related?: boolean;
   /** What the workflow step being played does to this table. */
@@ -279,6 +281,8 @@ export function litRelations(edges: Relation[], tables: (string | null)[]): Lit 
 export type Relationship = {
   /** The edge it is drawn as, which also keys it. */
   id: string;
+  /** `out` for a key this table declares, `in` for one that points at it. */
+  direction: "out" | "in";
   /** The table at the other end. */
   other: string;
   /** The referencing column, `orders.user_id`, whichever end this table is. */
@@ -310,6 +314,7 @@ export function relationshipsOf(
     .filter((edge) => edge.source === table)
     .map((edge) => ({
       id: edge.id,
+      direction: "out" as const,
       other: edge.target,
       from: end(edge.source, edge.data?.sourceColumn),
       to: end(edge.target, edge.data?.targetColumn),
@@ -321,6 +326,7 @@ export function relationshipsOf(
     .filter((edge) => edge.target === table && edge.source !== table)
     .map((edge) => ({
       id: edge.id,
+      direction: "in" as const,
       other: edge.source,
       from: end(edge.source, edge.data?.sourceColumn),
       to: end(edge.target, edge.data?.targetColumn),

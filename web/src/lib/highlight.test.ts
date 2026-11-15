@@ -30,12 +30,25 @@ const anchors = new Map<string, Anchor>([
 ]);
 const none: ReadonlySet<string> = new Set();
 
-function focusOn(selected: string | null, hovered: string | null = null): Highlight {
+type Focus = Extract<Highlight, { kind: "focus" }>;
+
+function focusOn(selected: string | null, hovered: string | null = null): Focus {
   return {
     kind: "focus",
     selected,
     focus: neighbourhood(relations, selected),
     lit: litRelations(relations, [selected, hovered]),
+  };
+}
+
+/** A search for `user`: it finds `users` by name and `orders` by a column. */
+function searching(selected: string | null = null): Focus {
+  return {
+    ...focusOn(selected),
+    matches: {
+      tables: new Set(["users", "orders"]),
+      columns: new Map([["orders", new Set(["user_id"])]]),
+    },
   };
 }
 
@@ -108,5 +121,32 @@ describe("decorateEdges", () => {
   it("hides a line to a hidden table", () => {
     const [edge] = decorateEdges(relations, anchors, focusOn(null), new Set(["users"]));
     expect(edge?.hidden).toBe(true);
+  });
+});
+
+describe("a search", () => {
+  it("dims the tables it did not find and marks the rows it did", () => {
+    const drawn = byId(decorateNodes(nodes, searching(), none));
+    expect(drawn.get("users")?.className).toBeUndefined();
+    expect(drawn.get("products")?.className).toBe("craber-canvas-dimmed");
+    expect([...(drawn.get("orders")?.data.matchColumns ?? [])]).toEqual(["user_id"]);
+  });
+
+  it("gives way to a selection, which still shows what was found", () => {
+    const drawn = byId(decorateNodes(nodes, searching("products"), none));
+    expect(drawn.get("products")?.className).toBeUndefined();
+    expect(drawn.get("users")?.className).toBe("craber-canvas-dimmed");
+    expect(drawn.get("orders")?.data.matchColumns?.has("user_id")).toBe(true);
+  });
+
+  it("dims a line that leaves the tables it found", () => {
+    const [kept] = decorateEdges(relations, anchors, searching(), none);
+    expect(kept?.className).not.toBe("craber-canvas-dimmed");
+    const onlyUsers: Focus = {
+      ...focusOn(null),
+      matches: { tables: new Set(["users"]), columns: new Map() },
+    };
+    const [left] = decorateEdges(relations, anchors, onlyUsers, none);
+    expect(left?.className).toBe("craber-canvas-dimmed");
   });
 });

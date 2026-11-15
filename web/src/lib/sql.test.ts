@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { schemaSql, sqlFileName } from "./sql";
+import { schemaSql, sqlFileName, tableDdl } from "./sql";
 import type { Schema } from "@/types";
 
 const shop: Schema = {
@@ -89,6 +89,32 @@ describe("schemaSql", () => {
 
   it("writes something for a schema with no tables at all", () => {
     expect(schemaSql({ schemaVersion: 2, name: "empty" })).toContain("empty");
+  });
+});
+
+describe("tableDdl", () => {
+  it("writes one table with its indexes and the keys it declares", () => {
+    const [users, orders] = shop.tables ?? [];
+    expect(tableDdl(users!)).toBe(
+      [
+        'CREATE TABLE "users" (',
+        '  "id" bigint NOT NULL,',
+        '  "email" text NOT NULL,',
+        '  PRIMARY KEY ("id")',
+        ");",
+        "",
+        'CREATE UNIQUE INDEX "users_email_key" ON "users" ("email");',
+      ].join("\n"),
+    );
+    expect(tableDdl(orders!)).toContain(
+      'ALTER TABLE "orders"\n  ADD CONSTRAINT "orders_user_id_fkey" FOREIGN KEY ("user_id")',
+    );
+  });
+
+  it("leaves an inferred key out, as the export does", () => {
+    const [, orders] = shop.tables ?? [];
+    const guessed = { ...orders!, fks: (orders!.fks ?? []).map((fk) => ({ ...fk, inferred: true })) };
+    expect(tableDdl(guessed)).not.toContain("FOREIGN KEY");
   });
 });
 

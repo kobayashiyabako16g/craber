@@ -59,7 +59,7 @@ const END_KINDS: readonly EndKind[] = ["zero-many", "zero-one", "one-only"];
  * table says how many rows are there — a fork for many, a bar for one, two bars
  * for exactly one — and the ring further out is the zero: it may be none.
  */
-function EndShape({ kind, stroke }: { kind: EndKind; stroke: object }) {
+export function EndShape({ kind, stroke }: { kind: EndKind; stroke: object }) {
   switch (kind) {
     case "zero-many":
       return (

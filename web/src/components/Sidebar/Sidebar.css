@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--craber-surface);
+  background: var(--craber-panel);
   border-right: 1px solid var(--craber-border);
 }
 
@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 8px 6px 12px;
+  padding: 10px 8px 8px 12px;
 }
 
 .craber-sidebar-title {
@@ -24,16 +24,23 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 8px 6px;
-  padding: 0 8px;
-  height: 28px;
+  margin: 0 8px 8px;
+  padding: 0 10px;
+  height: 34px;
+  background: var(--craber-surface-raised);
   border: 1px solid var(--craber-border);
-  border-radius: 6px;
+  border-radius: 9px;
   color: var(--craber-text-muted);
+  transition: border-color 150ms, box-shadow 150ms;
 }
 
 .craber-sidebar-search:focus-within {
-  border-color: var(--craber-accent-dim);
+  border-color: var(--craber-accent);
+  box-shadow: 0 0 0 3px var(--craber-accent-soft);
+}
+
+.craber-sidebar-search input::placeholder {
+  color: var(--craber-text-muted);
 }
 
 .craber-sidebar-search input {
@@ -66,7 +73,8 @@
   align-items: center;
   gap: 2px;
   padding-right: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
+  transition: background 150ms;
 }
 
 .craber-sidebar-row:hover {
@@ -74,8 +82,7 @@
 }
 
 .craber-sidebar-row.is-selected {
-  background: var(--craber-surface-raised);
-  box-shadow: inset 2px 0 0 var(--craber-accent);
+  background: var(--craber-accent-soft);
 }
 
 .craber-sidebar-row.is-hidden .craber-sidebar-row-name {
@@ -100,10 +107,22 @@
   color: var(--craber-text-muted);
 }
 
-.craber-sidebar-row-name span {
+.craber-sidebar-row-name span:not(.craber-sidebar-row-count) {
+  font-family: var(--craber-font-mono);
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* How many columns the table has: a rough idea of its size before it is
+   looked for on the canvas. */
+.craber-sidebar-row-count {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 6px;
+  color: var(--craber-text-muted);
+  font-size: 11px;
 }
 
 .craber-sidebar-foot {
