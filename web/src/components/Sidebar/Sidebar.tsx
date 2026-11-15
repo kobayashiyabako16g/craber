@@ -1,19 +1,26 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { List, type RowComponentProps } from "react-window";
 
 import { EyeIcon, EyeOffIcon, SearchIcon, TableIcon } from "@/components/Icons/Icons";
 import { qualifiedName } from "@/lib/schema";
+import type { SearchMatches } from "@/lib/search";
 import type { Table } from "@/types";
 import { cx } from "@/lib/cx";
 
 import "./Sidebar.css";
 
-const ROW_HEIGHT = 26;
+const ROW_HEIGHT = 30;
 
 type SidebarProps = {
   tables: Table[];
   selected: string | null;
   hidden: ReadonlySet<string>;
+  /** The search box's text. Held by `Diagram`, because the canvas marks what
+   *  it finds too. */
+  query: string;
+  /** What `query` finds, or null while it is empty. */
+  matches: SearchMatches | null;
+  onQuery: (query: string) => void;
   onSelect: (id: string) => void;
   onToggleHidden: (id: string) => void;
   onSetAllHidden: (hidden: boolean, ids: string[]) => void;
@@ -30,17 +37,17 @@ export function Sidebar({
   tables,
   selected,
   hidden,
+  query,
+  matches: found,
+  onQuery,
   onSelect,
   onToggleHidden,
   onSetAllHidden,
 }: SidebarProps) {
-  const [query, setQuery] = useState("");
-
-  const matches = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return tables;
-    return tables.filter((table) => qualifiedName(table).toLowerCase().includes(needle));
-  }, [tables, query]);
+  const matches = useMemo(
+    () => (found ? tables.filter((table) => found.tables.has(qualifiedName(table))) : tables),
+    [tables, found],
+  );
 
   const matchIds = useMemo(() => matches.map(qualifiedName), [matches]);
 
@@ -82,14 +89,14 @@ export function Sidebar({
         <input
           type="search"
           value={query}
-          placeholder="Search tables"
-          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search tables and columns"
+          onChange={(event) => onQuery(event.target.value)}
         />
       </label>
 
       <div className="craber-sidebar-list">
         {matches.length === 0 ? (
-          <p className="craber-sidebar-empty">No table matches “{query}”.</p>
+          <p className="craber-sidebar-empty">No table or column matches “{query}”.</p>
         ) : (
           <List
             rowComponent={TableRow}
@@ -141,6 +148,7 @@ function TableRow({
       <button type="button" className="craber-sidebar-row-name" onClick={() => onSelect(id)}>
         <TableIcon size={13} />
         <span>{table.name}</span>
+        <span className="craber-sidebar-row-count">{(table.columns ?? []).length}</span>
       </button>
       <button
         type="button"

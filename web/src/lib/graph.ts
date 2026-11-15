@@ -24,6 +24,8 @@ export type TableNodeData = {
   anchors: ReadonlySet<string>;
   /** Rows joined by a relationship of the selected or hovered table. */
   litColumns?: ReadonlySet<string>;
+  /** Rows whose names the search box found. */
+  matchColumns?: ReadonlySet<string>;
   /** This table is the selected or hovered one, or one relationship away. */
   related?: boolean;
   /** What the workflow step being played does to this table. */

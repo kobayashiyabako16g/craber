@@ -47,6 +47,54 @@
   stroke-dasharray: 4 3;
 }
 
+/* A lit line runs: from the referencing column to the one it points at, which
+   is the direction the line cannot otherwise show without an arrowhead the
+   crow's feet leave no room for. An inferred line keeps its own still dashes,
+   so the two are never the same picture — moving is declared, still is a guess. */
+.react-flow__edge.craber-edge-focus:not(.craber-edge-inferred) .react-flow__edge-path {
+  /* Long dashes with a short gap: at a standstill — a screenshot — it still
+     is not the short, even dashing of a guess. */
+  stroke-dasharray: 12 3;
+  animation: craber-edge-flow 900ms linear infinite;
+}
+
+@keyframes craber-edge-flow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge.craber-edge-focus:not(.craber-edge-inferred) .react-flow__edge-path {
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+/* What the search box found, said where the result is: on the canvas. */
+.craber-canvas-chip {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+  max-width: calc(100% - 32px);
+  padding: 7px 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--craber-panel);
+  border: 1px solid var(--craber-border);
+  border-radius: 10px;
+  box-shadow: var(--craber-shadow);
+  color: var(--craber-text-muted);
+  font-size: 12px;
+}
+
+.craber-canvas-chip-query {
+  color: var(--craber-text);
+  font-family: var(--craber-font-mono);
+}
+
 .react-flow__minimap {
   background: var(--craber-panel);
   border: 1px solid var(--craber-border);

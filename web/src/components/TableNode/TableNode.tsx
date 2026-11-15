@@ -23,7 +23,7 @@ import "./TableNode.css";
  * table at the other end. Nothing here decides geometry.
  */
 export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
-  const { table, anchors, litColumns, related, access, values } = data;
+  const { table, anchors, litColumns, matchColumns, related, access, values } = data;
   const pk = primaryKeyColumns(table);
   const fk = foreignKeyColumns(table);
   const columns = table.columns ?? [];
@@ -52,7 +52,11 @@ export function TableNode({ data, selected }: NodeProps<TableNodeType>) {
         <div className="craber-node-columns">
           {columns.map((column) => (
             <div
-              className={cx("craber-node-column", litColumns?.has(column.name) && "is-lit")}
+              className={cx(
+                "craber-node-column",
+                litColumns?.has(column.name) && "is-lit",
+                matchColumns?.has(column.name) && "is-match",
+              )}
               key={column.name}
             >
               {anchors.has(column.name) && <ColumnHandles column={column.name} />}

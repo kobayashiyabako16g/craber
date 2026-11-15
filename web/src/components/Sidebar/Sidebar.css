@@ -107,12 +107,22 @@
   color: var(--craber-text-muted);
 }
 
-.craber-sidebar-row-name span {
+.craber-sidebar-row-name span:not(.craber-sidebar-row-count) {
   font-family: var(--craber-font-mono);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* How many columns the table has: a rough idea of its size before it is
+   looked for on the canvas. */
+.craber-sidebar-row-count {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 6px;
+  color: var(--craber-text-muted);
+  font-size: 11px;
 }
 
 .craber-sidebar-foot {

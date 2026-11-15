@@ -28,6 +28,14 @@
   font-family: var(--craber-font-mono);
 }
 
+/* How much there is to look at, said once rather than counted off the canvas. */
+.craber-topbar-stats {
+  margin-right: 4px;
+  color: var(--craber-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 /* A ghost button, at the height of the primary one beside it. */
 .craber-topbar-workflows {
   height: 30px;

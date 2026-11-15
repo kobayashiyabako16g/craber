@@ -96,6 +96,12 @@
   transition: background 150ms;
 }
 
+/* A row the search box found. Under `is-lit` in the cascade: a row that is
+   both is shown as the relationship it joins. */
+.craber-node-column.is-match {
+  background: color-mix(in srgb, var(--craber-accent) 16%, transparent);
+}
+
 .craber-node-column.is-lit {
   background: color-mix(in srgb, var(--craber-node-lit, var(--craber-highlight)) 18%, transparent);
 }
