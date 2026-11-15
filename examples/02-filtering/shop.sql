@@ -71,6 +71,26 @@ CREATE TABLE public.shipments (
     shipped_at  timestamptz
 );
 
+-- What the tables are for, where the name alone does not say. The viewer marks
+-- a commented table or column on the canvas and shows the text in its details.
+
+COMMENT ON TABLE public.customers IS 'Anyone who has signed up, whether or not they have ordered.';
+COMMENT ON COLUMN public.customers.email IS 'Used to sign in; stored lower-cased.';
+
+COMMENT ON TABLE public.orders IS 'One checkout. Its lines, payment and shipments hang off it.';
+COMMENT ON COLUMN public.orders.shipping_id IS 'NULL for orders with nothing to ship, such as gift cards.';
+COMMENT ON COLUMN public.orders.status IS 'pending, paid, shipped or cancelled.';
+COMMENT ON COLUMN public.orders.total_cents IS 'Sum of the lines at checkout, in the store currency.';
+
+COMMENT ON COLUMN public.order_items.unit_cents IS 'Price when ordered; later price changes do not touch it.';
+
+COMMENT ON TABLE public.payments IS 'At most one per order: a failed attempt is retried in place.';
+COMMENT ON COLUMN public.payments.captured_at IS 'NULL until the provider confirms the charge.';
+
+COMMENT ON TABLE public.shipments IS 'An order can ship in several parcels.';
+
+COMMENT ON TABLE public.categories IS 'A tree: parent_id is NULL at the top level.';
+
 -- Infrastructure tables. Every schema has them; no diagram wants them.
 
 CREATE TABLE public.schema_migrations (
