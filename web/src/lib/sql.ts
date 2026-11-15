@@ -46,6 +46,19 @@ export function schemaSql(schema: Schema): string {
   return `${sections.filter(Boolean).join("\n\n")}\n`;
 }
 
+/**
+ * One table's definition, for the details panel: the table, then its indexes,
+ * then the foreign keys it declares — the same statements, in the same order,
+ * that `schemaSql` spreads across the whole script.
+ */
+export function tableDdl(table: Table): string {
+  return [
+    tableSql(table),
+    ...(table.indexes ?? []).map((index) => indexSql(table, index)),
+    ...(table.fks ?? []).filter((fk) => !fk.inferred).map((fk) => foreignKeySql(table, fk)),
+  ].join("\n\n");
+}
+
 /** The filename the download lands under. */
 export function sqlFileName(schema: Schema): string {
   const stem = schema.name.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "");

@@ -279,6 +279,8 @@ export function litRelations(edges: Relation[], tables: (string | null)[]): Lit 
 export type Relationship = {
   /** The edge it is drawn as, which also keys it. */
   id: string;
+  /** `out` for a key this table declares, `in` for one that points at it. */
+  direction: "out" | "in";
   /** The table at the other end. */
   other: string;
   /** The referencing column, `orders.user_id`, whichever end this table is. */
@@ -310,6 +312,7 @@ export function relationshipsOf(
     .filter((edge) => edge.source === table)
     .map((edge) => ({
       id: edge.id,
+      direction: "out" as const,
       other: edge.target,
       from: end(edge.source, edge.data?.sourceColumn),
       to: end(edge.target, edge.data?.targetColumn),
@@ -321,6 +324,7 @@ export function relationshipsOf(
     .filter((edge) => edge.target === table && edge.source !== table)
     .map((edge) => ({
       id: edge.id,
+      direction: "in" as const,
       other: edge.source,
       from: end(edge.source, edge.data?.sourceColumn),
       to: end(edge.target, edge.data?.targetColumn),

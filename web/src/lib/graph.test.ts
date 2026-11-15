@@ -168,9 +168,9 @@ describe("relationships, read off the edges", () => {
 
   it("lists a table's keys and the keys pointing at it, the self-reference once", () => {
     const listed = relationshipsOf("users", edges, tableIndex(tables));
-    expect(listed.map((r) => [r.other, r.from, r.to, r.cardinality])).toEqual([
-      ["users", "users.user_id", "users.id", "n:1"],
-      ["orders", "orders.user_id", "users.id", "1:n"],
+    expect(listed.map((r) => [r.direction, r.other, r.from, r.to, r.cardinality])).toEqual([
+      ["out", "users", "users.user_id", "users.id", "n:1"],
+      ["in", "orders", "orders.user_id", "users.id", "1:n"],
     ]);
     expect(new Set(listed.map((r) => r.id)).size).toBe(listed.length);
   });

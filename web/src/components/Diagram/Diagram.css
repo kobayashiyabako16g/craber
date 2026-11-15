@@ -10,7 +10,7 @@
 /* Focus: a selected table's neighbourhood stays lit, the rest recedes. */
 .react-flow__node.craber-canvas-dimmed,
 .react-flow__edge.craber-canvas-dimmed {
-  opacity: 0.25;
+  opacity: 0.3;
 }
 
 .react-flow__edge {
@@ -48,14 +48,16 @@
 }
 
 .react-flow__minimap {
-  background: var(--craber-surface);
+  background: var(--craber-panel);
   border: 1px solid var(--craber-border);
-  border-radius: var(--craber-radius);
+  border-radius: 12px;
+  box-shadow: var(--craber-shadow);
+  overflow: hidden;
 }
 
 .react-flow__minimap-node {
   fill: var(--craber-surface-raised);
-  stroke: var(--craber-border);
+  stroke: var(--craber-border-strong);
 }
 
 /* What the minimap dims outside the current view. Here rather than React
