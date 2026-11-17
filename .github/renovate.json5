@@ -66,6 +66,15 @@
       groupName: 'testcontainers',
       matchPackageNames: ['testcontainers', 'testcontainers-modules'],
     },
+    // The group only bundles what is available, so a testcontainers release
+    // that modules has not caught up with still opens a PR that cannot
+    // resolve. Breaking bumps wait on the Dependency Dashboard until someone
+    // has checked modules supports the new minor.
+    {
+      matchPackageNames: ['testcontainers', 'testcontainers-modules'],
+      matchUpdateTypes: ['major', 'minor'],
+      dependencyDashboardApproval: true,
+    },
     {
       groupName: 'Vite',
       matchPackageNames: ['vite', 'vitest', '@vitejs/plugin-react'],
