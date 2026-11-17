@@ -1,5 +1,6 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/craber-icon.svg" width="128" height="128" alt="CrabER">
+  <h1>CrabER</h1>
   <h3>Visualize ER diagrams from a SQL schema file — or straight from a live database.</h3>
   <p>CrabER turns DDL or a running database into an interactive ER diagram. It is one
   binary with the web frontend compiled in, so <code>craber serve</code> should feel like
