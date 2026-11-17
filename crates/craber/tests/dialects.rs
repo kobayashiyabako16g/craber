@@ -99,9 +99,9 @@ fn sqlite_inline_references_become_edges() {
 /// fifth line: `\restrict`, then `OWNER TO`, `CREATE SEQUENCE` options and more
 /// that sqlparser-rs does not read. Those are skipped without a word.
 ///
-/// Unlike the pair above it is not yet warning-free: the identity column, the
-/// partition and the `serial` defaults below still warn. The list is pinned so a
-/// new warning, or one of these going quiet, is a decision rather than a drift.
+/// Unlike the pair above it is not yet warning-free: the identity column and the
+/// `serial` defaults below still warn. The list is pinned so a new warning, or
+/// one of these going quiet, is a decision rather than a drift.
 #[test]
 fn a_pg_dump_parses_and_keeps_every_table() {
     let output = craber(&["export", "--file", fixture("dump.pg.sql").to_str().unwrap()]);
@@ -139,10 +139,9 @@ fn a_pg_dump_parses_and_keeps_every_table() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     let warnings: Vec<&str> = stderr.lines().collect();
-    assert_eq!(warnings.len(), 4, "{stderr}");
+    assert_eq!(warnings.len(), 3, "{stderr}");
     for expected in [
         "ADD GENERATED ALWAYS AS IDENTITY",
-        "ATTACH PARTITION public.events_2026",
         "billing.invoices: ALTER COLUMN id SET DEFAULT nextval",
         "public.users: ALTER COLUMN id SET DEFAULT nextval",
     ] {
