@@ -361,7 +361,9 @@ fn description(options: &[SqlOption]) -> Option<String> {
         SqlOption::KeyValue {
             key,
             value: Expr::Value(value),
-        } if key.value.eq_ignore_ascii_case("description") => value.clone().into_string(),
+        } if matches!(name_parts(key).as_slice(), [key] if key.eq_ignore_ascii_case("description")) => {
+            value.clone().into_string()
+        }
         _ => None,
     })
 }

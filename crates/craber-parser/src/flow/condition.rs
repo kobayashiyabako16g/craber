@@ -1,7 +1,7 @@
 //! What a `WHERE`, `HAVING` or `ON` says about a column.
 
 use craber_core::{Access, Join, ValueKind};
-use sqlparser::ast::{BinaryOperator, Expr};
+use sqlparser::ast::{BinaryOperator, Expr, InTarget};
 
 use super::builder::StepBuilder;
 use super::scope::{Scope, is_column};
@@ -75,10 +75,11 @@ fn filter(expr: &Expr) -> Option<(&Expr, String)> {
             (false, true) => (&**right, format!("{} {left}", mirrored(op)?)),
             _ => return None,
         },
-        Expr::InList {
+        Expr::In {
             expr,
-            list,
+            target: InTarget::List(list),
             negated,
+            ..
         } => {
             let list: Vec<String> = list.iter().map(ToString::to_string).collect();
             (

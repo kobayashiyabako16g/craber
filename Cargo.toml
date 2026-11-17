@@ -41,7 +41,7 @@ serde              = { version = "1.0.229", features = ["derive"] }
 serde_json         = "1.0.154"
 thiserror          = "2.0.21"
 anyhow             = "1.0.104"
-sqlparser          = "0.63"
+sqlparser          = "0.64"
 # `default-features = false` drops `any`, `macros`, `migrate` and `json`.
 # `macros` is the one that matters — it is the compile-time-checked `query!`,
 # which wants a live DATABASE_URL at build time, and CrabER has to build with no

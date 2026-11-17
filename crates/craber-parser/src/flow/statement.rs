@@ -3,9 +3,9 @@
 use craber_core::{Access, ColumnRef, ValueKind};
 use sqlparser::ast::{
     AssignmentTarget, Delete, Expr, FromTable, FunctionArg, FunctionArgExpr, FunctionArguments,
-    GroupByExpr, Insert, JoinConstraint, JoinOperator, OrderByKind, Query, Select, SelectItem,
-    SelectItemQualifiedWildcardKind, SetExpr, TableFactor, TableObject, TableWithJoins, Update,
-    UpdateTableFromKind,
+    GroupByExpr, InTarget, Insert, JoinConstraint, JoinOperator, OrderByKind, Query, Select,
+    SelectItem, SelectItemQualifiedWildcardKind, SetExpr, TableFactor, TableObject, TableWithJoins,
+    Update, UpdateTableFromKind,
 };
 
 use super::builder::StepBuilder;
@@ -139,7 +139,11 @@ impl StepBuilder {
             | Expr::Cast { expr: inner, .. }
             | Expr::Like { expr: inner, .. }
             | Expr::ILike { expr: inner, .. } => self.expr(inner, scope, access),
-            Expr::InList { expr, list, .. } => {
+            Expr::In {
+                expr,
+                target: InTarget::List(list),
+                ..
+            } => {
                 each(&mut std::iter::once(&**expr).chain(list));
             }
             Expr::Between {
@@ -164,7 +168,11 @@ impl StepBuilder {
                 FunctionArguments::Subquery(subquery) => self.query(subquery, scope),
                 FunctionArguments::None => {}
             },
-            Expr::InSubquery { expr, subquery, .. } => {
+            Expr::In {
+                expr,
+                target: InTarget::Subquery(subquery),
+                ..
+            } => {
                 self.expr(expr, scope, access);
                 self.query(subquery, scope);
             }
