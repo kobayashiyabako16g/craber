@@ -14,7 +14,8 @@ mod names;
 mod statements;
 mod translate;
 
-use craber_core::{Diagnostic, Dialect, Outcome, Schema, SchemaIndex, Workflow};
+use craber_core::{Diagnostic, Dialect, Outcome, Schema, SchemaIndex, Severity, Workflow};
+use sqlparser::ast::Statement;
 use sqlparser::parser::Parser;
 
 use crate::dialect::sqlparser_dialect;
@@ -31,19 +32,70 @@ pub fn parse(sql: &str, dialect: Dialect, name: impl Into<String>) -> Outcome<Sc
         return outcome;
     }
 
+    translate_all(&statements, dialect, &mut outcome);
+    outcome
+}
+
+/// Parse several DDL scripts — a directory of migrations, say — into one
+/// schema, as if they were one script in the order given.
+///
+/// Each source is `(label, sql)`; the label, normally the file's path, is put
+/// in front of the context of whatever reading that source raised, so that a
+/// `line 12` says which file it is line 12 of. Read as one script, a later
+/// file's `ALTER TABLE` amends a table an earlier one created.
+///
+/// One source that cannot be read at all loses only that source, as one
+/// statement that cannot be read loses only that statement: it is a warning.
+/// Only when not one source could be read is it an error.
+pub fn parse_files(
+    sources: &[(String, String)],
+    dialect: Dialect,
+    name: impl Into<String>,
+) -> Outcome<Schema> {
+    let mut outcome = Outcome::new(Schema::new(name));
+
+    let mut statements = Vec::new();
+    let mut unread = Vec::new();
+    for (label, sql) in sources {
+        let from = outcome.diagnostics.len();
+        let read = statements::read(sql, dialect, &mut outcome);
+        for (at, diagnostic) in outcome.diagnostics.iter_mut().enumerate().skip(from) {
+            if diagnostic.severity == Severity::Error {
+                diagnostic.severity = Severity::Warning;
+                unread.push(at);
+            }
+            diagnostic.context = Some(match diagnostic.context.take() {
+                Some(context) => format!("{label} {context}"),
+                None => label.clone(),
+            });
+        }
+        statements.extend(read);
+    }
+    if !sources.is_empty() && unread.len() == sources.len() {
+        for at in unread {
+            outcome.diagnostics[at].severity = Severity::Error;
+        }
+        return outcome;
+    }
+
+    translate_all(&statements, dialect, &mut outcome);
+    outcome
+}
+
+/// Turn the statements that were read into the schema on `outcome`.
+fn translate_all(statements: &[Statement], dialect: Dialect, outcome: &mut Outcome<Schema>) {
     // Two passes: define tables and types, then apply the statements that
     // amend them. See `translate` for why the order matters.
-    for statement in &statements {
-        translate::define(statement, dialect, &mut outcome);
+    for statement in statements {
+        translate::define(statement, dialect, outcome);
     }
     let index = SchemaIndex::build(&outcome.value);
-    for statement in &statements {
-        translate::amend(statement, &index, &mut outcome);
+    for statement in statements {
+        translate::amend(statement, &index, outcome);
     }
 
     let diagnostics = craber_core::normalize(&mut outcome.value);
     outcome.diagnostics.extend(diagnostics);
-    outcome
 }
 
 /// Parse a script of DML into a workflow, one step per statement.

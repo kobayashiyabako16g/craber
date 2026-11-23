@@ -1,6 +1,6 @@
 use craber_core::Dialect;
 use craber_core::{Action, Cardinality, Severity};
-use craber_parser::parse;
+use craber_parser::{parse, parse_files};
 
 fn postgres(sql: &str) -> craber_core::Outcome<craber_core::Schema> {
     parse(sql, Dialect::Postgres, "test")
@@ -670,4 +670,50 @@ fn input_with_no_statement_that_parses_is_still_an_error() {
     let outcome = postgres("this is not SQL at all;\nnor is this;");
     assert!(outcome.has_errors(), "{:?}", outcome.diagnostics);
     assert_eq!(outcome.value.tables, []);
+}
+
+/// Several scripts read as one: the second file's `ALTER TABLE` finds the table
+/// the first created, and what reading a file raised says which file.
+#[test]
+fn files_are_read_as_one_script_and_their_warnings_name_them() {
+    let sources = [
+        (
+            "001_orders.sql".to_owned(),
+            "CREATE TABLE orders (id bigint PRIMARY KEY);
+             CREATE TABLE order_items (order_id bigint NOT NULL);"
+                .to_owned(),
+        ),
+        (
+            "002_fk.sql".to_owned(),
+            "ALTER TABLE order_items ADD FOREIGN KEY (order_id) REFERENCES orders (id);
+             CREATE TABLE broken (id bigint) FROBNICATE;"
+                .to_owned(),
+        ),
+    ];
+    let outcome = parse_files(&sources, Dialect::Postgres, "migrations");
+    assert_eq!(outcome.value.name, "migrations");
+    let fk = &outcome.value.table("order_items").unwrap().fks[0];
+    assert_eq!(fk.ref_table.name, "orders");
+    assert!(!outcome.has_errors());
+    assert_eq!(outcome.diagnostics.len(), 1, "{:?}", outcome.diagnostics);
+    let context = outcome.diagnostics[0].context.as_deref().unwrap();
+    assert!(context.starts_with("002_fk.sql line 2:"), "{context}");
+}
+
+#[test]
+fn a_file_that_cannot_be_read_is_an_error_only_when_none_can() {
+    let unreadable = ("b.sql".to_owned(), "this is not sql at all".to_owned());
+    let readable = (
+        "a.sql".to_owned(),
+        "CREATE TABLE users (id bigint PRIMARY KEY);".to_owned(),
+    );
+
+    let outcome = parse_files(&[readable, unreadable.clone()], Dialect::Postgres, "s");
+    assert!(!outcome.has_errors());
+    assert_eq!(outcome.value.tables.len(), 1);
+    assert_eq!(outcome.diagnostics[0].severity, Severity::Warning);
+    assert_eq!(outcome.diagnostics[0].context.as_deref(), Some("b.sql"));
+
+    let outcome = parse_files(&[unreadable], Dialect::Postgres, "s");
+    assert!(outcome.has_errors());
 }
