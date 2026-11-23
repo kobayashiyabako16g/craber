@@ -21,6 +21,7 @@
 mod dialect;
 mod precedence;
 
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
 use anyhow::{Result, bail};
@@ -30,6 +31,10 @@ use craber_export::Format;
 use crate::cli::{BuildArgs, ExportArgs, ScopeArgs, ServeArgs, SourceArgs, WorkflowArgs};
 use crate::config::{self, Config};
 use crate::options::precedence::{pick, pick_source};
+
+/// `serve`'s address when neither the flag nor the config names one. Loopback,
+/// so a diagram of a production database is never exposed by accident.
+const DEFAULT_HOST: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
 /// `serve`'s port when neither the flag nor the config names one.
 const DEFAULT_PORT: u16 = 4300;
@@ -75,6 +80,7 @@ pub(crate) struct BuildOptions {
 #[derive(Debug)]
 pub(crate) struct ServeOptions {
     pub input: Input,
+    pub host: IpAddr,
     pub port: u16,
     /// The file to poll, when `--watch` was asked for. `None` is "do not
     /// watch" — a live connection has already been refused by the time this
@@ -149,6 +155,7 @@ impl ServeArgs {
 
         let options = ServeOptions {
             input: Input::from_source(source, &self.scope, &self.workflows, config)?,
+            host: self.host.or(config.serve.host).unwrap_or(DEFAULT_HOST),
             port: self.port.or(config.serve.port).unwrap_or(DEFAULT_PORT),
             watch,
         };

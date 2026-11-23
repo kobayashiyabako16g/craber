@@ -80,6 +80,38 @@ fn the_schema_is_served_as_json() {
     assert_eq!(schema["tables"].as_array().expect("tables").len(), 6);
 }
 
+/// Loopback unless asked: a diagram of a production database is not something
+/// to put on the network by accident.
+#[test]
+fn it_listens_on_loopback_by_default() {
+    if !bundle_or_skip() {
+        return;
+    }
+    let server = tiny();
+    assert!(
+        server.announced.contains("http://127.0.0.1:"),
+        "{}",
+        server.announced
+    );
+}
+
+/// `--host` is what makes `serve` usable behind a published container port.
+/// `0.0.0.0` still answers on loopback, which is what the request goes to.
+#[test]
+fn host_picks_the_address_to_listen_on() {
+    if !bundle_or_skip() {
+        return;
+    }
+    let path = fixture("tiny.sql");
+    let server = Server::start(&["--host", "0.0.0.0", "--file", path.to_str().unwrap()]);
+    assert!(
+        server.announced.contains("http://0.0.0.0:"),
+        "{}",
+        server.announced
+    );
+    assert_eq!(get(server.port, "/").status, 200);
+}
+
 /// The frontend keeps its view state in the query string, so this is the shape
 /// of a shared link — the path still has to resolve to the page.
 #[test]

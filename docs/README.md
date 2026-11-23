@@ -187,9 +187,9 @@ static musl binary and nothing else. It runs as uid 65532 and works with a
 read-only root filesystem, so the output directory has to be writable by uid
 65532 — pass `--user "$(id -u):$(id -g)"` otherwise.
 
-`craber serve` is **not** usable in a container: it binds loopback inside the
-container and offers no flag to change that, so a published port cannot reach
-it. `export` and `build` are what the image is for.
+`craber serve` binds loopback by default, which a published port cannot reach
+inside a container; pass `--host 0.0.0.0` (or set `CRABER_HOST`) there, and
+publish the port as `127.0.0.1:4300:4300` to keep it on your machine.
 
 ## Development tasks
 

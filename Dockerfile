@@ -24,8 +24,8 @@ COPY --chmod=0755 docker-stage/$TARGETARCH/craber /usr/local/bin/craber
 # verify it without resolving a name.
 USER 65532:65532
 
-# `craber build -o /work/dist` is the intended use, against a bind mount. Note
-# that `craber serve` is *not* usable in a container: it binds loopback inside
-# the container with no flag to change that, so a published port cannot reach it.
+# `craber build -o /work/dist` against a bind mount is the usual use. `craber
+# serve` works too, given `--host 0.0.0.0` (or CRABER_HOST): it binds loopback
+# by default, which a published port cannot reach.
 WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/craber"]

@@ -299,6 +299,24 @@ fn the_serve_section_sets_the_port() {
     assert_ne!(server.port, 4300, "the config's port was ignored");
 }
 
+/// `[serve] host` reaches the listener, which announces the address it bound.
+#[test]
+fn the_serve_section_sets_the_host() {
+    if !bundle_or_skip() {
+        return;
+    }
+    let dir = project(
+        "serve-host",
+        "file = \"tiny.sql\"\n\n[serve]\nhost = \"0.0.0.0\"\nport = 0\n",
+    );
+    let server = Server::start_in(&dir, &["serve"]);
+    assert!(
+        server.announced.contains("http://0.0.0.0:"),
+        "the config's host was ignored: {}",
+        server.announced
+    );
+}
+
 /// The scope flags keep replacing the config's lists rather than adding to
 /// them, which is the rule `pipeline::pick` encodes.
 #[test]

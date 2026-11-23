@@ -5,6 +5,7 @@
 //! depends on it. Unimplemented subcommands fail loudly with the milestone they
 //! are scheduled for rather than silently doing nothing.
 
+use std::net::IpAddr;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
@@ -54,6 +55,10 @@ pub(crate) struct ServeArgs {
     pub scope: ScopeArgs,
     #[command(flatten)]
     pub workflows: WorkflowArgs,
+    /// Address to listen on. Defaults to 127.0.0.1; pass 0.0.0.0 to reach it
+    /// from outside, e.g. a published container port.
+    #[arg(long, value_name = "IP", env = "CRABER_HOST")]
+    pub host: Option<IpAddr>,
     /// Port to listen on. Defaults to 4300.
     #[arg(long)]
     pub port: Option<u16>,

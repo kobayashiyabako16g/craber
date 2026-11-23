@@ -10,7 +10,7 @@ pub(crate) fn run(options: &ServeOptions) -> Result<()> {
     let loaded = pipeline::load(&options.input)?;
     report(&loaded.diagnostics);
 
-    let site = server::run(&loaded, options.port)?;
+    let site = server::run(&loaded, options.host, options.port)?;
     if let Some(path) = &options.watch {
         watch::reload_on_change(site, path.clone(), options.input.clone());
     }

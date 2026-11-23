@@ -10,6 +10,7 @@
 //! wrote a file instead of stdout the moment a config file appeared next to it,
 //! which would break every pipeline that reads CrabER's output.
 
+use std::net::IpAddr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -55,6 +56,7 @@ pub(crate) struct Build {
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) struct Serve {
+    pub host: Option<IpAddr>,
     pub port: Option<u16>,
 }
 

@@ -18,7 +18,7 @@
 mod http;
 mod routes;
 
-use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
@@ -54,14 +54,15 @@ impl Site {
 /// what stops each of those from pinning a thread for the life of the tab.
 const IDLE_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Serve what was loaded on `port` until the process is stopped.
+/// Serve what was loaded on `host:port` until the process is stopped.
 ///
-/// Binds to loopback only. This is a tool for looking at your own schema; there
-/// is no reason for it to be reachable from the rest of the network, and a
-/// diagram of a production database is not something to expose by accident.
-pub(crate) fn run(loaded: &Loaded, port: u16) -> Result<Site> {
+/// `host` is loopback unless the user asked otherwise. This is a tool for
+/// looking at your own schema, and a diagram of a production database is not
+/// something to expose by accident; `--host` exists for a container, where
+/// loopback is unreachable through a published port.
+pub(crate) fn run(loaded: &Loaded, host: IpAddr, port: u16) -> Result<Site> {
     let site = Site::new(loaded)?;
-    let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
+    let address = SocketAddr::from((host, port));
 
     let listener = TcpListener::bind(address).map_err(|error| {
         if error.kind() == std::io::ErrorKind::AddrInUse {

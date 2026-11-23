@@ -181,6 +181,8 @@ pub(crate) fn column<'a>(table: &'a serde_json::Value, name: &str) -> &'a serde_
 pub(crate) struct Server {
     child: std::process::Child,
     pub port: u16,
+    /// The startup line, for a test that checks the address as well as the port.
+    pub announced: String,
 }
 
 impl Server {
@@ -216,7 +218,11 @@ impl Server {
             .expect("spawning craber serve");
 
         let stdout = child.stdout.take().expect("a piped stdout");
-        let mut server = Self { child, port: 0 };
+        let mut server = Self {
+            child,
+            port: 0,
+            announced: String::new(),
+        };
 
         // The first line is "CrabER is serving <name> at http://127.0.0.1:<port>/".
         let mut line = String::new();
@@ -227,6 +233,7 @@ impl Server {
             .rsplit_once(':')
             .and_then(|(_, tail)| tail.trim_end().trim_end_matches('/').parse().ok())
             .unwrap_or_else(|| panic!("could not read a port out of {line:?}"));
+        line.trim_end().clone_into(&mut server.announced);
 
         server
     }
