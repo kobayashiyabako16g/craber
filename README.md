@@ -78,9 +78,9 @@ $ docker run --rm -v "$PWD:/work" --user "$(id -u):$(id -g)" \
     ghcr.io/kobayashiyabako16g/craber build --file /work/schema.sql -o /work/dist
 ```
 
-`craber serve` does not work in a container (it binds loopback only), so with
-Compose, build the site and let a web server serve it. This reads a live
-PostgreSQL:
+With Compose, `craber serve` can read a live PostgreSQL. It listens on
+loopback unless told otherwise, so `CRABER_HOST: 0.0.0.0` is what lets the
+published port reach it:
 
 ```yaml
 # compose.yaml
@@ -100,30 +100,19 @@ services:
 
   craber:
     image: ghcr.io/kobayashiyabako16g/craber
-    user: "${UID:-1000}:${GID:-1000}"   # so it can write to ./dist
     environment:
       CRABER_DSN: postgres://craber:craber@db:5432/shop
-    command: ["build", "-o", "/work/dist"]
-    volumes:
-      - ./dist:/work/dist
+      CRABER_HOST: 0.0.0.0
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:4300:4300"           # this machine only
     depends_on:
       db:
         condition: service_healthy      # the image has no shell to wait with
-
-  web:
-    image: nginx:alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - ./dist:/usr/share/nginx/html:ro
-    depends_on:
-      craber:
-        condition: service_completed_successfully
 ```
 
 ```console
-$ mkdir -p dist
-$ UID=$(id -u) GID=$(id -g) docker compose up    # then open http://localhost:8080/
+$ docker compose up    # then open http://localhost:4300/
 ```
 
 Outside a throwaway setup like this, keep the DSN in `.env` and write
