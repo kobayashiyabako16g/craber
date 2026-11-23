@@ -154,6 +154,13 @@
             pkgs.libiconv
           ];
 
+          # nixpkgs' cargoSetupHook exports LIBSQLITE3_SYS_USE_PKG_CONFIG=1 (and
+          # the like for other -sys crates) since NixOS/nixpkgs#537108.
+          # libsqlite3-sys checks it before `bundled`, so it would skip
+          # compiling SQLite and link a system one that is not in buildInputs.
+          # Opting out keeps this build bundling SQLite like the release does.
+          dontCargoUseSystemLibs = true;
+
           # Three reasons, none of them "tests are slow". The craber-core tests
           # write generated TypeScript back into web/src/types through
           # TS_RS_EXPORT_DIR, the craber-introspect tests are #[ignore]d because
