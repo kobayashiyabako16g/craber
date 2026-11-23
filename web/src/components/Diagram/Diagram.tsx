@@ -170,7 +170,7 @@ export function Diagram({
             onNodesChange={onNodesChange}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            colorMode="dark"
+            className="dark"
             minZoom={0.05}
             fitView={!initial.viewport}
             fitViewOptions={initialFit(initial)}

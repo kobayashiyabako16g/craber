@@ -1,4 +1,4 @@
-/* Loaded after React Flow's own stylesheet (main.tsx imports it first): the
+/* React Flow's own stylesheet sits in `@layer xyflow`, so the unlayered
    `.react-flow__*` rules below override it at the same specificity. */
 
 .craber-canvas {
