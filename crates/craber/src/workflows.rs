@@ -3,12 +3,13 @@
 //! Separate from [`crate::pipeline`] because `--watch` needs the list of files
 //! on its own, every second, without loading anything.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use craber_core::{Diagnostic, Dialect, Outcome, SchemaIndex, Workflow};
 
 use crate::pipeline::refuse_on_errors;
+use crate::sql_files;
 
 /// One workflow file, and the name it plays under.
 #[derive(Debug, Clone)]
@@ -39,8 +40,7 @@ pub(crate) fn files(paths: &[PathBuf]) -> Result<Outcome<Vec<WorkflowFile>>> {
             });
             continue;
         }
-        let mut found = Vec::new();
-        sql_files_under(path, &mut found)
+        let found = sql_files::sorted_under(path)
             .with_context(|| format!("reading workflow directory {}", path.display()))?;
         if found.is_empty() {
             outcome.push(Diagnostic::warning(format!(
@@ -48,34 +48,12 @@ pub(crate) fn files(paths: &[PathBuf]) -> Result<Outcome<Vec<WorkflowFile>>> {
                 path.display()
             )));
         }
-        found.sort();
         for file in found {
-            let relative = file.strip_prefix(path).unwrap_or(&file).with_extension("");
-            let name = relative
-                .components()
-                .map(|c| c.as_os_str().to_string_lossy())
-                .collect::<Vec<_>>()
-                .join("/");
+            let name = sql_files::name_within(path, &file);
             outcome.value.push(WorkflowFile { path: file, name });
         }
     }
     Ok(outcome)
-}
-
-fn sql_files_under(dir: &Path, found: &mut Vec<PathBuf>) -> std::io::Result<()> {
-    for entry in std::fs::read_dir(dir)? {
-        let entry = entry?;
-        if entry.file_name().to_string_lossy().starts_with('.') {
-            continue;
-        }
-        let path = entry.path();
-        if entry.file_type()?.is_dir() {
-            sql_files_under(&path, found)?;
-        } else if path.extension().is_some_and(|e| e == "sql") && path.is_file() {
-            found.push(path);
-        }
-    }
-    Ok(())
 }
 
 /// Read one workflow, and warn about each table it names that the diagram does

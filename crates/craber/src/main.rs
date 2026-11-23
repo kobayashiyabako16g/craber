@@ -13,6 +13,7 @@ mod milestone;
 mod options;
 mod pipeline;
 mod server;
+mod sql_files;
 mod watch;
 mod workflows;
 
