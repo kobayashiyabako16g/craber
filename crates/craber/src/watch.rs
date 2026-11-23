@@ -1,6 +1,6 @@
-//! `--watch`: re-read the schema when its file or a workflow file changes, or a
-//! file is added to or taken out of a workflow directory, and swap what `serve`
-//! is handing out.
+//! `--watch`: re-read the schema when one of its files or a workflow file
+//! changes, or a file is added to or taken out of a schema or workflow
+//! directory, and swap what `serve` is handing out.
 //!
 //! Polling `mtime` rather than taking a filesystem-notification dependency: the
 //! check is one `stat` a second per file, which is not worth a crate.
@@ -12,35 +12,47 @@
 
 use std::path::{Path, PathBuf};
 
+use anyhow::Context;
+
 use crate::commands::report;
 use crate::options::Input;
-use crate::{pipeline, server, workflows};
+use crate::{pipeline, server, sql_files, workflows};
 
-/// Spawn the poller. `path` is known to be a file: [`crate::options`] refuses
-/// `--watch` on a live connection while the invocation is being resolved, so
-/// there is no "nothing to watch" case left to handle here.
+/// Spawn the poller. `path` is known to be a file or a directory:
+/// [`crate::options`] refuses `--watch` on a live connection while the
+/// invocation is being resolved, so there is no "nothing to watch" case left to
+/// handle here.
 pub(crate) fn reload_on_change(site: server::Site, path: PathBuf, input: Input) {
-    // A workflow directory is listed again on every tick, so a file added to
-    // it, or taken out, is a change like an edit is. A directory that cannot
-    // be listed is said once, not every second, and watching carries on with
-    // the files that can be seen.
+    // A schema or workflow directory is listed again on every tick, so a file
+    // added to it, or taken out, is a change like an edit is. A directory that
+    // cannot be listed is said once, not every second, and watching carries on
+    // with the files that can be seen.
+    if path.is_dir() {
+        tracing::info!(path = %path.display(), "watching for schema files added or removed");
+    }
     let mut unlisted: Option<String> = None;
     let mut watched = move |flows: &[PathBuf]| -> Vec<PathBuf> {
-        let files = match workflows::files(flows) {
-            Ok(outcome) => {
+        let listed = schema_files(&path).and_then(|schema| {
+            let flows = workflows::files(flows)?
+                .value
+                .into_iter()
+                .map(|file| file.path);
+            Ok(schema.into_iter().chain(flows).collect())
+        });
+        match listed {
+            Ok(files) => {
                 unlisted = None;
-                outcome.value.into_iter().map(|file| file.path).collect()
+                files
             }
             Err(error) => {
                 let error = format!("{error:#}");
                 if unlisted.as_ref() != Some(&error) {
-                    tracing::warn!(%error, "could not list the workflow files");
+                    tracing::warn!(%error, "could not list the files to watch");
                     unlisted = Some(error);
                 }
-                Vec::new()
+                vec![path.clone()]
             }
-        };
-        std::iter::once(path.clone()).chain(files).collect()
+        }
     };
     let stamps = |paths: Vec<PathBuf>| -> Vec<_> {
         paths
@@ -82,6 +94,16 @@ pub(crate) fn reload_on_change(site: server::Site, path: PathBuf, input: Input) 
             }
         }
     });
+}
+
+/// The schema's own files: `path` itself, or the `.sql` files beneath it that
+/// are read.
+fn schema_files(path: &Path) -> anyhow::Result<Vec<PathBuf>> {
+    if !path.is_dir() {
+        return Ok(vec![path.to_path_buf()]);
+    }
+    sql_files::schema_under(path)
+        .with_context(|| format!("reading schema directory {}", path.display()))
 }
 
 fn stamp(path: &Path) -> Option<std::time::SystemTime> {

@@ -111,7 +111,8 @@ pub(crate) struct DiffArgs {
 #[derive(Debug, Clone, Args)]
 #[group(required = false, multiple = false)]
 pub(crate) struct SourceArgs {
-    /// Read DDL from a .sql file.
+    /// Read DDL from a .sql file, or from every .sql file under a directory,
+    /// read as one script in order of their paths, down migrations skipped.
     #[arg(short, long, value_name = "PATH")]
     pub file: Option<PathBuf>,
 

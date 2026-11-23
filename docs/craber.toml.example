@@ -11,11 +11,15 @@
 #
 # Prefer the CRABER_DSN environment variable to writing a `dsn` here: a
 # connection string carries a password and this file is in the repository.
+#
+# `file` may also be a directory: every .sql file beneath it is read as one
+# script, in order of their paths, skipping down migrations (`*.down.sql`,
+# diesel's `down.sql`, Flyway's `U1__*.sql`).
 file = "db/schema.sql"
 # dsn = "postgres://user@host/db"
 
-# postgres | mysql | sqlite | bigquery. Inferred from the filename, or from a DSN's
-# scheme, when omitted — so a `dsn` almost never needs this.
+# postgres | mysql | sqlite | bigquery. Inferred from the file or directory name,
+# or from a DSN's scheme, when omitted — so a `dsn` almost never needs this.
 dialect = "postgres"
 
 # Table selection, matched against both `users` and `public.users`.

@@ -15,7 +15,7 @@ use craber_core::{Diagnostic, Filter, Flows, Outcome, Schema, SchemaIndex, Workf
 use craber_layout::{Layout, SugiyamaLayout};
 
 use crate::options::{Input, Source};
-use crate::workflows;
+use crate::{sql_files, workflows};
 
 /// What a run draws: the laid-out schema, the workflows to play over it, and
 /// what was skipped reading either.
@@ -64,6 +64,9 @@ pub(crate) fn load(input: &Input) -> Result<Loaded> {
 }
 
 fn from_file(path: &Path, input: &Input) -> Result<Outcome<Schema>> {
+    if path.is_dir() {
+        return from_directory(path, input);
+    }
     let sql = std::fs::read_to_string(path)
         .with_context(|| format!("reading schema file {}", path.display()))?;
 
@@ -74,6 +77,34 @@ fn from_file(path: &Path, input: &Input) -> Result<Outcome<Schema>> {
     let outcome = craber_parser::parse(&sql, input.dialect, name);
 
     refuse_on_errors(&outcome, &format!("could not read {}", path.display()))?;
+    Ok(outcome)
+}
+
+/// Every `.sql` file beneath `dir`, read as one script in order of their paths
+/// — so a directory of numbered migrations can be pointed at as it is, its down
+/// migrations passed over (see [`sql_files::schema_under`]). The schema is named
+/// after the directory, and each file after its path from it, which is what a
+/// warning about one of them says.
+fn from_directory(dir: &Path, input: &Input) -> Result<Outcome<Schema>> {
+    let files = sql_files::schema_under(dir)
+        .with_context(|| format!("reading schema directory {}", dir.display()))?;
+    if files.is_empty() {
+        bail!(
+            "no .sql files under schema directory {} other than down migrations",
+            dir.display()
+        );
+    }
+    let mut sources = Vec::with_capacity(files.len());
+    for file in &files {
+        let sql = std::fs::read_to_string(file)
+            .with_context(|| format!("reading schema file {}", file.display()))?;
+        sources.push((format!("{}.sql", sql_files::name_within(dir, file)), sql));
+    }
+
+    let name = dir.file_name().and_then(|s| s.to_str()).unwrap_or("schema");
+    let outcome = craber_parser::parse_files(&sources, input.dialect, name);
+
+    refuse_on_errors(&outcome, &format!("could not read {}", dir.display()))?;
     Ok(outcome)
 }
 

@@ -1,5 +1,6 @@
-//! The `.sql` files beneath a directory, for an option that takes one —
-//! `--flow`, where each is a workflow.
+//! The `.sql` files beneath a directory, for the two options that take one:
+//! `--file`, where they are read as one schema, and `--flow`, where each is a
+//! workflow.
 
 use std::path::{Path, PathBuf};
 
@@ -10,6 +11,31 @@ pub(crate) fn sorted_under(dir: &Path) -> std::io::Result<Vec<PathBuf>> {
     under(dir, &mut found)?;
     found.sort();
     Ok(found)
+}
+
+/// The `.sql` files beneath `dir` that make up a schema: [`sorted_under`]
+/// without the migrations that roll one back.
+pub(crate) fn schema_under(dir: &Path) -> std::io::Result<Vec<PathBuf>> {
+    let mut found = sorted_under(dir)?;
+    found.retain(|path| !is_rollback(path));
+    Ok(found)
+}
+
+/// Whether `path` undoes a migration rather than applying one, by the naming
+/// of the tools that keep the two in separate files: sqlx and golang-migrate
+/// (`0001_x.down.sql`), diesel (`0001_x/down.sql`) and Flyway (`U1__x.sql`).
+///
+/// Read with the rest, one would put back a table a migration dropped, or take
+/// out a column another added — and `.down.sql` sorts before `.up.sql`.
+fn is_rollback(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+        return false;
+    };
+    let lower = name.to_ascii_lowercase();
+    let flyway_undo = name.starts_with('U')
+        && name[1..].starts_with(|c: char| c.is_ascii_digit())
+        && name.contains("__");
+    lower.ends_with(".down.sql") || lower == "down.sql" || flyway_undo
 }
 
 fn under(dir: &Path, found: &mut Vec<PathBuf>) -> std::io::Result<()> {

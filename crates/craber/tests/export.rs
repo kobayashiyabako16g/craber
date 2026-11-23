@@ -3,7 +3,7 @@
 
 mod common;
 
-use common::{assert_success, column, craber, fixture, scratch, table};
+use common::{assert_success, column, craber, fixture, scratch, table, table_names};
 
 #[test]
 fn exports_the_fixture_as_json() {
@@ -316,5 +316,202 @@ fn an_empty_flow_directory_is_a_warning() {
     assert!(
         stderr.contains("no .sql files under workflow directory"),
         "expected a warning about the empty directory, got: {stderr}"
+    );
+}
+
+/// A directory of migrations is one script in path order: a later file's
+/// `ALTER TABLE` amends the table an earlier one created, and a file that is
+/// hidden or not `.sql` is not read.
+#[test]
+fn a_file_directory_reads_every_sql_file_beneath_it_as_one_schema() {
+    let dir = scratch("schema-dir").join("migrations");
+    let write = |path: &str, sql: &str| {
+        let path = dir.join(path);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, sql).unwrap();
+    };
+    write(
+        "001_users.sql",
+        "CREATE TABLE users (id bigint PRIMARY KEY);",
+    );
+    write(
+        "002_orders.sql",
+        "CREATE TABLE orders (id bigint PRIMARY KEY, user_id bigint NOT NULL);",
+    );
+    write(
+        "billing/003_order_fk.sql",
+        "-- only a comment up here\n\
+         ALTER TABLE orders ADD FOREIGN KEY (user_id) REFERENCES users (id);",
+    );
+    write("004_empty.sql", "-- nothing yet\n");
+    write("notes.txt", "CREATE TABLE notes (id bigint);");
+    write(".drafts/005_hidden.sql", "CREATE TABLE hidden (id bigint);");
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert_success(&output, "craber export --file <dir>");
+    assert_eq!(String::from_utf8_lossy(&output.stderr).trim(), "");
+    let schema: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    assert_eq!(schema["name"], "migrations");
+    let mut names = table_names(&schema);
+    names.sort_unstable();
+    assert_eq!(names, ["orders", "users"]);
+    assert_eq!(
+        table(&schema, "orders")["fks"][0]["refTable"]["name"],
+        "users"
+    );
+}
+
+/// A warning names the file it came from, since `line 2` alone could be any
+/// of them.
+#[test]
+fn a_warning_from_a_file_directory_names_the_file() {
+    let dir = scratch("schema-dir-warning");
+    std::fs::write(
+        dir.join("a.sql"),
+        "CREATE TABLE users (id bigint PRIMARY KEY, nickname text);",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("b.sql"),
+        "\nCREATE TABLE broken (id bigint) FROBNICATE;",
+    )
+    .unwrap();
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert_success(&output, "craber export --file <dir>");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("b.sql line 2"),
+        "expected the warning to name b.sql, got: {stderr}"
+    );
+}
+
+/// One file that cannot be read loses only that file, as one statement that
+/// cannot be read loses only that statement.
+#[test]
+fn an_unreadable_file_in_a_directory_is_a_warning() {
+    let dir = scratch("schema-dir-unreadable");
+    std::fs::write(
+        dir.join("a.sql"),
+        "CREATE TABLE users (id bigint PRIMARY KEY);",
+    )
+    .unwrap();
+    std::fs::write(dir.join("b.sql"), "this is not sql at all").unwrap();
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert_success(&output, "craber export --file <dir>");
+    let schema: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    assert_eq!(table_names(&schema), ["users"]);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("(b.sql)"),
+        "expected a warning naming b.sql, got: {stderr}"
+    );
+}
+
+#[test]
+fn a_directory_of_which_no_file_can_be_read_is_an_error() {
+    let dir = scratch("schema-dir-nothing");
+    std::fs::write(dir.join("a.sql"), "this is not sql at all").unwrap();
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert!(!output.status.success(), "expected failure");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("(a.sql)"),
+        "expected the error to name a.sql, got: {stderr}"
+    );
+}
+
+#[test]
+fn an_empty_file_directory_is_an_error() {
+    let dir = scratch("schema-dir-empty");
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert!(!output.status.success(), "expected failure");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("no .sql files under schema directory"),
+        "expected an error about the empty directory, got: {stderr}"
+    );
+}
+
+/// The directory's name is evidence of the dialect, as a file's is: backticks
+/// would not parse as Postgres.
+#[test]
+fn a_file_directory_infers_the_dialect_from_its_name() {
+    let dir = scratch("schema-dir-dialect").join("mysql");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("a.sql"),
+        "CREATE TABLE `users` (`id` bigint PRIMARY KEY);",
+    )
+    .unwrap();
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert_success(&output, "craber export --file mysql/");
+    let schema: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    assert_eq!(table_names(&schema), ["users"]);
+}
+
+/// Read with the rest, a down migration would put back a table an up dropped
+/// and take out a column another added — and `.down.sql` sorts before
+/// `.up.sql`. Each tool's naming is passed over: sqlx and golang-migrate,
+/// diesel, Flyway.
+#[test]
+fn a_file_directory_skips_down_migrations() {
+    let dir = scratch("schema-dir-down");
+    let write = |path: &str, sql: &str| {
+        let path = dir.join(path);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, sql).unwrap();
+    };
+    write(
+        "0001_users.up.sql",
+        "CREATE TABLE users (id bigint PRIMARY KEY, nickname text);",
+    );
+    write("0001_users.down.sql", "DROP TABLE users;");
+    write("0002_ghost.up.sql", "DROP TABLE ghost;");
+    write(
+        "0002_ghost.down.sql",
+        "CREATE TABLE ghost (id bigint PRIMARY KEY);",
+    );
+    write(
+        "0003_nickname.down.sql",
+        "ALTER TABLE users DROP COLUMN nickname;",
+    );
+    write(
+        "2024_posts/up.sql",
+        "CREATE TABLE posts (id bigint PRIMARY KEY);",
+    );
+    write(
+        "2024_posts/down.sql",
+        "CREATE TABLE diesel_ghost (id bigint PRIMARY KEY);",
+    );
+    write(
+        "U4__flyway.sql",
+        "CREATE TABLE flyway_ghost (id bigint PRIMARY KEY);",
+    );
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert_success(&output, "craber export --file <migrations>");
+    assert_eq!(String::from_utf8_lossy(&output.stderr).trim(), "");
+    let schema: serde_json::Value = serde_json::from_slice(&output.stdout).expect("valid JSON");
+    let mut names = table_names(&schema);
+    names.sort_unstable();
+    assert_eq!(names, ["posts", "users"]);
+    column(table(&schema, "users"), "nickname");
+}
+
+#[test]
+fn a_directory_of_only_down_migrations_is_an_error() {
+    let dir = scratch("schema-dir-only-down");
+    std::fs::write(dir.join("0001_x.down.sql"), "DROP TABLE x;").unwrap();
+
+    let output = craber(&["export", "--file", dir.to_str().unwrap()]);
+    assert!(!output.status.success(), "expected failure");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("other than down migrations"),
+        "expected the error to mention down migrations, got: {stderr}"
     );
 }

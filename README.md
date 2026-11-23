@@ -162,6 +162,21 @@ Export the intermediate JSON — the laid-out schema every view is drawn from:
 $ craber export --file schema.sql --format json -o schema.json
 ```
 
+Point `--file` at a directory to read every `.sql` file beneath it as one
+script, in order of their paths — a later file's `ALTER TABLE` amends an earlier
+file's table, so a directory of migrations can be drawn as it is:
+
+```console
+$ craber serve --file db/migrations/
+```
+
+Down migrations are skipped: `*.down.sql` (sqlx, golang-migrate), `down.sql`
+(diesel) and `U…__*.sql` (Flyway undo). Up and down sections in one file
+(goose, dbmate) are not told apart. The files are not replayed one by one —
+every `CREATE TABLE` is read before any `ALTER`, and `DROP TABLE` and renames are
+not applied — so migrations that only add draw the schema they build, but a
+history that drops or renames a table does not.
+
 Read a running database instead of a file — every command takes `--dsn`, and the
 scheme picks the dialect:
 
