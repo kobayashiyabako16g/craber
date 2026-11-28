@@ -14,6 +14,10 @@
   <img src="https://raw.githubusercontent.com/kobayashiyabako16g/craber/main/docs/assets/screenshot.png" alt="craber serve showing the shop example: a table list on the left, the orders table selected with its relationships highlighted and a notation legend below, and on the right a details panel with Columns, Relations and DDL tabs, listing each column's key and NOT NULL badges and its comment">
 </p>
 
+<p align="center">
+  <strong><a href="https://kobayashiyabako16g.github.io/craber/">Live demo</a></strong> — a sample site built by <code>craber build</code>, no install needed.
+</p>
+
 **Status: pre-alpha.** PostgreSQL, MySQL and SQLite — from DDL or from a live
 connection — BigQuery from DDL, the layout algorithm, the interactive UI and the static
 site all work. Expect breaking changes between releases.
