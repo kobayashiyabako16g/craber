@@ -55,7 +55,7 @@ jobs:
           grep -qx '.github/build-setup.yml' <<<"$files" && echo dist=true >>"$GITHUB_OUTPUT" || true
 
       - if: steps.changed.outputs.pnpm || steps.changed.outputs.dist
-        uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+        uses: cachix/install-nix-action@382a9ed9481c7c1f94f68b72ef105b3417c73877 # v32.1.0
         with:
           # Unauthenticated github: input fetches from a hosted runner share a
           # 60-requests-per-hour limit with every other runner on that IP.
