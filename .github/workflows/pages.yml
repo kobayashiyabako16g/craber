@@ -1,0 +1,73 @@
+name: Pages
+
+# Publishes a live sample of what `craber build` writes: the fixture schema the
+# dev server shows, with its workflows, at https://<owner>.github.io/craber/.
+# It is built by the same binary a user runs, so the page is the product rather
+# than a mock-up of it.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time, and never cancel one halfway: a cancelled deploy
+# can leave Pages serving nothing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build sample site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/package.json
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      # Before cargo: the bundle is compiled into the binary, and a binary
+      # built without it cannot write a site.
+      - name: Build the web bundle
+        run: pnpm install --frozen-lockfile && pnpm build
+        working-directory: web
+
+      # Asset URLs are relative, so the site works under /<repo>/ as written.
+      - name: Build the sample site
+        run: >-
+          cargo run --release -p craber -- build
+          --file fixtures/tiny.sql
+          --flow fixtures/flows/checkout.sql
+          --flow fixtures/flows/account-closure.sql
+          -o _site
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
